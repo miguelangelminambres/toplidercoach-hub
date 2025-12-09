@@ -2652,30 +2652,32 @@
             cargarEjercicios(1);
         }
         
-        async function cargarFiltrosOpciones() {
+    async function cargarFiltrosOpciones() {
             try {
                 const response = await fetch(`${API_BASE}/filtros`);
                 const data = await response.json();
                 
-                if (data.entrenadores) {
-                    const select = document.getElementById('filtro-entrenador');
-                    data.entrenadores.forEach(e => {
-                        select.innerHTML += `<option value="${e}">${e.replace(/_/g, ' ')}</option>`;
-                    });
-                }
-                
-                if (data.equipos) {
-                    const select = document.getElementById('filtro-equipo');
-                    data.equipos.forEach(e => {
-                        select.innerHTML += `<option value="${e}">${e.replace(/_/g, ' ')}</option>`;
-                    });
-                }
-                
-                if (data.temas) {
-                    const select = document.getElementById('filtro-tema');
-                    data.temas.forEach(t => {
-                        select.innerHTML += `<option value="${t}">${t}</option>`;
-                    });
+                if (data.success && data.filtros) {
+                    if (data.filtros.entrenadores) {
+                        const select = document.getElementById('filtro-entrenador');
+                        data.filtros.entrenadores.forEach(e => {
+                            select.innerHTML += `<option value="${e}">${e.replace(/_/g, ' ')}</option>`;
+                        });
+                    }
+                    
+                    if (data.filtros.equipos) {
+                        const select = document.getElementById('filtro-equipo');
+                        data.filtros.equipos.forEach(e => {
+                            select.innerHTML += `<option value="${e}">${e.replace(/_/g, ' ')}</option>`;
+                        });
+                    }
+                    
+                    if (data.filtros.temas) {
+                        const select = document.getElementById('filtro-tema');
+                        data.filtros.temas.forEach(t => {
+                            select.innerHTML += `<option value="${t}">${t}</option>`;
+                        });
+                    }
                 }
             } catch (error) {
                 console.error('Error cargando filtros:', error);

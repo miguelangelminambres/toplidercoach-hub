@@ -1,0 +1,3797 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HUB TopLiderCoach</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+        
+        /* ========== LOGIN ========== */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+        
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .login-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-logo h1 {
+            font-size: 28px;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+        
+        .login-logo p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        .login-box input {
+            width: 100%;
+            padding: 14px 18px;
+            margin-bottom: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+        }
+        
+        .login-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .login-box button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .login-box button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .login-error {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: none;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        /* ========== HEADER ========== */
+        .app-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        
+        .app-header h1 {
+            font-size: 22px;
+            font-weight: 700;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .club-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 15px;
+            border-radius: 10px;
+        }
+        
+        .club-badge img {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            object-fit: contain;
+            background: white;
+        }
+        
+        .club-badge .club-initial {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+        
+        .club-badge span {
+            font-weight: 500;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .user-name {
+            font-weight: 500;
+            opacity: 0.9;
+        }
+        
+        .btn-logout {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .btn-logout:hover {
+            background: rgba(255,255,255,0.25);
+        }
+        
+        /* ========== TABS PRINCIPALES ========== */
+        .main-tabs {
+            display: flex;
+            background: white;
+            border-bottom: 2px solid #e5e7eb;
+            padding: 0 20px;
+        }
+        
+        .main-tab {
+            padding: 18px 30px;
+            border: none;
+            background: none;
+            font-size: 15px;
+            font-weight: 600;
+            color: #6b7280;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .main-tab:hover {
+            color: #374151;
+            background: #f9fafb;
+        }
+        
+        .main-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .main-tab.planificador.active {
+            color: #7c3aed;
+            border-bottom-color: #7c3aed;
+        }
+        
+        .main-tab.matchstats.active {
+            color: #059669;
+            border-bottom-color: #059669;
+        }
+        
+        .main-tab.config.active {
+            color: #d97706;
+            border-bottom-color: #d97706;
+        }
+        
+        /* ========== SUB TABS ========== */
+        .sub-tabs {
+            display: flex;
+            background: #f8fafc;
+            padding: 10px 20px;
+            gap: 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .sub-tab {
+            padding: 10px 20px;
+            border: none;
+            background: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        
+        .sub-tab:hover {
+            border-color: #e5e7eb;
+        }
+        
+        .sub-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        /* Colores específicos por módulo */
+        .planificador-subtabs .sub-tab.active {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+        }
+        
+        .matchstats-subtabs .sub-tab.active {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+        
+        .config-subtabs .sub-tab.active {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+        }
+        
+        /* ========== VISTAS ========== */
+        .vista-modulo {
+            display: none;
+        }
+        
+        .vista-modulo.active {
+            display: block;
+        }
+        
+        .vista-contenido {
+            display: none;
+            padding: 25px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .vista-contenido.active {
+            display: block;
+        }
+        
+        /* ========== HEADERS DE SECCIÓN ========== */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .section-header h2 {
+            font-size: 24px;
+            color: #1f2937;
+        }
+        
+        /* ========== BOTONES GENERALES ========== */
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary.green {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+        
+        .btn-primary.green:hover {
+            box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4);
+        }
+        
+        .btn-primary.purple {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+        }
+        
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .btn-danger {
+            background: #fee2e2;
+            color: #dc2626;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        /* ========== CARDS ========== */
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        /* ========== FORMULARIOS ========== */
+        .form-group {
+            margin-bottom: 18px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: border-color 0.2s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        /* ========== GRIDS ========== */
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        /* ========== LOADING & EMPTY ========== */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+        
+        .empty-state .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .empty-state h3 {
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+        
+        /* ========== MODALES ========== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            font-size: 20px;
+            color: #1f2937;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #9ca3af;
+            line-height: 1;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        /* ========== FILTROS ========== */
+        .filtros-bar {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .filtro-grupo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filtro-grupo label {
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 14px;
+        }
+        
+        .filtro-grupo input,
+        .filtro-grupo select {
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .filtro-btn {
+            padding: 8px 16px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .filtro-btn.active {
+            border-color: #667eea;
+            background: #f0f0ff;
+            color: #667eea;
+        }
+
+        /* ========== ESPECÍFICO PLANIFICADOR ========== */
+        .planificador-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr 350px;
+            gap: 20px;
+            height: calc(100vh - 200px);
+        }
+        
+        .panel {
+            background: white;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        
+        .panel-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        
+        .panel-header h3 {
+            font-size: 16px;
+            color: #1f2937;
+        }
+        
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        
+        /* Biblioteca de ejercicios */
+        .ejercicio-card {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 2px solid #e5e7eb;
+            cursor: pointer;
+            transition: all 0.2s;
+            align-items: center;
+        }
+        
+        .ejercicio-card:hover {
+            border-color: #7c3aed;
+            background: #faf5ff;
+        }
+        
+        .ejercicio-card.selected {
+            border-color: #7c3aed;
+            background: #f3e8ff;
+        }
+        
+        .ejercicio-card img {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+        
+        .ejercicio-card .info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .ejercicio-card .titulo {
+            font-weight: 600;
+            font-size: 13px;
+            color: #1f2937;
+            margin-bottom: 5px;
+            line-height: 1.3;
+        }
+        
+        .ejercicio-card .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .ejercicio-card .tag {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+        
+        .ejercicio-card .tag.dificultad {
+            background: #fef3c7;
+            color: #b45309;
+        }
+        
+        .ejercicio-card .btn-agregar {
+            background: #7c3aed;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        
+        .ejercicio-card .btn-agregar:hover {
+            background: #6d28d9;
+            transform: scale(1.05);
+        }
+        
+        /* Sesión */
+        .seccion-ejercicios {
+            margin-bottom: 20px;
+        }
+        
+        .seccion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .seccion-header.calentamiento {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+        }
+        
+        .seccion-header.principal {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+        
+        .seccion-header.enfriamiento {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .ejercicio-en-sesion {
+            background: white;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .ejercicio-en-sesion .nombre {
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .ejercicio-en-sesion .duracion {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .ejercicio-en-sesion button {
+            background: #fee2e2;
+            border: none;
+            color: #dc2626;
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        /* Detalles ejercicio */
+        .detalle-ejercicio {
+            text-align: center;
+            color: #9ca3af;
+            padding: 40px 20px;
+        }
+        
+        .detalle-ejercicio.active {
+            text-align: left;
+            color: #1f2937;
+        }
+        
+        .detalle-ejercicio img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .detalle-ejercicio h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        
+        .detalle-ejercicio p {
+            font-size: 14px;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+        
+        .detalle-seccion {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border-left: 4px solid #7c3aed;
+        }
+        
+        .detalle-seccion h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        
+        .detalle-seccion p {
+            font-size: 13px;
+            color: #4b5563;
+            line-height: 1.6;
+            margin: 0;
+            white-space: pre-wrap;
+        }
+        
+        .btn-ver-completo {
+            display: block;
+            text-align: center;
+            background: #7c3aed;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+        
+        .btn-ver-completo:hover {
+            background: #6d28d9;
+        }
+
+        /* ========== ESPECÍFICO MATCHSTATS ========== */
+        .partido-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: all 0.2s;
+        }
+        
+        .partido-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        
+        .partido-card-header {
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .partido-fecha {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 5px;
+        }
+        
+        .partido-competicion {
+            font-size: 12px;
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 3px 10px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .partido-card-body {
+            padding: 20px;
+        }
+        
+        .partido-equipos {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .equipo {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .equipo-nombre {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 14px;
+        }
+        
+        .equipo-tipo {
+            font-size: 11px;
+            color: #9ca3af;
+            margin-top: 3px;
+        }
+        
+        .partido-resultado {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1f2937;
+            padding: 0 15px;
+        }
+        
+        .partido-resultado.pendiente {
+            font-size: 14px;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+        
+        .resultado-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .resultado-badge.victoria { background: #d1fae5; color: #059669; }
+        .resultado-badge.empate { background: #fef3c7; color: #d97706; }
+        .resultado-badge.derrota { background: #fee2e2; color: #dc2626; }
+        .resultado-badge.pendiente { background: #e5e7eb; color: #6b7280; }
+        
+        .partido-card-footer {
+            padding: 15px 20px;
+            background: #f8fafc;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .partido-card-footer button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        
+        .btn-ver { background: #e0f2fe; color: #0369a1; }
+        .btn-stats { background: #fef3c7; color: #d97706; }
+        .btn-pdf { background: #f3e8ff; color: #9333ea; }
+        .btn-eliminar { background: #fee2e2; color: #dc2626; }
+        
+        /* Stats resumen */
+        .stats-resumen {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .stat-card .valor {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+        
+        .stat-card .label {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+        
+        .stat-card.victoria { border-left: 4px solid #10b981; }
+        .stat-card.empate { border-left: 4px solid #f59e0b; }
+        .stat-card.derrota { border-left: 4px solid #ef4444; }
+        
+        /* Tabla stats */
+        .stats-tabla {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .stats-tabla th {
+            background: #f8fafc;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #64748b;
+            font-size: 13px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .stats-tabla td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #1f2937;
+        }
+        
+        .stats-tabla tr:hover {
+            background: #f8fafc;
+        }
+        
+        .jugador-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .jugador-mini-foto {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            overflow: hidden;
+        }
+        
+        .jugador-mini-foto img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* ========== ESPECÍFICO MI CLUB ========== */
+        .config-club-content {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .escudo-section {
+            text-align: center;
+        }
+        
+        .escudo-upload {
+            width: 150px;
+            height: 150px;
+            border: 3px dashed #d1d5db;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: #f9fafb;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+        
+        .escudo-upload:hover {
+            border-color: #667eea;
+        }
+        
+        .escudo-upload .icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        
+        .escudo-upload span {
+            color: #6b7280;
+            font-size: 13px;
+        }
+        
+        .escudo-upload img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .escudo-hint {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        
+        .club-form {
+            flex: 1;
+            min-width: 280px;
+        }
+        
+        /* Temporadas */
+        .temporadas-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .temporada-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: #f9fafb;
+            border-radius: 12px;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .temporada-card.active {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+        
+        .temporada-info h4 {
+            font-size: 16px;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+        
+        .temporada-info p {
+            font-size: 12px;
+            color: #6b7280;
+            margin: 0;
+        }
+        
+        .temporada-badge {
+            background: #10b981;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .temporada-actions button {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .btn-activar {
+            background: #d1fae5;
+            color: #059669;
+        }
+        
+        .nueva-temporada-form {
+            background: #f0fdf4;
+            border: 2px dashed #10b981;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .nueva-temporada-form h4 {
+            color: #059669;
+            margin-bottom: 15px;
+        }
+        
+        /* Plantilla */
+        .plantilla-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .plantilla-contador {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        .plantilla-contador.warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        
+        .plantilla-contador.full {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        
+        .jugadores-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        
+        .jugador-card {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            border: 2px solid #e5e7eb;
+            transition: all 0.2s;
+        }
+        
+        .jugador-card:hover {
+            border-color: #667eea;
+        }
+        
+        .jugador-foto {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        
+        .jugador-foto img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .jugador-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .jugador-info h4 {
+            color: #1f2937;
+            margin-bottom: 2px;
+            font-size: 14px;
+        }
+        
+        .jugador-info p {
+            font-size: 12px;
+            color: #6b7280;
+            margin: 0;
+        }
+        
+        .jugador-dorsal {
+            background: #1f2937;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+        }
+        
+        .jugador-status {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            margin-top: 3px;
+            display: inline-block;
+        }
+        
+        .jugador-status.available { background: #d1fae5; color: #059669; }
+        .jugador-status.injured { background: #fee2e2; color: #dc2626; }
+        .jugador-status.suspended { background: #fef3c7; color: #d97706; }
+        
+        .jugador-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .jugador-actions button {
+            padding: 5px 8px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .jugador-actions .btn-edit { background: #e5e7eb; color: #374151; }
+        .jugador-actions .btn-delete { background: #fee2e2; color: #dc2626; }
+        
+        .add-jugador-card {
+            background: #f0f0ff;
+            border: 2px dashed #667eea;
+            border-radius: 12px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            min-height: 100px;
+        }
+        
+        .add-jugador-card:hover {
+            background: #e8e8ff;
+        }
+        
+        .add-jugador-card .icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        
+        .add-jugador-card span {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        /* ========== CALENDARIO ========== */
+        .calendario-container {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        
+        .calendario-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .calendario-nav {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .calendario-nav button {
+            padding: 8px 16px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .mes-actual {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            min-width: 180px;
+            text-align: center;
+        }
+        
+        .calendario-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        
+        .calendario-dia-header {
+            text-align: center;
+            font-weight: 600;
+            color: #6b7280;
+            padding: 10px;
+            font-size: 13px;
+        }
+        
+        .calendario-dia {
+            min-height: 80px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px;
+            background: white;
+        }
+        
+        .calendario-dia.otro-mes {
+            background: #f9fafb;
+            opacity: 0.5;
+        }
+        
+        .calendario-dia.hoy {
+            border-color: #667eea;
+            background: #f0f0ff;
+        }
+        
+        .calendario-dia .numero {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+        
+        .calendario-evento {
+            font-size: 11px;
+            padding: 3px 6px;
+            border-radius: 4px;
+            margin-bottom: 3px;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .calendario-evento.sesion {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+        
+        .calendario-evento.partido {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        /* ========== MIS SESIONES ========== */
+        .sesion-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        
+        .sesion-card-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .sesion-card-header h3 {
+            font-size: 18px;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        
+        .sesion-card-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 13px;
+            color: #6b7280;
+        }
+        
+        .sesion-card-resumen {
+            display: flex;
+            padding: 15px 20px;
+            gap: 15px;
+        }
+        
+        .seccion-resumen {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            border-radius: 12px;
+        }
+        
+        .seccion-resumen.calentamiento {
+            background: #fff7ed;
+            color: #ea580c;
+        }
+        
+        .seccion-resumen.principal {
+            background: #eff6ff;
+            color: #2563eb;
+        }
+        
+        .seccion-resumen.enfriamiento {
+            background: #ecfdf5;
+            color: #059669;
+        }
+        
+        .seccion-resumen strong {
+            font-size: 24px;
+            display: block;
+        }
+        
+        .sesion-card-actions {
+            padding: 15px 20px;
+            background: #f8fafc;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .sesion-card-actions button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        
+        .btn-cargar { background: #3b82f6; color: white; }
+        .btn-pdf-sesion { background: #8b5cf6; color: white; }
+        .btn-eliminar-sesion { background: #fee2e2; color: #dc2626; }
+
+        /* ========== CONVOCATORIA ========== */
+        .convocatoria-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .jugador-check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .jugador-check:hover {
+            background: #f1f5f9;
+        }
+        
+        .jugador-check.selected {
+            background: #ecfdf5;
+            border-color: #10b981;
+        }
+        
+        .jugador-check input {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .jugador-check-info .nombre {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .jugador-check-info .posicion {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .jugador-check .dorsal {
+            background: #1f2937;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 12px;
+            margin-left: auto;
+        }
+
+        /* ========== STATS JUGADORES PARTIDO ========== */
+        .stats-jugadores-grid .jugador-stats-row {
+            display: grid;
+            grid-template-columns: 2fr repeat(5, 1fr);
+            gap: 10px;
+            align-items: center;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+        
+        .jugador-stats-row .nombre {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .jugador-stats-row input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .stats-labels {
+            display: grid;
+            grid-template-columns: 2fr repeat(5, 1fr);
+            gap: 10px;
+            padding: 0 12px;
+            margin-bottom: 10px;
+        }
+        
+        .stats-labels span {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            text-align: center;
+        }
+        
+        .stats-labels span:first-child {
+            text-align: left;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 1200px) {
+            .planificador-layout {
+                grid-template-columns: 1fr 1fr;
+                height: auto;
+            }
+            
+            .planificador-layout .panel:last-child {
+                grid-column: span 2;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-tabs {
+                padding: 0 10px;
+                overflow-x: auto;
+            }
+            
+            .main-tab {
+                padding: 14px 18px;
+                font-size: 14px;
+                white-space: nowrap;
+            }
+            
+            .sub-tabs {
+                overflow-x: auto;
+                padding: 10px;
+            }
+            
+            .planificador-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .planificador-layout .panel:last-child {
+                grid-column: span 1;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .grid-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .config-club-content {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .header-right {
+                flex-wrap: wrap;
+            }
+            
+            .club-badge {
+                display: none;
+            }
+            
+            .stats-resumen {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .jugador-stats-row {
+                grid-template-columns: 1fr repeat(3, 1fr) !important;
+            }
+            
+            .stats-labels {
+                grid-template-columns: 1fr repeat(3, 1fr) !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ==================== LOGIN ==================== -->
+    <div id="login-container" class="login-container">
+        <div class="login-box">
+            <div class="login-logo">
+                <h1>HUB TopLiderCoach</h1>
+                <p>Plataforma integral para entrenadores</p>
+            </div>
+            <div id="login-error" class="login-error"></div>
+            <input type="text" id="username" placeholder="Usuario o email">
+            <input type="password" id="password" placeholder="Contrasena">
+            <button onclick="login()">Iniciar Sesion</button>
+        </div>
+    </div>
+    
+    <!-- ==================== APP ==================== -->
+    <div id="app-container" style="display: none;">
+        <!-- Header -->
+        <header class="app-header">
+            <h1>HUB TopLiderCoach</h1>
+            <div class="header-right">
+                <div class="club-badge" id="club-badge">
+                    <div class="club-initial" id="club-initial">?</div>
+                    <span id="club-nombre-header">Mi Club</span>
+                </div>
+                <div class="user-info">
+                    <span class="user-name" id="user-name"></span>
+                    <button class="btn-logout" onclick="logout()">Salir</button>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Tabs Principales -->
+        <div class="main-tabs">
+            <button class="main-tab planificador active" onclick="cambiarModulo('planificador', this)">
+                Planificador
+            </button>
+            <button class="main-tab matchstats" onclick="cambiarModulo('matchstats', this)">
+                MatchStats
+            </button>
+            <button class="main-tab config" onclick="cambiarModulo('config', this)">
+                Mi Club
+            </button>
+        </div>
+        
+        <!-- ==================== MODULO: PLANIFICADOR ==================== -->
+        <div id="modulo-planificador" class="vista-modulo active">
+            <div class="sub-tabs planificador-subtabs">
+                <button class="sub-tab active" onclick="cambiarSubTab('planificador', 'crear', this)">Crear Sesion</button>
+                <button class="sub-tab" onclick="cambiarSubTab('planificador', 'mis-sesiones', this)">Mis Sesiones</button>
+                <button class="sub-tab" onclick="cambiarSubTab('planificador', 'calendario', this)">Calendario</button>
+            </div>
+            
+            <!-- Sub: Crear Sesión -->
+            <div id="planificador-crear" class="vista-contenido active">
+                <div class="section-header">
+                    <h2>Crear Nueva Sesion</h2>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-secondary" onclick="limpiarSesion()">Nueva Sesion</button>
+                        <button class="btn-primary purple" onclick="guardarSesion()">Guardar Sesion</button>
+                    </div>
+                </div>
+                
+                <!-- Info de la sesión -->
+                <div class="card" style="margin-bottom: 20px;">
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nombre de la Sesion</label>
+                                <input type="text" id="sesion-nombre" placeholder="Ej: Entrenamiento tactica ofensiva">
+                            </div>
+                            <div class="form-group">
+                                <label>Fecha</label>
+                                <input type="date" id="sesion-fecha">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Layout del planificador -->
+                <div class="planificador-layout">
+                    <!-- Panel Biblioteca -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h3>Biblioteca de Ejercicios</h3>
+                        </div>
+                        <div class="panel-content">
+                            <div class="form-group">
+                                <input type="text" id="buscar-ejercicio" placeholder="Buscar ejercicio..." onkeyup="buscarEjercicios()">
+                            </div>
+                            <div id="lista-ejercicios">
+                                <div class="loading">Cargando ejercicios...</div>
+                            </div>
+                            <div id="paginacion-ejercicios" style="text-align: center; margin-top: 15px;"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Panel Sesión -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h3>Mi Sesion</h3>
+                        </div>
+                        <div class="panel-content">
+                            <!-- Calentamiento -->
+                            <div class="seccion-ejercicios">
+                                <div class="seccion-header calentamiento">
+                                    <span>Calentamiento</span>
+                                    <span id="tiempo-calentamiento">0 min</span>
+                                </div>
+                                <div id="lista-calentamiento"></div>
+                            </div>
+                            
+                            <!-- Principal -->
+                            <div class="seccion-ejercicios">
+                                <div class="seccion-header principal">
+                                    <span>Parte Principal</span>
+                                    <span id="tiempo-principal">0 min</span>
+                                </div>
+                                <div id="lista-principal"></div>
+                            </div>
+                            
+                            <!-- Enfriamiento -->
+                            <div class="seccion-ejercicios">
+                                <div class="seccion-header enfriamiento">
+                                    <span>Enfriamiento</span>
+                                    <span id="tiempo-enfriamiento">0 min</span>
+                                </div>
+                                <div id="lista-enfriamiento"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Panel Detalles -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h3>Detalles</h3>
+                        </div>
+                        <div class="panel-content">
+                            <div id="detalle-ejercicio" class="detalle-ejercicio">
+                                <p>Selecciona un ejercicio para ver sus detalles</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sub: Mis Sesiones -->
+            <div id="planificador-mis-sesiones" class="vista-contenido">
+                <div class="section-header">
+                    <h2>Mis Sesiones Guardadas</h2>
+                    <button class="btn-secondary" onclick="cargarMisSesiones()">Actualizar</button>
+                </div>
+                
+                <div class="filtros-bar">
+                    <div class="filtro-grupo">
+                        <label>Desde:</label>
+                        <input type="date" id="filtro-sesion-desde">
+                    </div>
+                    <div class="filtro-grupo">
+                        <label>Hasta:</label>
+                        <input type="date" id="filtro-sesion-hasta">
+                    </div>
+                    <button class="btn-primary" onclick="cargarMisSesiones()">Filtrar</button>
+                    <button class="btn-secondary" onclick="limpiarFiltroSesiones()">Limpiar</button>
+                </div>
+                
+                <div id="lista-mis-sesiones" class="grid-cards">
+                    <div class="loading">Cargando sesiones...</div>
+                </div>
+            </div>
+            
+            <!-- Sub: Calendario -->
+            <div id="planificador-calendario" class="vista-contenido">
+                <div class="calendario-container">
+                    <div class="calendario-header">
+                        <h2>Calendario de Sesiones</h2>
+                        <div class="calendario-nav">
+                            <button onclick="mesAnteriorSesiones()">Anterior</button>
+                            <span class="mes-actual" id="mes-actual-sesiones">Diciembre 2025</span>
+                            <button onclick="mesSiguienteSesiones()">Siguiente</button>
+                        </div>
+                    </div>
+                    <div class="calendario-grid" id="calendario-sesiones">
+                        <!-- Se genera dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ==================== MODULO: MATCHSTATS ==================== -->
+        <div id="modulo-matchstats" class="vista-modulo">
+            <div class="sub-tabs matchstats-subtabs">
+                <button class="sub-tab active" onclick="cambiarSubTab('matchstats', 'partidos', this)">Partidos</button>
+                <button class="sub-tab" onclick="cambiarSubTab('matchstats', 'estadisticas', this)">Estadisticas</button>
+            </div>
+            
+            <!-- Sub: Partidos -->
+            <div id="matchstats-partidos" class="vista-contenido active">
+                <div class="section-header">
+                    <h2>Partidos</h2>
+                    <button class="btn-primary green" onclick="abrirModalPartido()">+ Nuevo Partido</button>
+                </div>
+                
+                <div class="filtros-bar">
+                    <button class="filtro-btn active" onclick="filtrarPartidos('todos', this)">Todos</button>
+                    <button class="filtro-btn" onclick="filtrarPartidos('proximos', this)">Proximos</button>
+                    <button class="filtro-btn" onclick="filtrarPartidos('jugados', this)">Jugados</button>
+                </div>
+                
+                <div id="lista-partidos" class="grid-cards">
+                    <div class="loading">Cargando partidos...</div>
+                </div>
+            </div>
+            
+            <!-- Sub: Estadísticas -->
+            <div id="matchstats-estadisticas" class="vista-contenido">
+                <div class="section-header">
+                    <h2>Estadisticas de Temporada</h2>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <select id="stats-temporada" onchange="cargarEstadisticas()"></select>
+                        <button class="btn-primary" onclick="exportarEstadisticasPDF()">Exportar PDF</button>
+                    </div>
+                </div>
+                
+                <div class="stats-resumen" id="stats-resumen">
+                    <!-- Se genera dinámicamente -->
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Estadisticas por Jugador</h3>
+                    </div>
+                    <div class="card-body" style="overflow-x: auto;">
+                        <table class="stats-tabla">
+                            <thead>
+                                <tr>
+                                    <th>Jugador</th>
+                                    <th>PJ</th>
+                                    <th>Min</th>
+                                    <th>Goles</th>
+                                    <th>Asist.</th>
+                                    <th>TA</th>
+                                    <th>TR</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stats-tabla-body">
+                                <!-- Se genera dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ==================== MODULO: MI CLUB ==================== -->
+        <div id="modulo-config" class="vista-modulo">
+            <div class="sub-tabs config-subtabs">
+                <button class="sub-tab active" onclick="cambiarSubTab('config', 'datos', this)">Datos del Club</button>
+                <button class="sub-tab" onclick="cambiarSubTab('config', 'temporadas', this)">Temporadas</button>
+                <button class="sub-tab" onclick="cambiarSubTab('config', 'plantilla', this)">Plantilla</button>
+            </div>
+            
+            <!-- Sub: Datos del Club -->
+            <div id="config-datos" class="vista-contenido active">
+                <div class="card" style="max-width: 800px;">
+                    <div class="card-header">
+                        <h3>Datos del Club</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="config-club-content">
+                            <div class="escudo-section">
+                                <div class="escudo-upload" onclick="document.getElementById('escudo-input').click()">
+                                    <img id="escudo-preview" src="" alt="" style="display: none;">
+                                    <div id="escudo-placeholder">
+                                        <div class="icon">+</div>
+                                        <span>Subir escudo</span>
+                                    </div>
+                                </div>
+                                <input type="file" id="escudo-input" accept="image/*" style="display: none;" onchange="previsualizarEscudo(event)">
+                                <p class="escudo-hint">JPG, PNG (max 2MB)</p>
+                            </div>
+                            
+                            <div class="club-form">
+                                <div class="form-group">
+                                    <label>Nombre del Club *</label>
+                                    <input type="text" id="club-nombre" placeholder="Ej: CD Villareal">
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Pais</label>
+                                        <select id="club-pais">
+                                            <option value="Espana">Espana</option>
+                                            <option value="Mexico">Mexico</option>
+                                            <option value="Argentina">Argentina</option>
+                                            <option value="Colombia">Colombia</option>
+                                            <option value="Chile">Chile</option>
+                                            <option value="Peru">Peru</option>
+                                            <option value="Otro">Otro</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Formato de Equipo</label>
+                                        <select id="club-formato">
+                                            <option value="11">Futbol 11</option>
+                                            <option value="8">Futbol 8</option>
+                                            <option value="7">Futbol 7</option>
+                                            <option value="5">Futbol Sala</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn-primary" onclick="guardarClub()">Guardar Cambios</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sub: Temporadas -->
+            <div id="config-temporadas" class="vista-contenido">
+                <div class="card" style="max-width: 800px;">
+                    <div class="card-header">
+                        <h3>Temporadas</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 15px; border-radius: 0 10px 10px 0; margin-bottom: 20px;">
+                            <strong>Como funcionan las temporadas</strong>
+                            <p style="margin: 5px 0 0; font-size: 14px; color: #065f46;">Cada temporada tiene su propia plantilla (max 30 jugadores). Las sesiones, partidos y estadisticas se asocian a la temporada activa.</p>
+                        </div>
+                        
+                        <div id="lista-temporadas" class="temporadas-grid">
+                            <div class="loading">Cargando temporadas...</div>
+                        </div>
+                        
+                        <div class="nueva-temporada-form">
+                            <h4>+ Crear Nueva Temporada</h4>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Nombre</label>
+                                    <input type="text" id="nueva-temp-nombre" placeholder="2026/2027">
+                                </div>
+                                <div class="form-group">
+                                    <label>Fecha Inicio</label>
+                                    <input type="date" id="nueva-temp-inicio">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Fecha Fin</label>
+                                    <input type="date" id="nueva-temp-fin">
+                                </div>
+                                <div class="form-group" style="display: flex; align-items: flex-end;">
+                                    <button class="btn-primary green" style="width: 100%;" onclick="crearTemporada()">Crear Temporada</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sub: Plantilla -->
+            <div id="config-plantilla" class="vista-contenido">
+                <div class="section-header">
+                    <div class="plantilla-header" style="width: 100%;">
+                        <div class="filtro-grupo">
+                            <label>Temporada:</label>
+                            <select id="plantilla-temporada" onchange="cargarPlantilla()"></select>
+                        </div>
+                        <div id="plantilla-contador" class="plantilla-contador">0 / 30 jugadores</div>
+                    </div>
+                </div>
+                
+                <div id="lista-jugadores" class="jugadores-grid">
+                    <div class="loading">Cargando jugadores...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ==================== MODAL: NUEVO PARTIDO ==================== -->
+    <div id="modal-partido" class="modal-overlay" style="display: none;" onclick="cerrarModalPartido(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 id="modal-partido-titulo">Nuevo Partido</h3>
+                <button class="modal-close" onclick="cerrarModalPartido()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="partido-id" value="">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Rival *</label>
+                        <input type="text" id="partido-rival" placeholder="Nombre del equipo rival">
+                    </div>
+                    <div class="form-group">
+                        <label>Competicion</label>
+                        <input type="text" id="partido-competicion" placeholder="Liga, Copa, Amistoso...">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fecha *</label>
+                        <input type="date" id="partido-fecha">
+                    </div>
+                    <div class="form-group">
+                        <label>Hora</label>
+                        <input type="time" id="partido-hora">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Local/Visitante</label>
+                        <select id="partido-localidad">
+                            <option value="home">Local</option>
+                            <option value="away">Visitante</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Estadio/Campo</label>
+                        <input type="text" id="partido-estadio" placeholder="Nombre del campo">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Jornada/Ronda</label>
+                    <input type="text" id="partido-jornada" placeholder="Jornada 1, Cuartos de final...">
+                </div>
+                
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                    <h4 style="margin-bottom: 15px;">Convocatoria</h4>
+                    <div id="convocatoria-grid" class="convocatoria-grid">
+                        <div class="loading">Cargando jugadores...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="cerrarModalPartido()">Cancelar</button>
+                <button class="btn-primary green" onclick="guardarPartido()">Guardar Partido</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ==================== MODAL: RESULTADO Y STATS ==================== -->
+    <div id="modal-resultado" class="modal-overlay" style="display: none;" onclick="cerrarModalResultado(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>Resultado y Estadisticas</h3>
+                <button class="modal-close" onclick="cerrarModalResultado()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="resultado-partido-id" value="">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Goles a favor</label>
+                        <input type="number" id="resultado-favor" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Goles en contra</label>
+                        <input type="number" id="resultado-contra" min="0" value="0">
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <h4 style="margin-bottom: 15px;">Estadisticas por Jugador</h4>
+                    <div class="stats-labels">
+                        <span>Jugador</span>
+                        <span>Min</span>
+                        <span>Goles</span>
+                        <span>Asist.</span>
+                        <span>TA</span>
+                        <span>TR</span>
+                    </div>
+                    <div id="stats-jugadores-grid" class="stats-jugadores-grid">
+                        <!-- Se genera dinámicamente -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="cerrarModalResultado()">Cancelar</button>
+                <button class="btn-primary green" onclick="guardarResultado()">Guardar Resultado</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ==================== MODAL: JUGADOR ==================== -->
+    <div id="modal-jugador" class="modal-overlay" style="display: none;" onclick="cerrarModalJugador(event)">
+        <div class="modal-content" style="max-width: 500px;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 id="modal-jugador-titulo">Nuevo Jugador</h3>
+                <button class="modal-close" onclick="cerrarModalJugador()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="jugador-id" value="">
+                <input type="hidden" id="jugador-sp-id" value="">
+                
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div class="escudo-upload" style="width: 80px; height: 80px; margin: 0 auto; border-radius: 50%;" onclick="document.getElementById('jugador-foto-input').click()">
+                        <img id="jugador-foto-preview" src="" alt="" style="display: none; border-radius: 50%;">
+                        <div id="jugador-foto-placeholder">
+                            <div class="icon" style="font-size: 24px;">+</div>
+                        </div>
+                    </div>
+                    <input type="file" id="jugador-foto-input" accept="image/*" style="display: none;" onchange="previsualizarFotoJugador(event)">
+                </div>
+                
+                <div class="form-group">
+                    <label>Nombre Completo *</label>
+                    <input type="text" id="jugador-nombre" placeholder="Nombre y apellidos">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Dorsal *</label>
+                        <input type="number" id="jugador-dorsal" min="1" max="99">
+                    </div>
+                    <div class="form-group">
+                        <label>Posicion *</label>
+                        <select id="jugador-posicion">
+                            <option value="">Seleccionar...</option>
+                            <option value="Portero">Portero</option>
+                            <option value="Defensa Central">Defensa Central</option>
+                            <option value="Lateral Derecho">Lateral Derecho</option>
+                            <option value="Lateral Izquierdo">Lateral Izquierdo</option>
+                            <option value="Mediocentro Defensivo">Mediocentro Defensivo</option>
+                            <option value="Mediocentro">Mediocentro</option>
+                            <option value="Mediapunta">Mediapunta</option>
+                            <option value="Extremo Derecho">Extremo Derecho</option>
+                            <option value="Extremo Izquierdo">Extremo Izquierdo</option>
+                            <option value="Delantero Centro">Delantero Centro</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fecha Nacimiento</label>
+                        <input type="date" id="jugador-nacimiento">
+                    </div>
+                    <div class="form-group">
+                        <label>Pie Dominante</label>
+                        <select id="jugador-pie">
+                            <option value="Derecho">Derecho</option>
+                            <option value="Izquierdo">Izquierdo</option>
+                            <option value="Ambidiestro">Ambidiestro</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Altura (cm)</label>
+                        <input type="number" id="jugador-altura" placeholder="175">
+                    </div>
+                    <div class="form-group">
+                        <label>Peso (kg)</label>
+                        <input type="number" id="jugador-peso" placeholder="70" step="0.1">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Telefono</label>
+                        <input type="tel" id="jugador-telefono" placeholder="+34 600...">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="jugador-email" placeholder="jugador@email.com">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Estado</label>
+                    <select id="jugador-estado">
+                        <option value="available">Disponible</option>
+                        <option value="injured">Lesionado</option>
+                        <option value="suspended">Sancionado</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="cerrarModalJugador()">Cancelar</button>
+                <button class="btn-primary" onclick="guardarJugador()">Guardar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ==================== MODAL: SELECCIÓN SECCIÓN ==================== -->
+    <div id="modal-seccion" class="modal-overlay" style="display: none;" onclick="cerrarModalSeccion(event)">
+        <div class="modal-content" style="max-width: 400px;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>Selecciona la Seccion</h3>
+                <button class="modal-close" onclick="cerrarModalSeccion()">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <p style="margin-bottom: 20px; color: #6b7280;">¿A que parte de la sesion quieres añadir este ejercicio?</p>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <button class="btn-primary" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);" onclick="seleccionarSeccion('calentamiento')">Calentamiento</button>
+                    <button class="btn-primary" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);" onclick="seleccionarSeccion('principal')">Parte Principal</button>
+                    <button class="btn-primary" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="seleccionarSeccion('enfriamiento')">Enfriamiento</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
+
+    <script>
+        // ========== CONFIGURACIÓN ==========
+        const API_BASE = 'https://toplidercoach.com/wp-json/toplider/v1';
+        const SUPABASE_URL = 'https://cqteodxyvavyroxeshoz.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxdGVvZHh5dmF2eXJveGVzaG96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyNzc2OTksImV4cCI6MjA4MDg1MzY5OX0.8sJC6twae2pnrf8NDVlOV2KnSOhBC1RrqWC0IiuE614';
+        
+        let supabase = null;
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log('Supabase configurado');
+        } catch (e) {
+            console.error('Error Supabase:', e);
+        }
+        
+        // ========== ESTADO GLOBAL ==========
+        let usuario = null;
+        let token = null;
+        let clubId = null;
+        let seasonId = null;
+        let clubData = null;
+        
+        // Planificador
+        let ejercicioSeleccionado = null;
+        let paginaEjercicios = 1;
+        let sesion = { nombre: '', fecha: '', calentamiento: [], principal: [], enfriamiento: [] };
+        let calendarioMesSesiones = new Date().getMonth();
+        let calendarioAnioSesiones = new Date().getFullYear();
+        
+        // MatchStats
+        let filtroPartidos = 'todos';
+        
+        // Config
+        let jugadorEditando = null;
+        
+        // ========== LOGIN ==========
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('login-error');
+            
+            if (!username || !password) {
+                errorDiv.textContent = 'Por favor, introduce usuario y contrasena';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    usuario = data.user;
+                    token = data.token;
+                    localStorage.setItem('hub_user', JSON.stringify(usuario));
+                    localStorage.setItem('hub_token', token);
+                    mostrarApp();
+                } else {
+                    errorDiv.textContent = data.message || 'Error de autenticacion';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Error de conexion';
+                errorDiv.style.display = 'block';
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('hub_user');
+            localStorage.removeItem('hub_token');
+            location.reload();
+        }
+        
+        async function mostrarApp() {
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('app-container').style.display = 'block';
+            document.getElementById('user-name').textContent = usuario.name;
+            
+            await inicializarClub();
+            
+            // Inicializar fecha de sesion
+            document.getElementById('sesion-fecha').value = new Date().toISOString().split('T')[0];
+            
+            // Cargar datos iniciales
+            cargarEjercicios();
+        }
+        
+        // ========== CLUB & TEMPORADA ==========
+        async function inicializarClub() {
+            try {
+                let { data: club, error } = await supabase
+                    .from('clubs')
+                    .select('*')
+                    .eq('wp_user_id', usuario.id)
+                    .single();
+                
+                if (error && error.code === 'PGRST116') {
+                    const { data: nuevoClub } = await supabase
+                        .from('clubs')
+                        .insert({
+                            wp_user_id: usuario.id,
+                            name: usuario.name || 'Mi Club',
+                            team_format: '11',
+                            max_players: 30
+                        })
+                        .select()
+                        .single();
+                    club = nuevoClub;
+                }
+                
+                clubId = club.id;
+                clubData = club;
+                
+                // Actualizar header
+                document.getElementById('club-nombre-header').textContent = club.name;
+                const inicial = club.name ? club.name.charAt(0).toUpperCase() : '?';
+                document.getElementById('club-initial').textContent = inicial;
+                
+                if (club.logo_url) {
+                    document.getElementById('club-badge').innerHTML = `
+                        <img src="${club.logo_url}" alt="">
+                        <span>${club.name}</span>
+                    `;
+                }
+                
+                await cargarTemporadaActiva();
+                
+            } catch (error) {
+                console.error('Error inicializando club:', error);
+            }
+        }
+        
+        async function cargarTemporadaActiva() {
+            try {
+                const { data: temporada, error } = await supabase
+                    .from('seasons')
+                    .select('*')
+                    .eq('club_id', clubId)
+                    .eq('is_active', true)
+                    .single();
+                
+                if (error && error.code === 'PGRST116') {
+                    await crearTemporadaPorDefecto();
+                } else if (!error) {
+                    seasonId = temporada.id;
+                }
+            } catch (error) {
+                console.error('Error cargando temporada:', error);
+            }
+        }
+        
+        async function crearTemporadaPorDefecto() {
+            const hoy = new Date();
+            const mes = hoy.getMonth();
+            const anio = hoy.getFullYear();
+            
+            let nombreTemp = mes >= 7 ? `${anio}/${anio + 1}` : `${anio - 1}/${anio}`;
+            let inicioTemp = mes >= 7 ? `${anio}-08-01` : `${anio - 1}-08-01`;
+            let finTemp = mes >= 7 ? `${anio + 1}-06-30` : `${anio}-06-30`;
+            
+            const { data: nuevaTemp } = await supabase
+                .from('seasons')
+                .insert({
+                    club_id: clubId,
+                    name: nombreTemp,
+                    start_date: inicioTemp,
+                    end_date: finTemp,
+                    is_active: true
+                })
+                .select()
+                .single();
+            
+            seasonId = nuevaTemp.id;
+        }
+        
+        // ========== NAVEGACIÓN ==========
+        function cambiarModulo(modulo, tab) {
+            document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            document.querySelectorAll('.vista-modulo').forEach(v => v.classList.remove('active'));
+            document.getElementById(`modulo-${modulo}`).classList.add('active');
+            
+            // Cargar datos según módulo
+            if (modulo === 'matchstats') {
+                cargarPartidos();
+            } else if (modulo === 'config') {
+                cargarDatosClub();
+            }
+        }
+        
+        function cambiarSubTab(modulo, subtab, btn) {
+            const container = document.getElementById(`modulo-${modulo}`);
+            container.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            
+            container.querySelectorAll('.vista-contenido').forEach(v => v.classList.remove('active'));
+            document.getElementById(`${modulo}-${subtab}`).classList.add('active');
+            
+            // Cargar datos
+            if (modulo === 'planificador') {
+                if (subtab === 'mis-sesiones') cargarMisSesiones();
+                else if (subtab === 'calendario') cargarCalendarioSesiones();
+            } else if (modulo === 'matchstats') {
+                if (subtab === 'estadisticas') {
+                    cargarSelectorTemporadasStats();
+                    cargarEstadisticas();
+                }
+            } else if (modulo === 'config') {
+                if (subtab === 'temporadas') cargarTemporadas();
+                else if (subtab === 'plantilla') {
+                    cargarSelectorTemporadas();
+                    cargarPlantilla();
+                }
+            }
+        }
+        
+        // ========== PLANIFICADOR: EJERCICIOS ==========
+        async function cargarEjercicios(pagina = 1) {
+            paginaEjercicios = pagina;
+            const lista = document.getElementById('lista-ejercicios');
+            lista.innerHTML = '<div class="loading">Cargando...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/ejercicios?page=${pagina}&per_page=10`);
+                const data = await response.json();
+                
+                if (!data.ejercicios || data.ejercicios.length === 0) {
+                    lista.innerHTML = '<p style="text-align:center;color:#9ca3af;">No hay ejercicios</p>';
+                    return;
+                }
+                
+                lista.innerHTML = data.ejercicios.map(ej => {
+                    const ejercicioData = {
+                        id: ej.id,
+                        titulo: ej.titulo,
+                        imagen: ej.imagen,
+                        duracion: ej.duracion || 10
+                    };
+                    
+                    return `
+                    <div class="ejercicio-card" onclick="seleccionarEjercicio(${ej.id})">
+                        <img src="${ej.imagen || 'https://via.placeholder.com/80x60?text=Sin+img'}" alt="">
+                        <div class="info">
+                            <div class="titulo">${ej.titulo}</div>
+                            <div class="tags">
+                                ${ej.tema ? `<span class="tag">${ej.tema}</span>` : ''}
+                                ${ej.dificultad ? `<span class="tag dificultad">Dif: ${ej.dificultad}</span>` : ''}
+                            </div>
+                        </div>
+                        <button class="btn-agregar" 
+                                data-ejercicio='${JSON.stringify(ejercicioData).replace(/'/g, "&#39;")}'
+                                onclick="event.stopPropagation(); agregarEjercicioDesdeBoton(this)">
+                            + Anadir
+                        </button>
+                    </div>
+                `}).join('');
+                
+                // Paginación
+                const pag = document.getElementById('paginacion-ejercicios');
+                pag.innerHTML = `
+                    <button class="btn-secondary" onclick="cargarEjercicios(${pagina - 1})" ${pagina <= 1 ? 'disabled' : ''}>Anterior</button>
+                    <span style="margin: 0 15px;">Pagina ${pagina}</span>
+                    <button class="btn-secondary" onclick="cargarEjercicios(${pagina + 1})" ${data.ejercicios.length < 10 ? 'disabled' : ''}>Siguiente</button>
+                `;
+                
+            } catch (error) {
+                lista.innerHTML = '<p style="color:red;">Error al cargar</p>';
+            }
+        }
+        
+        function buscarEjercicios() {
+            // Implementar búsqueda si es necesario
+            cargarEjercicios(1);
+        }
+        
+        function seleccionarEjercicio(ejercicioId) {
+            const detalle = document.getElementById('detalle-ejercicio');
+            detalle.innerHTML = '<div class="loading">Cargando detalles...</div>';
+            
+            fetch(`${API_BASE}/ejercicio/${ejercicioId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const ej = data.ejercicio;
+                        ejercicioSeleccionado = ej;
+                        
+                        detalle.className = 'detalle-ejercicio active';
+                        detalle.innerHTML = `
+                            <img src="${ej.imagen || 'https://via.placeholder.com/400x300?text=Sin+imagen'}" alt="${ej.titulo}">
+                            <h3>${ej.titulo}</h3>
+                            <div class="meta" style="font-size:13px;color:#666;line-height:1.8;margin-bottom:10px;">
+                                ${ej.entrenador ? `<strong>Entrenador:</strong> ${ej.entrenador.replace(/_/g, ' ')}<br>` : ''}
+                                ${ej.equipo ? `<strong>Equipo:</strong> ${ej.equipo.replace(/_/g, ' ')}<br>` : ''}
+                                ${ej.tema ? `<strong>Tema:</strong> ${ej.tema}<br>` : ''}
+                                ${ej.dificultad ? `<strong>Dificultad:</strong> ${ej.dificultad}<br>` : ''}
+                                <strong>Duracion:</strong> ${ej.duracion || 10} min
+                            </div>
+                            ${ej.objetivo ? `
+                                <div class="detalle-seccion">
+                                    <h4>Objetivo</h4>
+                                    <p>${ej.objetivo}</p>
+                                </div>
+                            ` : ''}
+                            ${ej.organizacion ? `
+                                <div class="detalle-seccion">
+                                    <h4>Organizacion y Desarrollo</h4>
+                                    <p>${ej.organizacion}</p>
+                                </div>
+                            ` : ''}
+                            ${ej.url ? `<a href="${ej.url}" target="_blank" class="btn-ver-completo">Ver ejercicio completo</a>` : ''}
+                            <button class="btn-primary purple" style="width:100%;margin-top:10px;" onclick="abrirModalSeccion()">Anadir a Sesion</button>
+                        `;
+                    } else {
+                        detalle.innerHTML = '<p style="color:red;">Error al cargar el ejercicio</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    detalle.innerHTML = '<p style="color:red;">Error de conexion</p>';
+                });
+        }
+        
+        function abrirModalSeccion() {
+            if (!ejercicioSeleccionado) return;
+            document.getElementById('modal-seccion').style.display = 'flex';
+        }
+        
+        function cerrarModalSeccion(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('modal-seccion').style.display = 'none';
+        }
+        
+        function seleccionarSeccion(seccion) {
+            if (!ejercicioSeleccionado) return;
+            
+            const ejercicioParaSesion = {
+                id: ejercicioSeleccionado.id,
+                titulo: ejercicioSeleccionado.titulo,
+                duracion: ejercicioSeleccionado.duracion || 10,
+                imagen: ejercicioSeleccionado.imagen
+            };
+            
+            sesion[seccion].push(ejercicioParaSesion);
+            cerrarModalSeccion();
+            renderizarSesion();
+        }
+        
+        function agregarEjercicioDesdeBoton(btn) {
+            const ejercicioData = JSON.parse(btn.dataset.ejercicio);
+            ejercicioSeleccionado = ejercicioData;
+            abrirModalSeccion();
+        }
+        
+        function renderizarSesion() {
+            ['calentamiento', 'principal', 'enfriamiento'].forEach(seccion => {
+                const lista = document.getElementById(`lista-${seccion}`);
+                const tiempo = document.getElementById(`tiempo-${seccion}`);
+                
+                const totalMin = sesion[seccion].reduce((sum, ej) => sum + (ej.duracion || 0), 0);
+                tiempo.textContent = `${totalMin} min`;
+                
+                if (sesion[seccion].length === 0) {
+                    lista.innerHTML = '<p style="text-align:center;color:#9ca3af;padding:20px;font-size:13px;">Arrastra ejercicios aqui</p>';
+                } else {
+                    lista.innerHTML = sesion[seccion].map((ej, idx) => `
+                        <div class="ejercicio-en-sesion">
+                            <div>
+                                <div class="nombre">${ej.titulo}</div>
+                                <div class="duracion">${ej.duracion} min</div>
+                            </div>
+                            <button onclick="quitarEjercicio('${seccion}', ${idx})">Quitar</button>
+                        </div>
+                    `).join('');
+                }
+            });
+        }
+        
+        function quitarEjercicio(seccion, idx) {
+            sesion[seccion].splice(idx, 1);
+            renderizarSesion();
+        }
+        
+        function limpiarSesion() {
+            sesion = { nombre: '', fecha: new Date().toISOString().split('T')[0], calentamiento: [], principal: [], enfriamiento: [] };
+            document.getElementById('sesion-nombre').value = '';
+            document.getElementById('sesion-fecha').value = sesion.fecha;
+            renderizarSesion();
+        }
+        
+        async function guardarSesion() {
+            const nombre = document.getElementById('sesion-nombre').value.trim();
+            const fecha = document.getElementById('sesion-fecha').value;
+            
+            if (!nombre) {
+                alert('El nombre de la sesion es obligatorio');
+                return;
+            }
+            
+            if (sesion.calentamiento.length === 0 && sesion.principal.length === 0 && sesion.enfriamiento.length === 0) {
+                alert('Anade al menos un ejercicio a la sesion');
+                return;
+            }
+            
+            try {
+                const { error } = await supabase
+                    .from('training_sessions')
+                    .insert({
+                        club_id: clubId,
+                        season_id: seasonId,
+                        name: nombre,
+                        session_date: fecha,
+                        warm_up: sesion.calentamiento,
+                        main_part: sesion.principal,
+                        cool_down: sesion.enfriamiento
+                    });
+                
+                if (error) throw error;
+                
+                alert('Sesion guardada correctamente');
+                limpiarSesion();
+                
+            } catch (error) {
+                alert('Error al guardar: ' + error.message);
+            }
+        }
+        
+        // ========== PLANIFICADOR: MIS SESIONES ==========
+        async function cargarMisSesiones() {
+            const lista = document.getElementById('lista-mis-sesiones');
+            lista.innerHTML = '<div class="loading">Cargando sesiones...</div>';
+            
+            try {
+                const fechaDesde = document.getElementById('filtro-sesion-desde').value;
+                const fechaHasta = document.getElementById('filtro-sesion-hasta').value;
+                
+                let query = supabase
+                    .from('training_sessions')
+                    .select('*')
+                    .eq('club_id', clubId);
+                
+                if (fechaDesde) query = query.gte('session_date', fechaDesde);
+                if (fechaHasta) query = query.lte('session_date', fechaHasta);
+                
+                query = query.order('session_date', { ascending: false });
+                
+                const { data, error } = await query;
+                
+                if (error) throw error;
+                
+                if (!data || data.length === 0) {
+                    lista.innerHTML = '<div class="empty-state"><h3>No hay sesiones guardadas</h3><p>Crea tu primera sesion de entrenamiento</p></div>';
+                    return;
+                }
+                
+                lista.innerHTML = data.map(s => {
+                    const cal = s.warm_up || [];
+                    const pri = s.main_part || [];
+                    const enf = s.cool_down || [];
+                    
+                    const tCal = cal.reduce((sum, ej) => sum + (ej.duracion || 0), 0);
+                    const tPri = pri.reduce((sum, ej) => sum + (ej.duracion || 0), 0);
+                    const tEnf = enf.reduce((sum, ej) => sum + (ej.duracion || 0), 0);
+                    
+                    const fecha = new Date(s.session_date).toLocaleDateString('es-ES');
+                    
+                    return `
+                        <div class="sesion-card">
+                            <div class="sesion-card-header">
+                                <h3>${s.name}</h3>
+                                <div class="sesion-card-meta">
+                                    <span>Fecha: ${fecha}</span>
+                                </div>
+                            </div>
+                            <div class="sesion-card-resumen">
+                                <div class="seccion-resumen calentamiento">
+                                    <strong>${cal.length}</strong>
+                                    ejercicios<br>${tCal} min
+                                </div>
+                                <div class="seccion-resumen principal">
+                                    <strong>${pri.length}</strong>
+                                    ejercicios<br>${tPri} min
+                                </div>
+                                <div class="seccion-resumen enfriamiento">
+                                    <strong>${enf.length}</strong>
+                                    ejercicios<br>${tEnf} min
+                                </div>
+                            </div>
+                            <div class="sesion-card-actions">
+                                <button class="btn-cargar" onclick="cargarSesionEnEditor('${s.id}')">Cargar</button>
+                                <button class="btn-pdf-sesion" onclick="exportarSesionPDF('${s.id}')">PDF</button>
+                                <button class="btn-eliminar-sesion" onclick="eliminarSesion('${s.id}')">Eliminar</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                lista.innerHTML = '<p style="color:red;">Error al cargar</p>';
+            }
+        }
+        
+        function limpiarFiltroSesiones() {
+            document.getElementById('filtro-sesion-desde').value = '';
+            document.getElementById('filtro-sesion-hasta').value = '';
+            cargarMisSesiones();
+        }
+        
+        async function cargarSesionEnEditor(id) {
+            try {
+                const { data } = await supabase
+                    .from('training_sessions')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+                
+                sesion = {
+                    nombre: data.name,
+                    fecha: data.session_date,
+                    calentamiento: data.warm_up || [],
+                    principal: data.main_part || [],
+                    enfriamiento: data.cool_down || []
+                };
+                
+                document.getElementById('sesion-nombre').value = data.name;
+                document.getElementById('sesion-fecha').value = data.session_date;
+                
+                renderizarSesion();
+                
+                // Cambiar a pestaña crear
+                document.querySelector('.planificador-subtabs .sub-tab').click();
+                
+            } catch (error) {
+                alert('Error al cargar sesion');
+            }
+        }
+        
+        async function eliminarSesion(id) {
+            if (!confirm('¿Eliminar esta sesion?')) return;
+            
+            await supabase.from('training_sessions').delete().eq('id', id);
+            cargarMisSesiones();
+        }
+        
+        async function exportarSesionPDF(id) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const { data: s } = await supabase.from('training_sessions').select('*').eq('id', id).single();
+            
+            const fecha = new Date(s.session_date).toLocaleDateString('es-ES');
+            
+            // Header
+            doc.setFillColor(124, 58, 237);
+            doc.rect(0, 0, 210, 40, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22);
+            doc.setFont('helvetica', 'bold');
+            doc.text('SESION DE ENTRENAMIENTO', 105, 18, { align: 'center' });
+            doc.setFontSize(12);
+            doc.text(`${s.name} - ${fecha}`, 105, 30, { align: 'center' });
+            
+            let y = 55;
+            
+            const secciones = [
+                { nombre: 'CALENTAMIENTO', datos: s.warm_up || [], color: [249, 115, 22] },
+                { nombre: 'PARTE PRINCIPAL', datos: s.main_part || [], color: [59, 130, 246] },
+                { nombre: 'ENFRIAMIENTO', datos: s.cool_down || [], color: [16, 185, 129] }
+            ];
+            
+            secciones.forEach(sec => {
+                if (sec.datos.length > 0) {
+                    doc.setFillColor(...sec.color);
+                    doc.rect(15, y - 6, 180, 10, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(12);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(sec.nombre, 20, y);
+                    y += 12;
+                    
+                    doc.setTextColor(30, 30, 30);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(11);
+                    
+                    sec.datos.forEach(ej => {
+                        doc.text(`- ${ej.titulo} (${ej.duracion} min)`, 20, y);
+                        y += 7;
+                    });
+                    
+                    y += 8;
+                }
+            });
+            
+            // Footer
+            doc.setFontSize(8);
+            doc.setTextColor(150, 150, 150);
+            doc.text('Generado con HUB TopLiderCoach', 105, 285, { align: 'center' });
+            
+            doc.save(`sesion_${s.name.replace(/\s+/g, '_')}.pdf`);
+        }
+        
+        // ========== PLANIFICADOR: CALENDARIO ==========
+        const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        
+        async function cargarCalendarioSesiones() {
+            document.getElementById('mes-actual-sesiones').textContent = `${MESES[calendarioMesSesiones]} ${calendarioAnioSesiones}`;
+            
+            const primerDia = new Date(calendarioAnioSesiones, calendarioMesSesiones, 1);
+            const ultimoDia = new Date(calendarioAnioSesiones, calendarioMesSesiones + 1, 0);
+            
+            // Cargar sesiones del mes
+            const inicioMes = `${calendarioAnioSesiones}-${String(calendarioMesSesiones + 1).padStart(2, '0')}-01`;
+            const finMes = `${calendarioAnioSesiones}-${String(calendarioMesSesiones + 1).padStart(2, '0')}-${ultimoDia.getDate()}`;
+            
+            const { data: sesiones } = await supabase
+                .from('training_sessions')
+                .select('id, name, session_date')
+                .eq('club_id', clubId)
+                .gte('session_date', inicioMes)
+                .lte('session_date', finMes);
+            
+            const sesionesPorDia = {};
+            (sesiones || []).forEach(s => {
+                const dia = new Date(s.session_date).getDate();
+                if (!sesionesPorDia[dia]) sesionesPorDia[dia] = [];
+                sesionesPorDia[dia].push(s);
+            });
+            
+            // Generar calendario
+            const grid = document.getElementById('calendario-sesiones');
+            let html = '';
+            
+            // Headers
+            ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'].forEach(d => {
+                html += `<div class="calendario-dia-header">${d}</div>`;
+            });
+            
+            // Días vacíos al inicio
+            let diaInicio = primerDia.getDay() || 7;
+            for (let i = 1; i < diaInicio; i++) {
+                html += '<div class="calendario-dia otro-mes"></div>';
+            }
+            
+            // Días del mes
+            const hoy = new Date();
+            for (let dia = 1; dia <= ultimoDia.getDate(); dia++) {
+                const esHoy = dia === hoy.getDate() && calendarioMesSesiones === hoy.getMonth() && calendarioAnioSesiones === hoy.getFullYear();
+                
+                let eventosHTML = '';
+                if (sesionesPorDia[dia]) {
+                    sesionesPorDia[dia].forEach(s => {
+                        eventosHTML += `<div class="calendario-evento sesion" onclick="cargarSesionEnEditor('${s.id}')">${s.name}</div>`;
+                    });
+                }
+                
+                html += `
+                    <div class="calendario-dia ${esHoy ? 'hoy' : ''}">
+                        <div class="numero">${dia}</div>
+                        ${eventosHTML}
+                    </div>
+                `;
+            }
+            
+            grid.innerHTML = html;
+        }
+        
+        function mesAnteriorSesiones() {
+            calendarioMesSesiones--;
+            if (calendarioMesSesiones < 0) {
+                calendarioMesSesiones = 11;
+                calendarioAnioSesiones--;
+            }
+            cargarCalendarioSesiones();
+        }
+        
+        function mesSiguienteSesiones() {
+            calendarioMesSesiones++;
+            if (calendarioMesSesiones > 11) {
+                calendarioMesSesiones = 0;
+                calendarioAnioSesiones++;
+            }
+            cargarCalendarioSesiones();
+        }
+        
+        // ========== MATCHSTATS: PARTIDOS ==========
+        function filtrarPartidos(filtro, btn) {
+            document.querySelectorAll('.filtros-bar .filtro-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            filtroPartidos = filtro;
+            cargarPartidos();
+        }
+        
+        async function cargarPartidos() {
+            const lista = document.getElementById('lista-partidos');
+            lista.innerHTML = '<div class="loading">Cargando partidos...</div>';
+            
+            try {
+                let query = supabase
+                    .from('matches')
+                    .select('*')
+                    .eq('club_id', clubId)
+                    .eq('season_id', seasonId)
+                    .order('match_date', { ascending: false });
+                
+                const hoy = new Date().toISOString().split('T')[0];
+                
+                if (filtroPartidos === 'proximos') {
+                    query = query.gte('match_date', hoy).is('result', null);
+                } else if (filtroPartidos === 'jugados') {
+                    query = query.not('result', 'is', null);
+                }
+                
+                const { data, error } = await query;
+                
+                if (error) throw error;
+                
+                if (!data || data.length === 0) {
+                    lista.innerHTML = '<div class="empty-state"><h3>No hay partidos</h3><p>Crea tu primer partido</p></div>';
+                    return;
+                }
+                
+                lista.innerHTML = data.map(p => {
+                    const fecha = new Date(p.match_date).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+                    const hora = p.kick_off_time ? p.kick_off_time.slice(0, 5) : '';
+                    const esLocal = p.home_away === 'home';
+                    
+                    let resultadoHTML = '';
+                    let badgeHTML = '';
+                    
+                    if (p.result) {
+                        const gF = p.team_goals || 0;
+                        const gC = p.opponent_goals || 0;
+                        const marcador = esLocal ? `${gF} - ${gC}` : `${gC} - ${gF}`;
+                        resultadoHTML = `<span class="partido-resultado">${marcador}</span>`;
+                        
+                        const badgeClass = p.result === 'win' ? 'victoria' : p.result === 'draw' ? 'empate' : 'derrota';
+                        const badgeText = p.result === 'win' ? 'Victoria' : p.result === 'draw' ? 'Empate' : 'Derrota';
+                        badgeHTML = `<span class="resultado-badge ${badgeClass}">${badgeText}</span>`;
+                    } else {
+                        resultadoHTML = `<span class="partido-resultado pendiente">${hora || 'Por jugar'}</span>`;
+                        badgeHTML = `<span class="resultado-badge pendiente">Pendiente</span>`;
+                    }
+                    
+                    return `
+                        <div class="partido-card">
+                            <div class="partido-card-header">
+                                <div class="partido-fecha">${fecha} ${hora ? '- ' + hora : ''}</div>
+                                ${p.competition ? `<span class="partido-competicion">${p.competition}</span>` : ''}
+                            </div>
+                            <div class="partido-card-body">
+                                <div class="partido-equipos">
+                                    <div class="equipo">
+                                        <div class="equipo-nombre">${esLocal ? (clubData?.name || 'Mi Equipo') : p.opponent}</div>
+                                        <div class="equipo-tipo">${esLocal ? 'Local' : 'Visitante'}</div>
+                                    </div>
+                                    ${resultadoHTML}
+                                    <div class="equipo">
+                                        <div class="equipo-nombre">${esLocal ? p.opponent : (clubData?.name || 'Mi Equipo')}</div>
+                                        <div class="equipo-tipo">${esLocal ? 'Visitante' : 'Local'}</div>
+                                    </div>
+                                </div>
+                                ${badgeHTML}
+                            </div>
+                            <div class="partido-card-footer">
+                                <button class="btn-ver" onclick="editarPartido('${p.id}')">Editar</button>
+                                <button class="btn-stats" onclick="abrirModalResultado('${p.id}')">Stats</button>
+                                <button class="btn-pdf" onclick="exportarPartidoPDF('${p.id}')">PDF</button>
+                                <button class="btn-eliminar" onclick="eliminarPartido('${p.id}')">X</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                lista.innerHTML = '<p style="color:red;">Error al cargar partidos</p>';
+            }
+        }
+        
+        async function abrirModalPartido(partidoId = null) {
+            document.getElementById('modal-partido-titulo').textContent = partidoId ? 'Editar Partido' : 'Nuevo Partido';
+            
+            // Limpiar
+            document.getElementById('partido-id').value = '';
+            document.getElementById('partido-rival').value = '';
+            document.getElementById('partido-competicion').value = '';
+            document.getElementById('partido-fecha').value = new Date().toISOString().split('T')[0];
+            document.getElementById('partido-hora').value = '';
+            document.getElementById('partido-localidad').value = 'home';
+            document.getElementById('partido-estadio').value = '';
+            document.getElementById('partido-jornada').value = '';
+            
+            await cargarConvocatoria();
+            
+            if (partidoId) {
+                const { data: p } = await supabase.from('matches').select('*').eq('id', partidoId).single();
+                if (p) {
+                    document.getElementById('partido-id').value = p.id;
+                    document.getElementById('partido-rival').value = p.opponent || '';
+                    document.getElementById('partido-competicion').value = p.competition || '';
+                    document.getElementById('partido-fecha').value = p.match_date || '';
+                    document.getElementById('partido-hora').value = p.kick_off_time || '';
+                    document.getElementById('partido-localidad').value = p.home_away || 'home';
+                    document.getElementById('partido-estadio').value = p.stadium || '';
+                    document.getElementById('partido-jornada').value = p.round || '';
+                    
+                    if (p.convocados) {
+                        p.convocados.forEach(id => {
+                            const cb = document.querySelector(`input[data-player-id="${id}"]`);
+                            if (cb) {
+                                cb.checked = true;
+                                cb.closest('.jugador-check').classList.add('selected');
+                            }
+                        });
+                    }
+                }
+            }
+            
+            document.getElementById('modal-partido').style.display = 'flex';
+        }
+        
+        function editarPartido(id) {
+            abrirModalPartido(id);
+        }
+        
+        async function cargarConvocatoria() {
+            const grid = document.getElementById('convocatoria-grid');
+            
+            const { data } = await supabase
+                .from('season_players')
+                .select('*, players(*)')
+                .eq('season_id', seasonId);
+            
+            if (!data || data.length === 0) {
+                grid.innerHTML = '<p style="color:#9ca3af;">No hay jugadores en la plantilla</p>';
+                return;
+            }
+            
+            grid.innerHTML = data.map(sp => {
+                const j = sp.players;
+                if (!j) return '';
+                const disabled = j.status !== 'available' ? 'style="opacity:0.5;"' : '';
+                return `
+                    <label class="jugador-check" ${disabled}>
+                        <input type="checkbox" data-player-id="${j.id}" onchange="this.closest('.jugador-check').classList.toggle('selected', this.checked)">
+                        <div class="jugador-check-info">
+                            <div class="nombre">${j.name}</div>
+                            <div class="posicion">${j.position || ''}</div>
+                        </div>
+                        <div class="dorsal">${sp.shirt_number || '-'}</div>
+                    </label>
+                `;
+            }).join('');
+        }
+        
+        function cerrarModalPartido(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('modal-partido').style.display = 'none';
+        }
+        
+        async function guardarPartido() {
+            const rival = document.getElementById('partido-rival').value.trim();
+            const fecha = document.getElementById('partido-fecha').value;
+            
+            if (!rival || !fecha) {
+                alert('Rival y fecha son obligatorios');
+                return;
+            }
+            
+            const convocados = [];
+            document.querySelectorAll('#convocatoria-grid input:checked').forEach(cb => {
+                convocados.push(cb.dataset.playerId);
+            });
+            
+            const partidoData = {
+                club_id: clubId,
+                season_id: seasonId,
+                opponent: rival,
+                match_date: fecha,
+                kick_off_time: document.getElementById('partido-hora').value || null,
+                home_away: document.getElementById('partido-localidad').value,
+                stadium: document.getElementById('partido-estadio').value || null,
+                competition: document.getElementById('partido-competicion').value || null,
+                round: document.getElementById('partido-jornada').value || null,
+                convocados: convocados
+            };
+            
+            const partidoId = document.getElementById('partido-id').value;
+            
+            if (partidoId) {
+                await supabase.from('matches').update(partidoData).eq('id', partidoId);
+            } else {
+                await supabase.from('matches').insert(partidoData);
+            }
+            
+            cerrarModalPartido();
+            cargarPartidos();
+        }
+        
+        async function eliminarPartido(id) {
+            if (!confirm('¿Eliminar este partido?')) return;
+            await supabase.from('match_player_stats').delete().eq('match_id', id);
+            await supabase.from('matches').delete().eq('id', id);
+            cargarPartidos();
+        }
+        
+        // ========== MATCHSTATS: RESULTADO ==========
+        async function abrirModalResultado(partidoId) {
+            document.getElementById('resultado-partido-id').value = partidoId;
+            
+            const { data: p } = await supabase.from('matches').select('*').eq('id', partidoId).single();
+            
+            document.getElementById('resultado-favor').value = p.team_goals || 0;
+            document.getElementById('resultado-contra').value = p.opponent_goals || 0;
+            
+            const convocados = p.convocados || [];
+            const grid = document.getElementById('stats-jugadores-grid');
+            
+            if (convocados.length === 0) {
+                grid.innerHTML = '<p style="color:#9ca3af;">No hay jugadores convocados</p>';
+            } else {
+                const { data: jugadores } = await supabase.from('players').select('*').in('id', convocados);
+                const { data: statsExist } = await supabase.from('match_player_stats').select('*').eq('match_id', partidoId);
+                
+                const statsMap = {};
+                (statsExist || []).forEach(s => statsMap[s.player_id] = s);
+                
+                grid.innerHTML = (jugadores || []).map(j => {
+                    const s = statsMap[j.id] || {};
+                    return `
+                        <div class="jugador-stats-row" data-player-id="${j.id}">
+                            <div class="nombre">${j.name}</div>
+                            <input type="number" class="stat-min" value="${s.minutes_played || 0}" min="0" max="120">
+                            <input type="number" class="stat-goles" value="${s.goals || 0}" min="0">
+                            <input type="number" class="stat-asist" value="${s.assists || 0}" min="0">
+                            <input type="number" class="stat-amarillas" value="${s.yellow_cards || 0}" min="0" max="2">
+                            <input type="number" class="stat-rojas" value="${s.red_cards || 0}" min="0" max="1">
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            document.getElementById('modal-resultado').style.display = 'flex';
+        }
+        
+        function cerrarModalResultado(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('modal-resultado').style.display = 'none';
+        }
+        
+        async function guardarResultado() {
+            const partidoId = document.getElementById('resultado-partido-id').value;
+            const gF = parseInt(document.getElementById('resultado-favor').value) || 0;
+            const gC = parseInt(document.getElementById('resultado-contra').value) || 0;
+            
+            let resultado = 'draw';
+            if (gF > gC) resultado = 'win';
+            else if (gF < gC) resultado = 'loss';
+            
+            await supabase.from('matches').update({
+                team_goals: gF,
+                opponent_goals: gC,
+                result: resultado
+            }).eq('id', partidoId);
+            
+            const rows = document.querySelectorAll('.jugador-stats-row');
+            for (const row of rows) {
+                const playerId = row.dataset.playerId;
+                await supabase.from('match_player_stats').upsert({
+                    match_id: partidoId,
+                    player_id: playerId,
+                    minutes_played: parseInt(row.querySelector('.stat-min').value) || 0,
+                    goals: parseInt(row.querySelector('.stat-goles').value) || 0,
+                    assists: parseInt(row.querySelector('.stat-asist').value) || 0,
+                    yellow_cards: parseInt(row.querySelector('.stat-amarillas').value) || 0,
+                    red_cards: parseInt(row.querySelector('.stat-rojas').value) || 0
+                }, { onConflict: 'match_id,player_id' });
+            }
+            
+            cerrarModalResultado();
+            cargarPartidos();
+            alert('Resultado guardado');
+        }
+        
+        // ========== MATCHSTATS: ESTADÍSTICAS ==========
+        async function cargarSelectorTemporadasStats() {
+            const select = document.getElementById('stats-temporada');
+            const { data } = await supabase.from('seasons').select('*').eq('club_id', clubId).order('start_date', { ascending: false });
+            
+            select.innerHTML = (data || []).map(t => {
+                const selected = t.id === seasonId ? 'selected' : '';
+                return `<option value="${t.id}" ${selected}>${t.name}</option>`;
+            }).join('');
+        }
+        
+        async function cargarEstadisticas() {
+            const tempId = document.getElementById('stats-temporada').value || seasonId;
+            const resumenDiv = document.getElementById('stats-resumen');
+            const tablaBody = document.getElementById('stats-tabla-body');
+            
+            // Resumen partidos
+            const { data: partidos } = await supabase.from('matches').select('*').eq('season_id', tempId).not('result', 'is', null);
+            
+            const victorias = partidos?.filter(p => p.result === 'win').length || 0;
+            const empates = partidos?.filter(p => p.result === 'draw').length || 0;
+            const derrotas = partidos?.filter(p => p.result === 'loss').length || 0;
+            const gF = partidos?.reduce((sum, p) => sum + (p.team_goals || 0), 0) || 0;
+            const gC = partidos?.reduce((sum, p) => sum + (p.opponent_goals || 0), 0) || 0;
+            
+            resumenDiv.innerHTML = `
+                <div class="stat-card victoria"><div class="valor">${victorias}</div><div class="label">Victorias</div></div>
+                <div class="stat-card empate"><div class="valor">${empates}</div><div class="label">Empates</div></div>
+                <div class="stat-card derrota"><div class="valor">${derrotas}</div><div class="label">Derrotas</div></div>
+                <div class="stat-card"><div class="valor">${gF}</div><div class="label">Goles a favor</div></div>
+                <div class="stat-card"><div class="valor">${gC}</div><div class="label">Goles en contra</div></div>
+            `;
+            
+            // Stats por jugador
+            const { data: stats } = await supabase
+                .from('match_player_stats')
+                .select('*, players(id, name, position, photo_url), matches!inner(season_id)')
+                .eq('matches.season_id', tempId);
+            
+            const jugadorStats = {};
+            (stats || []).forEach(s => {
+                const pid = s.player_id;
+                if (!jugadorStats[pid]) {
+                    jugadorStats[pid] = { player: s.players, pj: 0, min: 0, goles: 0, asist: 0, ta: 0, tr: 0 };
+                }
+                if (s.minutes_played > 0) jugadorStats[pid].pj++;
+                jugadorStats[pid].min += s.minutes_played || 0;
+                jugadorStats[pid].goles += s.goals || 0;
+                jugadorStats[pid].asist += s.assists || 0;
+                jugadorStats[pid].ta += s.yellow_cards || 0;
+                jugadorStats[pid].tr += s.red_cards || 0;
+            });
+            
+            const ordenados = Object.values(jugadorStats).sort((a, b) => b.goles - a.goles);
+            
+            if (ordenados.length === 0) {
+                tablaBody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9ca3af;">No hay estadisticas</td></tr>';
+            } else {
+                tablaBody.innerHTML = ordenados.map(j => {
+                    const inicial = j.player?.name?.charAt(0) || '?';
+                    return `
+                        <tr>
+                            <td>
+                                <div class="jugador-cell">
+                                    <div class="jugador-mini-foto">
+                                        ${j.player?.photo_url ? `<img src="${j.player.photo_url}">` : inicial}
+                                    </div>
+                                    <div>
+                                        <strong>${j.player?.name || 'Sin nombre'}</strong>
+                                        <div style="font-size:12px;color:#6b7280;">${j.player?.position || ''}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>${j.pj}</td>
+                            <td>${j.min}</td>
+                            <td><strong>${j.goles}</strong></td>
+                            <td>${j.asist}</td>
+                            <td>${j.ta}</td>
+                            <td>${j.tr}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+        
+        // ========== PDF EXPORTS ==========
+        async function exportarPartidoPDF(partidoId) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const { data: p } = await supabase.from('matches').select('*').eq('id', partidoId).single();
+            const { data: stats } = await supabase.from('match_player_stats').select('*, players(name, position)').eq('match_id', partidoId).order('minutes_played', { ascending: false });
+            
+            const fecha = new Date(p.match_date).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            
+            // Header
+            doc.setFillColor(5, 150, 105);
+            doc.rect(0, 0, 210, 50, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(24);
+            doc.setFont('helvetica', 'bold');
+            doc.text('ACTA DEL PARTIDO', 105, 20, { align: 'center' });
+            doc.setFontSize(12);
+            doc.text(fecha, 105, 32, { align: 'center' });
+            doc.text(p.competition || 'Partido', 105, 42, { align: 'center' });
+            
+            // Resultado
+            doc.setTextColor(30, 30, 30);
+            doc.setFontSize(16);
+            const esLocal = p.home_away === 'home';
+            const eqLocal = esLocal ? (clubData?.name || 'Mi Equipo') : p.opponent;
+            const eqVisit = esLocal ? p.opponent : (clubData?.name || 'Mi Equipo');
+            const gLocal = esLocal ? (p.team_goals || 0) : (p.opponent_goals || 0);
+            const gVisit = esLocal ? (p.opponent_goals || 0) : (p.team_goals || 0);
+            
+            doc.text(eqLocal, 50, 70, { align: 'center' });
+            doc.text(eqVisit, 160, 70, { align: 'center' });
+            doc.setFontSize(32);
+            doc.text(`${gLocal} - ${gVisit}`, 105, 72, { align: 'center' });
+            doc.setFontSize(10);
+            doc.text('LOCAL', 50, 78, { align: 'center' });
+            doc.text('VISITANTE', 160, 78, { align: 'center' });
+            
+            let y = 95;
+            if (p.stadium) { doc.text(`Estadio: ${p.stadium}`, 20, y); y += 8; }
+            if (p.round) { doc.text(`${p.round}`, 20, y); y += 8; }
+            
+            if (stats && stats.length > 0) {
+                y += 10;
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'bold');
+                doc.text('ESTADISTICAS POR JUGADOR', 105, y, { align: 'center' });
+                y += 10;
+                
+                const tableData = stats.map(s => [
+                    s.players?.name || 'Sin nombre',
+                    s.players?.position || '',
+                    s.minutes_played || 0,
+                    s.goals || 0,
+                    s.assists || 0,
+                    s.yellow_cards || 0,
+                    s.red_cards || 0
+                ]);
+                
+                doc.autoTable({
+                    startY: y,
+                    head: [['Jugador', 'Pos', 'Min', 'Goles', 'Asist', 'TA', 'TR']],
+                    body: tableData,
+                    theme: 'striped',
+                    headStyles: { fillColor: [5, 150, 105] },
+                    styles: { fontSize: 9 }
+                });
+            }
+            
+            doc.setFontSize(8);
+            doc.setTextColor(150);
+            doc.text('Generado con HUB TopLiderCoach', 105, 285, { align: 'center' });
+            
+            doc.save(`partido_${p.opponent}_${p.match_date}.pdf`);
+        }
+        
+        async function exportarEstadisticasPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const tempId = document.getElementById('stats-temporada').value || seasonId;
+            const { data: temp } = await supabase.from('seasons').select('name').eq('id', tempId).single();
+            const { data: partidos } = await supabase.from('matches').select('*').eq('season_id', tempId).not('result', 'is', null);
+            
+            const victorias = partidos?.filter(p => p.result === 'win').length || 0;
+            const empates = partidos?.filter(p => p.result === 'draw').length || 0;
+            const derrotas = partidos?.filter(p => p.result === 'loss').length || 0;
+            const gF = partidos?.reduce((sum, p) => sum + (p.team_goals || 0), 0) || 0;
+            const gC = partidos?.reduce((sum, p) => sum + (p.opponent_goals || 0), 0) || 0;
+            
+            const { data: stats } = await supabase.from('match_player_stats').select('*, players(name, position), matches!inner(season_id)').eq('matches.season_id', tempId);
+            
+            const jugadorStats = {};
+            (stats || []).forEach(s => {
+                const pid = s.player_id;
+                if (!jugadorStats[pid]) jugadorStats[pid] = { name: s.players?.name, pos: s.players?.position, pj: 0, min: 0, goles: 0, asist: 0, ta: 0, tr: 0 };
+                if (s.minutes_played > 0) jugadorStats[pid].pj++;
+                jugadorStats[pid].min += s.minutes_played || 0;
+                jugadorStats[pid].goles += s.goals || 0;
+                jugadorStats[pid].asist += s.assists || 0;
+                jugadorStats[pid].ta += s.yellow_cards || 0;
+                jugadorStats[pid].tr += s.red_cards || 0;
+            });
+            
+            // Header
+            doc.setFillColor(5, 150, 105);
+            doc.rect(0, 0, 210, 45, 'F');
+            doc.setTextColor(255);
+            doc.setFontSize(22);
+            doc.setFont('helvetica', 'bold');
+            doc.text('ESTADISTICAS DE TEMPORADA', 105, 20, { align: 'center' });
+            doc.setFontSize(14);
+            doc.text(`${clubData?.name || 'Mi Club'} - ${temp?.name || 'Temporada'}`, 105, 35, { align: 'center' });
+            
+            doc.setTextColor(30);
+            doc.setFontSize(11);
+            let y = 60;
+            doc.setFont('helvetica', 'bold');
+            doc.text('RESUMEN', 20, y);
+            y += 10;
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Partidos: ${partidos?.length || 0}  |  V: ${victorias}  |  E: ${empates}  |  D: ${derrotas}  |  GF: ${gF}  |  GC: ${gC}`, 20, y);
+            
+            y += 20;
+            const ordenados = Object.values(jugadorStats).sort((a, b) => b.goles - a.goles);
+            const tableData = ordenados.map(j => [j.name, j.pos, j.pj, j.min, j.goles, j.asist, j.ta, j.tr]);
+            
+            doc.autoTable({
+                startY: y,
+                head: [['Jugador', 'Pos', 'PJ', 'Min', 'Goles', 'Asist', 'TA', 'TR']],
+                body: tableData,
+                theme: 'striped',
+                headStyles: { fillColor: [5, 150, 105] },
+                styles: { fontSize: 9 }
+            });
+            
+            doc.setFontSize(8);
+            doc.setTextColor(150);
+            doc.text('Generado con HUB TopLiderCoach', 105, 285, { align: 'center' });
+            
+            doc.save(`estadisticas_${temp?.name || 'temporada'}.pdf`);
+        }
+        
+        // ========== MI CLUB: DATOS ==========
+        async function cargarDatosClub() {
+            if (!clubId) return;
+            
+            const { data } = await supabase.from('clubs').select('*').eq('id', clubId).single();
+            clubData = data;
+            
+            document.getElementById('club-nombre').value = data.name || '';
+            document.getElementById('club-pais').value = data.country || 'Espana';
+            document.getElementById('club-formato').value = data.team_format || '11';
+            
+            if (data.logo_url) {
+                document.getElementById('escudo-preview').src = data.logo_url;
+                document.getElementById('escudo-preview').style.display = 'block';
+                document.getElementById('escudo-placeholder').style.display = 'none';
+            }
+        }
+        
+        function previsualizarEscudo(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) { alert('Maximo 2MB'); return; }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('escudo-preview').src = e.target.result;
+                document.getElementById('escudo-preview').style.display = 'block';
+                document.getElementById('escudo-placeholder').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        async function guardarClub() {
+            const nombre = document.getElementById('club-nombre').value.trim();
+            if (!nombre) { alert('El nombre es obligatorio'); return; }
+            
+            let logoUrl = clubData?.logo_url;
+            const escudoInput = document.getElementById('escudo-input');
+            
+            if (escudoInput.files.length > 0) {
+                const file = escudoInput.files[0];
+                const fileName = `club-${clubId}-${Date.now()}.${file.name.split('.').pop()}`;
+                const { error: upErr } = await supabase.storage.from('logos').upload(fileName, file);
+                if (!upErr) {
+                    const { data: urlData } = supabase.storage.from('logos').getPublicUrl(fileName);
+                    logoUrl = urlData.publicUrl;
+                }
+            }
+            
+            await supabase.from('clubs').update({
+                name: nombre,
+                country: document.getElementById('club-pais').value,
+                team_format: document.getElementById('club-formato').value,
+                logo_url: logoUrl
+            }).eq('id', clubId);
+            
+            clubData.name = nombre;
+            clubData.logo_url = logoUrl;
+            
+            // Actualizar header
+            document.getElementById('club-nombre-header').textContent = nombre;
+            if (logoUrl) {
+                document.getElementById('club-badge').innerHTML = `<img src="${logoUrl}" alt=""><span>${nombre}</span>`;
+            }
+            
+            alert('Club guardado');
+        }
+        
+        // ========== MI CLUB: TEMPORADAS ==========
+        async function cargarTemporadas() {
+            const lista = document.getElementById('lista-temporadas');
+            lista.innerHTML = '<div class="loading">Cargando...</div>';
+            
+            const { data } = await supabase.from('seasons').select('*').eq('club_id', clubId).order('start_date', { ascending: false });
+            
+            if (!data || data.length === 0) {
+                lista.innerHTML = '<p style="text-align:center;color:#9ca3af;">No hay temporadas</p>';
+                return;
+            }
+            
+            lista.innerHTML = data.map(t => {
+                const isActive = t.is_active;
+                const fI = t.start_date ? new Date(t.start_date).toLocaleDateString('es-ES') : '';
+                const fF = t.end_date ? new Date(t.end_date).toLocaleDateString('es-ES') : '';
+                
+                return `
+                    <div class="temporada-card ${isActive ? 'active' : ''}">
+                        <div class="temporada-info">
+                            <h4>${t.name} ${isActive ? '<span class="temporada-badge">ACTIVA</span>' : ''}</h4>
+                            <p>${fI} - ${fF}</p>
+                        </div>
+                        <div class="temporada-actions">
+                            ${!isActive ? `<button class="btn-activar" onclick="activarTemporada('${t.id}')">Activar</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        async function crearTemporada() {
+            const nombre = document.getElementById('nueva-temp-nombre').value.trim();
+            if (!nombre) { alert('El nombre es obligatorio'); return; }
+            
+            await supabase.from('seasons').insert({
+                club_id: clubId,
+                name: nombre,
+                start_date: document.getElementById('nueva-temp-inicio').value || null,
+                end_date: document.getElementById('nueva-temp-fin').value || null,
+                is_active: false
+            });
+            
+            document.getElementById('nueva-temp-nombre').value = '';
+            document.getElementById('nueva-temp-inicio').value = '';
+            document.getElementById('nueva-temp-fin').value = '';
+            
+            alert('Temporada creada');
+            cargarTemporadas();
+        }
+        
+        async function activarTemporada(tempId) {
+            if (!confirm('Activar esta temporada?')) return;
+            
+            await supabase.from('seasons').update({ is_active: false }).eq('club_id', clubId);
+            await supabase.from('seasons').update({ is_active: true }).eq('id', tempId);
+            
+            seasonId = tempId;
+            alert('Temporada activada');
+            cargarTemporadas();
+        }
+        
+        // ========== MI CLUB: PLANTILLA ==========
+        async function cargarSelectorTemporadas() {
+            const select = document.getElementById('plantilla-temporada');
+            const { data } = await supabase.from('seasons').select('*').eq('club_id', clubId).order('start_date', { ascending: false });
+            
+            select.innerHTML = (data || []).map(t => {
+                const selected = t.is_active ? 'selected' : '';
+                return `<option value="${t.id}" ${selected}>${t.name} ${t.is_active ? '(activa)' : ''}</option>`;
+            }).join('');
+        }
+        
+        async function cargarPlantilla() {
+            const tempId = document.getElementById('plantilla-temporada').value;
+            if (!tempId) return;
+            
+            const lista = document.getElementById('lista-jugadores');
+            lista.innerHTML = '<div class="loading">Cargando...</div>';
+            
+            const { data } = await supabase.from('season_players').select('*, players(*)').eq('season_id', tempId);
+            const count = (data || []).length;
+            
+            const contador = document.getElementById('plantilla-contador');
+            contador.textContent = `${count} / 30 jugadores`;
+            contador.className = 'plantilla-contador';
+            if (count >= 25) contador.classList.add('warning');
+            if (count >= 30) contador.classList.add('full');
+            
+            let html = (data || []).map(sp => {
+                const j = sp.players;
+                if (!j) return '';
+                const statusClass = j.status || 'available';
+                const statusText = { available: 'Disponible', injured: 'Lesionado', suspended: 'Sancionado' }[statusClass];
+                const inicial = j.name ? j.name.charAt(0).toUpperCase() : '?';
+                
+                return `
+                    <div class="jugador-card">
+                        <div class="jugador-foto">
+                            ${j.photo_url ? `<img src="${j.photo_url}">` : `<span>${inicial}</span>`}
+                        </div>
+                        <div class="jugador-info">
+                            <h4>${j.name}</h4>
+                            <p>${j.position || ''}</p>
+                            <span class="jugador-status ${statusClass}">${statusText}</span>
+                        </div>
+                        <div class="jugador-dorsal">${sp.shirt_number || '-'}</div>
+                        <div class="jugador-actions">
+                            <button class="btn-edit" onclick="editarJugador('${j.id}', '${sp.id}')">Editar</button>
+                            <button class="btn-delete" onclick="eliminarJugadorDePlantilla('${sp.id}')">X</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            if (count < 30) {
+                html += `<div class="add-jugador-card" onclick="abrirModalJugador()"><div class="icon">+</div><span>Anadir Jugador</span></div>`;
+            }
+            
+            lista.innerHTML = html;
+        }
+        
+        function abrirModalJugador() {
+            jugadorEditando = null;
+            document.getElementById('modal-jugador-titulo').textContent = 'Nuevo Jugador';
+            
+            document.getElementById('jugador-id').value = '';
+            document.getElementById('jugador-sp-id').value = '';
+            document.getElementById('jugador-nombre').value = '';
+            document.getElementById('jugador-dorsal').value = '';
+            document.getElementById('jugador-posicion').value = '';
+            document.getElementById('jugador-nacimiento').value = '';
+            document.getElementById('jugador-pie').value = 'Derecho';
+            document.getElementById('jugador-altura').value = '';
+            document.getElementById('jugador-peso').value = '';
+            document.getElementById('jugador-telefono').value = '';
+            document.getElementById('jugador-email').value = '';
+            document.getElementById('jugador-estado').value = 'available';
+            
+            document.getElementById('jugador-foto-preview').style.display = 'none';
+            document.getElementById('jugador-foto-placeholder').style.display = 'flex';
+            
+            document.getElementById('modal-jugador').style.display = 'flex';
+        }
+        
+        async function editarJugador(playerId, spId) {
+            jugadorEditando = { playerId, spId };
+            document.getElementById('modal-jugador-titulo').textContent = 'Editar Jugador';
+            
+            const { data: player } = await supabase.from('players').select('*').eq('id', playerId).single();
+            const { data: sp } = await supabase.from('season_players').select('shirt_number').eq('id', spId).single();
+            
+            document.getElementById('jugador-id').value = playerId;
+            document.getElementById('jugador-sp-id').value = spId;
+            document.getElementById('jugador-nombre').value = player.name || '';
+            document.getElementById('jugador-dorsal').value = sp?.shirt_number || '';
+            document.getElementById('jugador-posicion').value = player.position || '';
+            document.getElementById('jugador-nacimiento').value = player.birth_date || '';
+            document.getElementById('jugador-pie').value = player.dominant_foot || 'Derecho';
+            document.getElementById('jugador-altura').value = player.height_cm || '';
+            document.getElementById('jugador-peso').value = player.weight_kg || '';
+            document.getElementById('jugador-telefono').value = player.phone || '';
+            document.getElementById('jugador-email').value = player.email || '';
+            document.getElementById('jugador-estado').value = player.status || 'available';
+            
+            if (player.photo_url) {
+                document.getElementById('jugador-foto-preview').src = player.photo_url;
+                document.getElementById('jugador-foto-preview').style.display = 'block';
+                document.getElementById('jugador-foto-placeholder').style.display = 'none';
+            } else {
+                document.getElementById('jugador-foto-preview').style.display = 'none';
+                document.getElementById('jugador-foto-placeholder').style.display = 'flex';
+            }
+            
+            document.getElementById('modal-jugador').style.display = 'flex';
+        }
+        
+        function cerrarModalJugador(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('modal-jugador').style.display = 'none';
+            jugadorEditando = null;
+        }
+        
+        function previsualizarFotoJugador(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('jugador-foto-preview').src = e.target.result;
+                document.getElementById('jugador-foto-preview').style.display = 'block';
+                document.getElementById('jugador-foto-placeholder').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        async function guardarJugador() {
+            const nombre = document.getElementById('jugador-nombre').value.trim();
+            const dorsal = document.getElementById('jugador-dorsal').value;
+            const posicion = document.getElementById('jugador-posicion').value;
+            
+            if (!nombre || !dorsal || !posicion) {
+                alert('Nombre, dorsal y posicion son obligatorios');
+                return;
+            }
+            
+            const tempId = document.getElementById('plantilla-temporada').value;
+            
+            let photoUrl = null;
+            const fotoInput = document.getElementById('jugador-foto-input');
+            if (fotoInput.files.length > 0) {
+                const file = fotoInput.files[0];
+                const fileName = `player-${Date.now()}.${file.name.split('.').pop()}`;
+                const { error: upErr } = await supabase.storage.from('photos').upload(fileName, file);
+                if (!upErr) {
+                    const { data: urlData } = supabase.storage.from('photos').getPublicUrl(fileName);
+                    photoUrl = urlData.publicUrl;
+                }
+            }
+            
+            const playerData = {
+                club_id: clubId,
+                name: nombre,
+                position: posicion,
+                birth_date: document.getElementById('jugador-nacimiento').value || null,
+                dominant_foot: document.getElementById('jugador-pie').value,
+                height_cm: document.getElementById('jugador-altura').value || null,
+                weight_kg: document.getElementById('jugador-peso').value || null,
+                phone: document.getElementById('jugador-telefono').value,
+                email: document.getElementById('jugador-email').value,
+                status: document.getElementById('jugador-estado').value
+            };
+            
+            if (photoUrl) playerData.photo_url = photoUrl;
+            
+            if (jugadorEditando) {
+                await supabase.from('players').update(playerData).eq('id', jugadorEditando.playerId);
+                await supabase.from('season_players').update({ shirt_number: parseInt(dorsal) }).eq('id', jugadorEditando.spId);
+            } else {
+                const { data: newPlayer } = await supabase.from('players').insert(playerData).select().single();
+                await supabase.from('season_players').insert({
+                    season_id: tempId,
+                    player_id: newPlayer.id,
+                    shirt_number: parseInt(dorsal)
+                });
+            }
+            
+            cerrarModalJugador();
+            cargarPlantilla();
+            alert('Jugador guardado');
+        }
+        
+        async function eliminarJugadorDePlantilla(spId) {
+            if (!confirm('Eliminar este jugador de la plantilla?')) return;
+            await supabase.from('season_players').delete().eq('id', spId);
+            cargarPlantilla();
+        }
+        
+        // ========== INIT ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedUser = localStorage.getItem('hub_user');
+            const savedToken = localStorage.getItem('hub_token');
+            
+            if (savedUser && savedToken) {
+                usuario = JSON.parse(savedUser);
+                token = savedToken;
+                mostrarApp();
+            }
+            
+            document.getElementById('password').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') login();
+            });
+            
+            // Inicializar sesión
+            renderizarSesion();
+        });
+    </script>
+</body>
+</html>

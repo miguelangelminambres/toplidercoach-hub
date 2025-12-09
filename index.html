@@ -2044,7 +2044,7 @@
                         <!-- Selector de Jugadores -->
                         <div class="jugadores-selector">
                             <div class="jugadores-selector-header">
-                                <h4>Jugadores Convocados</h4>
+                                <h4>Jugadores aptos para entrenar</h4>
                                 <div>
                                     <span class="contador" id="contador-jugadores">0 seleccionados</span>
                                     <button type="button" class="btn-seleccionar-todos" onclick="toggleTodosJugadores()">Todos</button>
@@ -2649,7 +2649,7 @@
         let sesion = { nombre: '', fecha: '', calentamiento: [], principal: [], enfriamiento: [] };
         let calendarioMesSesiones = new Date().getMonth();
         let calendarioAnioSesiones = new Date().getFullYear();
-        
+        const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
         // MatchStats
         let filtroPartidos = 'todos';
         
@@ -3716,7 +3716,7 @@ async function exportarSesionPDF(id) {
        
         
         // ========== PLANIFICADOR: CALENDARIO ==========
-        const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+      
         
         async function cargarCalendarioSesiones() {
             document.getElementById('mes-actual-sesiones').textContent = `${MESES[calendarioMesSesiones]} ${calendarioAnioSesiones}`;
@@ -4032,7 +4032,7 @@ async function exportarSesionPDF(id) {
             const grid = document.getElementById('stats-jugadores-grid');
             
             if (convocados.length === 0) {
-                grid.innerHTML = '<p style="color:#9ca3af;">No hay jugadores convocados</p>';
+                grid.innerHTML = '<p style="color:#9ca3af;">No hay Jugadores aptos para entrenar</p>';
             } else {
                 const { data: jugadores } = await supabase.from('players').select('*').in('id', convocados);
                 const { data: statsExist } = await supabase.from('match_player_stats').select('*').eq('match_id', partidoId);

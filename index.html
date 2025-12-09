@@ -1959,7 +1959,8 @@
                         </div>
                         <div class="panel-content">
                             <!-- Toggle Filtros -->
-                            <div class="filtros-toggle" onclick="toggleFiltros()">
+                       <!-- Toggle Filtros -->
+                            <div class="filtros-toggle collapsed" onclick="toggleFiltros()" id="filtros-toggle">
                                 <h4>Filtros Avanzados</h4>
                                 <span class="toggle-icon">▼</span>
                             </div>
@@ -2808,7 +2809,12 @@
             info.classList.toggle('collapsed');
             toggle.classList.toggle('collapsed');
         }
-        
+        function toggleFiltros() {
+            const filtros = document.getElementById('filtros-biblioteca');
+            const toggle = document.getElementById('filtros-toggle');
+            filtros.classList.toggle('collapsed');
+            toggle.classList.toggle('collapsed');
+        }
         function limpiarFiltros() {
             document.getElementById('filtro-buscar').value = '';
             document.getElementById('filtro-entrenador').value = '';
@@ -2907,14 +2913,25 @@
             document.getElementById('modal-seccion').style.display = 'none';
         }
         
-        function seleccionarSeccion(seccion) {
+    function seleccionarSeccion(seccion) {
             if (!ejercicioSeleccionado) return;
+            
+            // Funcion para limpiar HTML
+            function limpiarHTML(html) {
+                if (!html) return '';
+                const temp = document.createElement('div');
+                temp.innerHTML = html;
+                return temp.textContent || temp.innerText || '';
+            }
             
             const ejercicioParaSesion = {
                 id: ejercicioSeleccionado.id,
                 titulo: ejercicioSeleccionado.titulo,
                 duracion: ejercicioSeleccionado.duracion || 10,
-                imagen: ejercicioSeleccionado.imagen
+                imagen: ejercicioSeleccionado.imagen || '',
+                objetivo: limpiarHTML(ejercicioSeleccionado.objetivo),
+                entrenador: ejercicioSeleccionado.entrenador || '',
+                equipo: ejercicioSeleccionado.equipo || ''
             };
             
             sesion[seccion].push(ejercicioParaSesion);
@@ -2922,10 +2939,41 @@
             renderizarSesion();
         }
         
-        function agregarEjercicioDesdeBoton(btn) {
+        async function agregarEjercicioDesdeBoton(btn) {
             const ejercicioData = JSON.parse(btn.dataset.ejercicio);
-            ejercicioSeleccionado = ejercicioData;
-            abrirModalSeccion();
+            
+            // Cargar detalles completos del ejercicio
+            try {
+                const response = await fetch(`${API_BASE}/ejercicio/${ejercicioData.id}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const ej = data.ejercicio;
+                    
+                    // Funcion para limpiar HTML
+                    function limpiarHTML(html) {
+                        if (!html) return '';
+                        const temp = document.createElement('div');
+                        temp.innerHTML = html;
+                        return temp.textContent || temp.innerText || '';
+                    }
+                    
+                    ejercicioSeleccionado = {
+                        id: ej.id,
+                        titulo: ej.titulo,
+                        duracion: ej.duracion || 10,
+                        imagen: ej.imagen || '',
+                        objetivo: limpiarHTML(ej.objetivo),
+                        entrenador: ej.entrenador || '',
+                        equipo: ej.equipo || ''
+                    };
+                    
+                    abrirModalSeccion();
+                }
+            } catch (error) {
+                console.error('Error cargando ejercicio:', error);
+                alert('Error al cargar el ejercicio');
+            }
         }
         
         function renderizarSesion() {
@@ -2941,14 +2989,14 @@
                 
                 if (sesion[seccion].length === 0) {
                     lista.innerHTML = '<p style="text-align:center;color:#9ca3af;padding:20px;font-size:13px;">Arrastra ejercicios aqui</p>';
-                } else {
+              } else {
                     lista.innerHTML = sesion[seccion].map((ej, idx) => `
-                        <div class="ejercicio-en-sesion">
+                        <div class="ejercicio-en-sesion" onclick="seleccionarEjercicio(${ej.id})" style="cursor: pointer;">
                             <div>
                                 <div class="nombre">${ej.titulo}</div>
                                 <div class="duracion">${ej.duracion} min</div>
                             </div>
-                            <button onclick="quitarEjercicio('${seccion}', ${idx})">Quitar</button>
+                            <button onclick="event.stopPropagation(); quitarEjercicio('${seccion}', ${idx})">Quitar</button>
                         </div>
                     `).join('');
                 }
@@ -2979,6 +3027,14 @@
         async function guardarSesion() {
             const nombre = document.getElementById('sesion-nombre').value.trim();
             const fecha = document.getElementById('sesion-fecha').value;
+            const hora = document.getElementById('sesion-hora').value;
+            const microciclo = document.getElementById('sesion-microciclo').value.trim();
+            const md = document.getElementById('sesion-md').value.trim();
+            const jugadores = document.getElementById('sesion-jugadores').value;
+            const equipo = document.getElementById('sesion-equipo').value.trim();
+            const objetivo = document.getElementById('sesion-objetivo').value.trim();
+            const material = document.getElementById('sesion-material').value.trim();
+            const notas = document.getElementById('sesion-notas').value.trim();
             
             if (!nombre) {
                 alert('El nombre de la sesion es obligatorio');
@@ -2998,6 +3054,14 @@
                         season_id: seasonId,
                         name: nombre,
                         session_date: fecha,
+                        session_time: hora || null,
+                        microciclo: microciclo || null,
+                        match_day: md || null,
+                        num_players: jugadores ? parseInt(jugadores) : null,
+                        team_category: equipo || null,
+                        objective: objetivo || null,
+                        materials: material || null,
+                        notes: notas || null,
                         warm_up: sesion.calentamiento,
                         main_part: sesion.principal,
                         cool_down: sesion.enfriamiento
@@ -3130,62 +3194,290 @@
             cargarMisSesiones();
         }
         
-        async function exportarSesionPDF(id) {
+async function exportarSesionPDF(id) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
             const { data: s } = await supabase.from('training_sessions').select('*').eq('id', id).single();
+            const { data: club } = await supabase.from('clubs').select('name, logo_url').eq('id', clubId).single();
             
             const fecha = new Date(s.session_date).toLocaleDateString('es-ES');
+            const hora = s.session_time ? s.session_time.substring(0, 5) : '';
             
-            // Header
-            doc.setFillColor(124, 58, 237);
-            doc.rect(0, 0, 210, 40, 'F');
+            // Funcion para limpiar texto
+            function limpiarTexto(texto) {
+                if (!texto) return '';
+                return texto
+                    .replace(/<[^>]*>/g, '')
+                    .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
+                    .replace(/[\u{2600}-\u{26FF}]/gu, '')
+                    .replace(/[\u{2700}-\u{27BF}]/gu, '')
+                    .replace(/[\u{FE00}-\u{FE0F}]/gu, '')
+                    .replace(/[\u{1F000}-\u{1F02F}]/gu, '')
+                    .replace(/[^\x00-\x7F\xA0-\xFF\u0100-\u017F]/g, '')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+            }
+            
+            // Calcular duracion total
+            const duracionTotal = (s.warm_up || []).reduce((sum, e) => sum + (e.duracion || 0), 0) +
+                                  (s.main_part || []).reduce((sum, e) => sum + (e.duracion || 0), 0) +
+                                  (s.cool_down || []).reduce((sum, e) => sum + (e.duracion || 0), 0);
+            
+            // ===== HEADER =====
+            doc.setFillColor(0, 51, 102);
+            doc.rect(0, 0, 210, 28, 'F');
+            
+            // Escudo del club (si existe)
+            let tituloX = 10;
+            if (club && club.logo_url) {
+                try {
+                    doc.addImage(club.logo_url, 'PNG', 8, 3, 22, 22);
+                    tituloX = 35;
+                } catch (e) {
+                    console.log('No se pudo cargar el escudo');
+                }
+            }
+            
+            // Titulo sesion
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(22);
+            doc.setFontSize(16);
             doc.setFont('helvetica', 'bold');
-            doc.text('SESION DE ENTRENAMIENTO', 105, 18, { align: 'center' });
-            doc.setFontSize(12);
-            doc.text(`${s.name} - ${fecha}`, 105, 30, { align: 'center' });
+            doc.text(s.name.toUpperCase(), tituloX, 10);
             
-            let y = 55;
+            // Nombre del club
+            if (club && club.name) {
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'normal');
+                doc.text(club.name, tituloX, 16);
+            }
             
+            // Info en header (fila)
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            
+            const headerInfo = [];
+            headerInfo.push(`Fecha: ${fecha}`);
+            if (hora) headerInfo.push(`Hora: ${hora}`);
+            if (s.microciclo) headerInfo.push(`Microciclo: ${s.microciclo}`);
+            if (s.match_day) headerInfo.push(`MD: ${s.match_day}`);
+            if (s.num_players) headerInfo.push(`Jugadores: ${s.num_players}`);
+            if (s.team_category) headerInfo.push(`Equipo: ${s.team_category}`);
+            headerInfo.push(`Duracion: ${duracionTotal} min`);
+            
+            doc.text(headerInfo.join('   |   '), tituloX, 24);
+            
+            // Linea amarilla decorativa
+            doc.setFillColor(255, 204, 0);
+            doc.rect(0, 28, 210, 2, 'F');
+            
+            let y = 38;
+            
+            // ===== OBJETIVO GENERAL =====
+            if (s.objective) {
+                doc.setFillColor(240, 240, 240);
+                doc.rect(10, y - 4, 190, 12, 'F');
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(0, 51, 102);
+                doc.text('OBJETIVO:', 12, y + 2);
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(50, 50, 50);
+                const objText = doc.splitTextToSize(limpiarTexto(s.objective), 150);
+                doc.text(objText[0], 35, y + 2);
+                y += 14;
+            }
+            
+            // ===== MATERIAL =====
+            if (s.materials) {
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(100, 100, 100);
+                doc.text('Material: ', 10, y);
+                doc.setFont('helvetica', 'normal');
+                doc.text(limpiarTexto(s.materials), 28, y);
+                y += 8;
+            }
+            
+            // ===== SECCIONES =====
             const secciones = [
-                { nombre: 'CALENTAMIENTO', datos: s.warm_up || [], color: [249, 115, 22] },
-                { nombre: 'PARTE PRINCIPAL', datos: s.main_part || [], color: [59, 130, 246] },
-                { nombre: 'ENFRIAMIENTO', datos: s.cool_down || [], color: [16, 185, 129] }
+                { nombre: 'CALENTAMIENTO', datos: s.warm_up || [], color: [255, 153, 0] },
+                { nombre: 'PARTE PRINCIPAL', datos: s.main_part || [], color: [0, 102, 204] },
+                { nombre: 'PARTE FINAL', datos: s.cool_down || [], color: [0, 153, 76] }
             ];
             
-            secciones.forEach(sec => {
+            for (const sec of secciones) {
                 if (sec.datos.length > 0) {
+                    const tiempoSeccion = sec.datos.reduce((sum, e) => sum + (e.duracion || 0), 0);
+                    
+                    // Verificar espacio para header de seccion
+                    if (y > 260) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    
+                    // Header seccion
                     doc.setFillColor(...sec.color);
-                    doc.rect(15, y - 6, 180, 10, 'F');
+                    doc.rect(10, y, 190, 8, 'F');
                     doc.setTextColor(255, 255, 255);
-                    doc.setFontSize(12);
+                    doc.setFontSize(10);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(sec.nombre, 20, y);
+                    doc.text(sec.nombre, 12, y + 6);
+                    doc.text(tiempoSeccion + ' min', 195, y + 6, { align: 'right' });
                     y += 12;
                     
-                    doc.setTextColor(30, 30, 30);
-                    doc.setFont('helvetica', 'normal');
-                    doc.setFontSize(11);
+                    // Ejercicios de la seccion
+                    for (let i = 0; i < sec.datos.length; i++) {
+                        const ej = sec.datos[i];
+                        const alturaEjercicio = 45;
+                        
+                        // Verificar espacio, nueva pagina si necesario
+                        if (y + alturaEjercicio > 280) {
+                            doc.addPage();
+                            y = 20;
+                        }
+                        
+                        // Fila del titulo
+                        doc.setFillColor(245, 245, 245);
+                        doc.rect(10, y, 190, 7, 'F');
+                        doc.setTextColor(0, 0, 0);
+                        doc.setFontSize(9);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text(`${i + 1}. ${ej.titulo}`, 12, y + 5);
+                        doc.setFont('helvetica', 'normal');
+                        doc.setTextColor(100, 100, 100);
+                        doc.text(`${ej.duracion} min`, 195, y + 5, { align: 'right' });
+                        y += 9;
+                        
+                        const contenidoY = y;
+                        
+                        // === COLUMNA 1: IMAGEN (izquierda) ===
+                        const imgX = 10;
+                        const imgWidth = 55;
+                        const imgHeight = 35;
+                        
+                        if (ej.imagen) {
+                            try {
+                                doc.addImage(ej.imagen, 'JPEG', imgX, contenidoY, imgWidth, imgHeight);
+                            } catch (e) {
+                                doc.setDrawColor(200, 200, 200);
+                                doc.rect(imgX, contenidoY, imgWidth, imgHeight);
+                                doc.setFontSize(7);
+                                doc.setTextColor(150, 150, 150);
+                                doc.text('Sin imagen', imgX + 18, contenidoY + 18);
+                            }
+                        } else {
+                            doc.setDrawColor(200, 200, 200);
+                            doc.rect(imgX, contenidoY, imgWidth, imgHeight);
+                            doc.setFontSize(7);
+                            doc.setTextColor(150, 150, 150);
+                            doc.text('Sin imagen', imgX + 18, contenidoY + 18);
+                        }
+                        
+                        // === COLUMNA 2: DESCRIPCION (centro) ===
+                        const descX = 70;
+                        const descWidth = 65;
+                        
+                        doc.setDrawColor(230, 230, 230);
+                        doc.rect(descX, contenidoY, descWidth, imgHeight);
+                        
+                        if (ej.objetivo) {
+                            doc.setFontSize(7);
+                            doc.setTextColor(60, 60, 60);
+                            const objetivoLimpio = limpiarTexto(ej.objetivo);
+                            const objetivoLines = doc.splitTextToSize(objetivoLimpio, descWidth - 4);
+                            const lineasMostrar = objetivoLines.slice(0, 8);
+                            doc.text(lineasMostrar, descX + 2, contenidoY + 4);
+                        } else {
+                            doc.setFontSize(7);
+                            doc.setTextColor(180, 180, 180);
+                            doc.text('Sin descripcion', descX + 15, contenidoY + 18);
+                        }
+                        
+                        // === COLUMNA 3: NOTAS ENTRENADOR (derecha) ===
+                        const notasX = 140;
+                        const notasWidth = 60;
+                        
+                        doc.setDrawColor(230, 230, 230);
+                        doc.rect(notasX, contenidoY, notasWidth, imgHeight);
+                        
+                        // Titulo "Notas"
+                        doc.setFontSize(7);
+                        doc.setFont('helvetica', 'bold');
+                        doc.setTextColor(150, 150, 150);
+                        doc.text('Notas:', notasX + 2, contenidoY + 4);
+                        doc.setFont('helvetica', 'normal');
+                        
+                        // Lineas para escribir
+                        doc.setDrawColor(220, 220, 220);
+                        for (let lineY = contenidoY + 10; lineY < contenidoY + imgHeight - 2; lineY += 6) {
+                            doc.line(notasX + 2, lineY, notasX + notasWidth - 2, lineY);
+                        }
+                        
+                        y = contenidoY + imgHeight + 5;
+                    }
                     
-                    sec.datos.forEach(ej => {
-                        doc.text(`- ${ej.titulo} (${ej.duracion} min)`, 20, y);
-                        y += 7;
-                    });
-                    
-                    y += 8;
+                    y += 5;
                 }
-            });
+            }
             
-            // Footer
-            doc.setFontSize(8);
-            doc.setTextColor(150, 150, 150);
-            doc.text('Generado con HUB TopLiderCoach', 105, 285, { align: 'center' });
+            // ===== NOTAS GENERALES =====
+            if (s.notes) {
+                if (y > 250) {
+                    doc.addPage();
+                    y = 20;
+                }
+                doc.setFillColor(255, 255, 200);
+                const notasLines = doc.splitTextToSize(limpiarTexto(s.notes), 180);
+                doc.rect(10, y, 190, 8 + notasLines.length * 4, 'F');
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(100, 80, 0);
+                doc.text('NOTAS:', 12, y + 5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(notasLines, 30, y + 5);
+            }
+            
+            // ===== FOOTER =====
+            const totalPages = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= totalPages; i++) {
+                doc.setPage(i);
+                doc.setFontSize(7);
+                doc.setTextColor(150, 150, 150);
+                doc.text('TopLiderCoach.com', 105, 292, { align: 'center' });
+            }
             
             doc.save(`sesion_${s.name.replace(/\s+/g, '_')}.pdf`);
         }
+            
+            // ===== NOTAS GENERALES =====
+            if (s.notes) {
+                if (y > 250) {
+                    doc.addPage();
+                    y = 20;
+                }
+                doc.setFillColor(255, 255, 200);
+                const notasLines = doc.splitTextToSize(s.notes, 180);
+                doc.rect(10, y, 190, 8 + notasLines.length * 4, 'F');
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(100, 80, 0);
+                doc.text('NOTAS:', 12, y + 5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(notasLines, 30, y + 5);
+            }
+            
+            // ===== FOOTER =====
+            const totalPages = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= totalPages; i++) {
+                doc.setPage(i);
+                doc.setFontSize(7);
+                doc.setTextColor(150, 150, 150);
+                doc.text('TopLiderCoach.com', 105, 292, { align: 'center' });
+            }
+            
+            doc.save(`sesion_${s.name.replace(/\s+/g, '_')}.pdf`);
+       
         
         // ========== PLANIFICADOR: CALENDARIO ==========
         const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];

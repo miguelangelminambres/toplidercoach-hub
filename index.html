@@ -1563,11 +1563,12 @@
         }
 
         /* ========== CALENDARIO ========== */
-        .calendario-container {
+      .calendario-container {
             background: white;
             border-radius: 16px;
-            padding: 25px;
+            padding: 15px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            overflow-x: auto;
         }
         
         .calendario-header {
@@ -1602,26 +1603,28 @@
             text-align: center;
         }
         
-        .calendario-grid {
+    .calendario-grid {
             display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
+            grid-template-columns: repeat(7, minmax(40px, 1fr));
+            gap: 2px;
+            min-width: 320px;
         }
         
-        .calendario-dia-header {
+       .calendario-dia-header {
             text-align: center;
             font-weight: 600;
             color: #6b7280;
-            padding: 10px;
-            font-size: 13px;
+            padding: 5px 2px;
+            font-size: 11px;
         }
         
-        .calendario-dia {
-            min-height: 80px;
+       .calendario-dia {
+            min-height: 60px;
             border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 8px;
+            border-radius: 6px;
+            padding: 4px;
             background: white;
+            font-size: 11px;
         }
         
         .calendario-dia.otro-mes {

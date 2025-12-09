@@ -847,6 +847,106 @@
             font-size: 18px;
             font-weight: 700;
         }
+       /* Selector de jugadores sesion */
+        .jugadores-selector {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .jugadores-selector-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .jugadores-selector-header h4 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin: 0;
+        }
+        
+        .jugadores-selector-header .contador {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .jugadores-sesion-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 6px;
+            max-height: 120px;
+            overflow-y: auto;
+            padding: 8px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+        
+        .jugador-check {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 6px;
+            background: white;
+            border-radius: 6px;
+            border: 2px solid #e5e7eb;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .jugador-check:hover {
+            border-color: #7c3aed;
+        }
+        
+       .jugador-check.selected {
+            background: #dcfce7;
+            border-color: #22c55e;
+        }
+        
+        .jugador-check.selected .dorsal {
+            background: #22c55e;
+        }
+        
+        .jugador-check .dorsal {
+            background: #7c3aed;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        .jugador-check .nombre {
+            font-size: 10px;
+            color: #374151;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .btn-seleccionar-todos {
+            font-size: 11px;
+            padding: 4px 10px;
+            background: #e5e7eb;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .btn-seleccionar-todos:hover {
+            background: #d1d5db;
+        }
+        
+        .btn-seleccionar-todos:hover {
+            background: #d1d5db;
+        }
         
         @media (max-width: 768px) {
             .sesion-info-grid {
@@ -1941,7 +2041,18 @@
                                 <textarea id="sesion-notas" placeholder="Observaciones, condiciones climaticas, etc."></textarea>
                             </div>
                         </div>
-                        
+                        <!-- Selector de Jugadores -->
+                        <div class="jugadores-selector">
+                            <div class="jugadores-selector-header">
+                                <h4>Jugadores Convocados</h4>
+                                <div>
+                                    <span class="contador" id="contador-jugadores">0 seleccionados</span>
+                                    <button type="button" class="btn-seleccionar-todos" onclick="toggleTodosJugadores()">Todos</button>
+                                </div>
+                            </div>
+                            <div class="jugadores-sesion-grid" id="jugadores-sesion-grid">                                <p style="color:#9ca3af;font-size:12px;grid-column:1/-1;text-align:center;">Cargando jugadores...</p>
+                            </div>
+                        </div>
                         <!-- Duracion Total -->
                         <div class="duracion-total-display">
                             <span class="label">Duracion Total:</span>
@@ -2602,6 +2713,9 @@
              // Cargar datos iniciales
             cargarFiltrosOpciones();
             cargarEjercicios();
+            cargarFiltrosOpciones();
+            cargarEjercicios();
+            cargarJugadoresSesion();
         }
         
         // ========== CLUB & TEMPORADA ==========
@@ -2802,7 +2916,101 @@
                 lista.innerHTML = '<p style="color:red;">Error al cargar</p>';
             }
         }
+        let jugadoresPlantilla = [];
+        let jugadoresSeleccionados = [];
         
+        async function cargarJugadoresSesion() {
+            const grid = document.getElementById('jugadores-sesion-grid');
+            
+            if (!seasonId) {
+                grid.innerHTML = '<p style="color:#9ca3af;font-size:12px;grid-column:1/-1;text-align:center;">No hay temporada activa</p>';
+                return;
+            }
+            
+            try {
+               const { data: jugadores, error } = await supabase
+                    .from('season_players')
+                    .select('id, player_id, shirt_number, players(id, name)')
+                    .eq('season_id', seasonId)
+                    .order('shirt_number');
+                
+                if (error) throw error;
+                
+                jugadoresPlantilla = jugadores || [];
+                jugadoresSeleccionados = [];
+                
+                if (jugadoresPlantilla.length === 0) {
+                    grid.innerHTML = '<p style="color:#9ca3af;font-size:12px;grid-column:1/-1;text-align:center;">No hay jugadores en la plantilla</p>';
+                    return;
+                }
+                
+                renderizarJugadoresSesion();
+                
+            } catch (error) {
+                console.error('Error cargando jugadores:', error);
+                grid.innerHTML = '<p style="color:red;font-size:12px;grid-column:1/-1;text-align:center;">Error al cargar</p>';
+            }
+        }
+        
+      function renderizarJugadoresSesion() {
+            const grid = document.getElementById('jugadores-sesion-grid');
+            
+            grid.innerHTML = jugadoresPlantilla.map(sp => {
+                const jugador = sp.players;
+                const seleccionado = jugadoresSeleccionados.some(id => String(id) === String(sp.id));
+                return `
+                    <div class="jugador-check ${seleccionado ? 'selected' : ''}" data-id="${sp.id}">
+                        <span class="dorsal">${sp.shirt_number || '?'}</span>
+                        <span class="nombre">${jugador?.name || 'Sin nombre'}</span>
+                    </div>
+                `;
+            }).join('');
+            
+            // Añadir eventos de clic
+            grid.querySelectorAll('.jugador-check').forEach(el => {
+                el.addEventListener('click', function() {
+                    const spId = this.dataset.id;
+                    toggleJugadorSesion(spId);
+                });
+            });
+            
+            actualizarContadorJugadores();
+        }
+        
+      function toggleJugadorSesion(spId) {
+            const idx = jugadoresSeleccionados.findIndex(id => String(id) === String(spId));
+            if (idx > -1) {
+                jugadoresSeleccionados.splice(idx, 1);
+            } else {
+                jugadoresSeleccionados.push(spId);
+            }
+            renderizarJugadoresSesion();
+        }
+        
+        function toggleTodosJugadores() {
+            if (jugadoresSeleccionados.length === jugadoresPlantilla.length) {
+                jugadoresSeleccionados = [];
+            } else {
+                jugadoresSeleccionados = jugadoresPlantilla.map(sp => sp.id);
+            }
+            renderizarJugadoresSesion();
+        }
+        
+        function actualizarContadorJugadores() {
+            document.getElementById('contador-jugadores').textContent = `${jugadoresSeleccionados.length} seleccionados`;
+        }
+        
+        function obtenerJugadoresParaGuardar() {
+            return jugadoresPlantilla
+                .filter(sp => jugadoresSeleccionados.includes(sp.id))
+                .map(sp => ({
+                    id: sp.id,
+                    player_id: sp.player_id,
+                    name: sp.players?.name || '',
+                    shirt_number: sp.shirt_number,
+                    position: sp.position
+                }));
+        }
       function toggleInfoSesion() {
             const info = document.getElementById('sesion-info-grid');
             const toggle = document.querySelector('.info-sesion-toggle');
@@ -3022,6 +3230,8 @@
             document.getElementById('sesion-material').value = '';
             document.getElementById('sesion-notas').value = '';
             renderizarSesion();
+            jugadoresSeleccionados = [];
+            renderizarJugadoresSesion();
         }
         
         async function guardarSesion() {
@@ -3064,7 +3274,8 @@
                         notes: notas || null,
                         warm_up: sesion.calentamiento,
                         main_part: sesion.principal,
-                        cool_down: sesion.enfriamiento
+                        cool_down: sesion.enfriamiento,
+                        players: obtenerJugadoresParaGuardar()
                     });
                 
                 if (error) throw error;
@@ -3271,7 +3482,32 @@ async function exportarSesionPDF(id) {
             doc.setFillColor(255, 204, 0);
             doc.rect(0, 28, 210, 2, 'F');
             
-            let y = 38;
+            let y = 35;
+            
+            // ===== Jugadores aptos para entrenar =====
+            if (s.players && s.players.length > 0) {
+                doc.setFillColor(240, 240, 240);
+                doc.rect(10, y, 190, 12, 'F');
+                
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(0, 51, 102);
+                doc.text('CONVOCADOS:', 12, y + 5);
+                
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(50, 50, 50);
+                
+                const nombresJugadores = s.players.map(j => `${j.shirt_number || '?'}.${j.name}`).join('  |  ');
+                const jugadoresLines = doc.splitTextToSize(nombresJugadores, 175);
+                doc.text(jugadoresLines[0], 38, y + 5);
+                if (jugadoresLines[1]) {
+                    doc.text(jugadoresLines[1], 12, y + 10);
+                }
+                
+                y += 16;
+            }
+            
+            y += 3;
             
             // ===== OBJETIVO GENERAL =====
             if (s.objective) {

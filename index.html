@@ -663,7 +663,89 @@
             background: #6d28d9;
             transform: scale(1.05);
         }
+        /* Filtros biblioteca */
+        .filtros-toggle {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            padding: 12px 16px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
         
+        .filtros-toggle h4 {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .filtros-toggle .toggle-icon {
+            color: white;
+            transition: transform 0.3s;
+        }
+        
+        .filtros-toggle.collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+        
+        .filtros-biblioteca {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        
+        .filtros-biblioteca.collapsed {
+            display: none;
+        }
+        
+        .filtros-biblioteca select,
+        .filtros-biblioteca input {
+            padding: 10px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 13px;
+            background: white;
+        }
+        
+        .filtros-biblioteca select:focus,
+        .filtros-biblioteca input:focus {
+            outline: none;
+            border-color: #7c3aed;
+        }
+        
+        .filtros-biblioteca .filtros-botones {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-filtrar {
+            flex: 1;
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .btn-limpiar-filtros {
+            background: #f1f5f9;
+            color: #475569;
+            border: 2px solid #e2e8f0;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
         /* Sesión */
         .seccion-ejercicios {
             margin-bottom: 20px;
@@ -1704,14 +1786,42 @@
                 
                 <!-- Layout del planificador -->
                 <div class="planificador-layout">
-                    <!-- Panel Biblioteca -->
+                  <!-- Panel Biblioteca -->
                     <div class="panel">
                         <div class="panel-header">
                             <h3>Biblioteca de Ejercicios</h3>
                         </div>
                         <div class="panel-content">
-                            <div class="form-group">
-                                <input type="text" id="buscar-ejercicio" placeholder="Buscar ejercicio..." onkeyup="buscarEjercicios()">
+                            <!-- Toggle Filtros -->
+                            <div class="filtros-toggle" onclick="toggleFiltros()">
+                                <h4>Filtros Avanzados</h4>
+                                <span class="toggle-icon">▼</span>
+                            </div>
+                            
+                            <!-- Filtros (colapsados por defecto) -->
+                            <div class="filtros-biblioteca collapsed" id="filtros-biblioteca">
+                                <input type="text" id="filtro-buscar" placeholder="Buscar por nombre...">
+                                <select id="filtro-entrenador">
+                                    <option value="">Entrenador</option>
+                                </select>
+                                <select id="filtro-equipo">
+                                    <option value="">Equipo</option>
+                                </select>
+                                <select id="filtro-tema">
+                                    <option value="">Tema</option>
+                                </select>
+                                <select id="filtro-dificultad">
+                                    <option value="">Dificultad</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                </select>
+                                <div class="filtros-botones">
+                                    <button class="btn-filtrar" onclick="cargarEjercicios(1)">Filtrar</button>
+                                    <button class="btn-limpiar-filtros" onclick="limpiarFiltros()">Limpiar</button>
+                                </div>
                             </div>
                             <div id="lista-ejercicios">
                                 <div class="loading">Cargando ejercicios...</div>
@@ -2322,6 +2432,8 @@
             document.getElementById('sesion-fecha').value = new Date().toISOString().split('T')[0];
             
             // Cargar datos iniciales
+             // Cargar datos iniciales
+            cargarFiltrosOpciones();
             cargarEjercicios();
         }
         
@@ -2462,7 +2574,22 @@
             lista.innerHTML = '<div class="loading">Cargando...</div>';
             
             try {
-                const response = await fetch(`${API_BASE}/ejercicios?page=${pagina}&per_page=10`);
+                // Construir URL con filtros
+                let url = `${API_BASE}/ejercicios?page=${pagina}&per_page=10`;
+                
+                const buscar = document.getElementById('filtro-buscar')?.value;
+                const entrenador = document.getElementById('filtro-entrenador')?.value;
+                const equipo = document.getElementById('filtro-equipo')?.value;
+                const tema = document.getElementById('filtro-tema')?.value;
+                const dificultad = document.getElementById('filtro-dificultad')?.value;
+                
+                if (buscar) url += `&search=${encodeURIComponent(buscar)}`;
+                if (entrenador) url += `&entrenador=${encodeURIComponent(entrenador)}`;
+                if (equipo) url += `&equipo=${encodeURIComponent(equipo)}`;
+                if (tema) url += `&tema=${encodeURIComponent(tema)}`;
+                if (dificultad) url += `&dificultad=${dificultad}`;
+                
+                const response = await fetch(url);
                 const data = await response.json();
                 
                 if (!data.ejercicios || data.ejercicios.length === 0) {
@@ -2509,9 +2636,50 @@
             }
         }
         
-        function buscarEjercicios() {
-            // Implementar búsqueda si es necesario
+      function toggleFiltros() {
+            const filtros = document.getElementById('filtros-biblioteca');
+            const toggle = document.querySelector('.filtros-toggle');
+            filtros.classList.toggle('collapsed');
+            toggle.classList.toggle('collapsed');
+        }
+        
+        function limpiarFiltros() {
+            document.getElementById('filtro-buscar').value = '';
+            document.getElementById('filtro-entrenador').value = '';
+            document.getElementById('filtro-equipo').value = '';
+            document.getElementById('filtro-tema').value = '';
+            document.getElementById('filtro-dificultad').value = '';
             cargarEjercicios(1);
+        }
+        
+        async function cargarFiltrosOpciones() {
+            try {
+                const response = await fetch(`${API_BASE}/filtros`);
+                const data = await response.json();
+                
+                if (data.entrenadores) {
+                    const select = document.getElementById('filtro-entrenador');
+                    data.entrenadores.forEach(e => {
+                        select.innerHTML += `<option value="${e}">${e.replace(/_/g, ' ')}</option>`;
+                    });
+                }
+                
+                if (data.equipos) {
+                    const select = document.getElementById('filtro-equipo');
+                    data.equipos.forEach(e => {
+                        select.innerHTML += `<option value="${e}">${e.replace(/_/g, ' ')}</option>`;
+                    });
+                }
+                
+                if (data.temas) {
+                    const select = document.getElementById('filtro-tema');
+                    data.temas.forEach(t => {
+                        select.innerHTML += `<option value="${t}">${t}</option>`;
+                    });
+                }
+            } catch (error) {
+                console.error('Error cargando filtros:', error);
+            }
         }
         
         function seleccionarEjercicio(ejercicioId) {

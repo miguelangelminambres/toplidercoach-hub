@@ -746,6 +746,117 @@
             cursor: pointer;
             font-weight: 600;
         }
+        /* Toggle info sesion */
+        .info-sesion-toggle {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            padding: 12px 16px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: none;
+            width: 100%;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+        
+        .info-sesion-toggle span {
+            font-size: 13px;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .info-sesion-toggle .toggle-icon {
+            color: white;
+            transition: transform 0.3s;
+        }
+        
+        .info-sesion-toggle.collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+        
+        .sesion-info-grid {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .sesion-info-grid.collapsed {
+            display: none;
+        }
+        
+        .campo-grupo {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .campo-grupo.full-width {
+            grid-column: span 2;
+        }
+        
+        .campo-grupo label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 5px;
+        }
+        
+        .campo-grupo input,
+        .campo-grupo textarea,
+        .campo-grupo select {
+            padding: 10px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .campo-grupo input:focus,
+        .campo-grupo textarea:focus,
+        .campo-grupo select:focus {
+            outline: none;
+            border-color: #7c3aed;
+        }
+        
+        .campo-grupo textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        
+        .duracion-total-display {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .duracion-total-display .label {
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .duracion-total-display .tiempo {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        @media (max-width: 768px) {
+            .sesion-info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .campo-grupo.full-width {
+                grid-column: span 1;
+            }
+        }
         /* Sesión */
         .seccion-ejercicios {
             margin-bottom: 20px;
@@ -1769,17 +1880,72 @@
                 </div>
                 
                 <!-- Info de la sesión -->
+               <!-- Info de la sesión -->
                 <div class="card" style="margin-bottom: 20px;">
                     <div class="card-body">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Nombre de la Sesion</label>
-                                <input type="text" id="sesion-nombre" placeholder="Ej: Entrenamiento tactica ofensiva">
+                        <!-- Toggle Info General -->
+                        <button class="info-sesion-toggle" onclick="toggleInfoSesion()">
+                            <span>Informacion de la Sesion</span>
+                            <span class="toggle-icon">▼</span>
+                        </button>
+                        
+                        <!-- Campos Info General -->
+                        <div class="sesion-info-grid" id="sesion-info-grid">
+                            <div class="campo-grupo full-width">
+                                <label>Nombre de la Sesion *</label>
+                                <input type="text" id="sesion-nombre" placeholder="Ej: Posesion y finalizacion">
                             </div>
-                            <div class="form-group">
+                            
+                            <div class="campo-grupo">
                                 <label>Fecha</label>
                                 <input type="date" id="sesion-fecha">
                             </div>
+                            
+                            <div class="campo-grupo">
+                                <label>Hora de Inicio</label>
+                                <input type="time" id="sesion-hora">
+                            </div>
+                            
+                            <div class="campo-grupo">
+                                <label>Microciclo</label>
+                                <input type="text" id="sesion-microciclo" placeholder="Ej: M1, M2...">
+                            </div>
+                            
+                            <div class="campo-grupo">
+                                <label>MD (Match Day)</label>
+                                <input type="text" id="sesion-md" placeholder="Ej: MD-2, MD+1...">
+                            </div>
+                            
+                            <div class="campo-grupo">
+                                <label>Num Jugadores</label>
+                                <input type="number" id="sesion-jugadores" placeholder="Ej: 20" min="1">
+                            </div>
+                            
+                            <div class="campo-grupo">
+                                <label>Equipo / Categoria</label>
+                                <input type="text" id="sesion-equipo" placeholder="Ej: Juvenil A">
+                            </div>
+                            
+                            <div class="campo-grupo full-width">
+                                <label>Objetivo de la Sesion</label>
+                                <textarea id="sesion-objetivo" placeholder="Ej: Mejorar la presion alta y transiciones"></textarea>
+                            </div>
+                            
+                            <div class="campo-grupo full-width">
+                                <label>Material Necesario</label>
+                                <textarea id="sesion-material" placeholder="Ej: 20 conos, 10 petos, 2 porterias..."></textarea>
+                            </div>
+                            
+                            <div class="campo-grupo full-width">
+                                <label>Notas Generales</label>
+                                <textarea id="sesion-notas" placeholder="Observaciones, condiciones climaticas, etc."></textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Duracion Total -->
+                        <div class="duracion-total-display">
+                            <span class="label">Duracion Total:</span>
+                            <span class="tiempo" id="duracion-total">0 min</span>
                         </div>
                     </div>
                 </div>
@@ -2636,10 +2802,10 @@
             }
         }
         
-      function toggleFiltros() {
-            const filtros = document.getElementById('filtros-biblioteca');
-            const toggle = document.querySelector('.filtros-toggle');
-            filtros.classList.toggle('collapsed');
+      function toggleInfoSesion() {
+            const info = document.getElementById('sesion-info-grid');
+            const toggle = document.querySelector('.info-sesion-toggle');
+            info.classList.toggle('collapsed');
             toggle.classList.toggle('collapsed');
         }
         
@@ -2763,11 +2929,14 @@
         }
         
         function renderizarSesion() {
+            let duracionTotal = 0;
+            
             ['calentamiento', 'principal', 'enfriamiento'].forEach(seccion => {
                 const lista = document.getElementById(`lista-${seccion}`);
                 const tiempo = document.getElementById(`tiempo-${seccion}`);
                 
                 const totalMin = sesion[seccion].reduce((sum, ej) => sum + (ej.duracion || 0), 0);
+                duracionTotal += totalMin;
                 tiempo.textContent = `${totalMin} min`;
                 
                 if (sesion[seccion].length === 0) {
@@ -2784,17 +2953,26 @@
                     `).join('');
                 }
             });
+            
+            document.getElementById('duracion-total').textContent = `${duracionTotal} min`;
         }
-        
         function quitarEjercicio(seccion, idx) {
             sesion[seccion].splice(idx, 1);
             renderizarSesion();
         }
         
-        function limpiarSesion() {
+       function limpiarSesion() {
             sesion = { nombre: '', fecha: new Date().toISOString().split('T')[0], calentamiento: [], principal: [], enfriamiento: [] };
             document.getElementById('sesion-nombre').value = '';
             document.getElementById('sesion-fecha').value = sesion.fecha;
+            document.getElementById('sesion-hora').value = '';
+            document.getElementById('sesion-microciclo').value = '';
+            document.getElementById('sesion-md').value = '';
+            document.getElementById('sesion-jugadores').value = '';
+            document.getElementById('sesion-equipo').value = '';
+            document.getElementById('sesion-objetivo').value = '';
+            document.getElementById('sesion-material').value = '';
+            document.getElementById('sesion-notas').value = '';
             renderizarSesion();
         }
         

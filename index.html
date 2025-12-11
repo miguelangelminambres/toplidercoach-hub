@@ -2807,7 +2807,61 @@
             </div>
         </div>
     </div>
-
+<!-- ==================== MODAL: FICHA JUGADOR STATS ==================== -->
+<div id="modal-ficha-jugador" class="modal-overlay" style="display: none;" onclick="cerrarModalFichaJugador(event)">
+    <div class="modal-content" style="max-width: 800px;" onclick="event.stopPropagation()">
+        <div class="modal-header" style="background: linear-gradient(135deg, #1f2937 0%, #374151 100%); color: white;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div id="ficha-foto" style="width: 60px; height: 60px; border-radius: 50%; background: #6b7280; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; overflow: hidden;">
+                    ?
+                </div>
+                <div>
+                    <h3 id="ficha-nombre" style="margin: 0;">Nombre del Jugador</h3>
+                    <p id="ficha-posicion" style="margin: 5px 0 0; opacity: 0.8; font-size: 14px;">Posición</p>
+                </div>
+            </div>
+            <button class="modal-close" onclick="cerrarModalFichaJugador()" style="color: white;">&times;</button>
+        </div>
+        <div class="modal-body">
+            <!-- Datos personales -->
+            <div id="ficha-datos-personales" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; padding: 15px; background: #f8fafc; border-radius: 12px;">
+                <!-- Se genera dinámicamente -->
+            </div>
+            
+            <!-- Resumen estadísticas -->
+            <h4 style="font-size: 14px; color: #374151; margin-bottom: 15px;">📊 Resumen de Temporada</h4>
+            <div id="ficha-stats-resumen" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-bottom: 25px;">
+                <!-- Se genera dinámicamente -->
+            </div>
+            
+            <!-- Detalle partido a partido -->
+            <h4 style="font-size: 14px; color: #374151; margin-bottom: 15px;">⚽ Participación por Partido</h4>
+            <div style="overflow-x: auto;">
+                <table class="stats-tabla" id="ficha-partidos-tabla">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Rival</th>
+                            <th>Resultado</th>
+                            <th>Min</th>
+                            <th>Goles</th>
+                            <th>Asist</th>
+                            <th>TA</th>
+                            <th>TR</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ficha-partidos-body">
+                        <!-- Se genera dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="cerrarModalFichaJugador()">Cerrar</button>
+            <button class="btn-primary" onclick="exportarFichaJugadorPDF()">📄 Exportar PDF</button>
+        </div>
+    </div>
+</div>
 
 
     <script>
@@ -3675,27 +3729,30 @@ async function exportarSesionPDF(id) {
             let y = 35;
             
             // ===== Jugadores aptos para entrenar =====
-            if (s.players && s.players.length > 0) {
-                doc.setFillColor(240, 240, 240);
-                doc.rect(10, y, 190, 12, 'F');
-                
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(0, 51, 102);
-                doc.text('CONVOCADOS:', 12, y + 5);
-                
-                doc.setFont('helvetica', 'normal');
-                doc.setTextColor(50, 50, 50);
-                
-                const nombresJugadores = s.players.map(j => `${j.shirt_number || '?'}.${j.name}`).join('  |  ');
-                const jugadoresLines = doc.splitTextToSize(nombresJugadores, 175);
-                doc.text(jugadoresLines[0], 38, y + 5);
-                if (jugadoresLines[1]) {
-                    doc.text(jugadoresLines[1], 12, y + 10);
-                }
-                
-                y += 16;
-            }
+         // ===== Jugadores aptos para entrenar =====
+if (s.players && s.players.length > 0) {
+    const nombresJugadores = s.players.map(j => `${j.shirt_number || '?'}.${j.name}`).join('  |  ');
+    const jugadoresLines = doc.splitTextToSize(nombresJugadores, 155);
+    const alturaBloque = 10 + (jugadoresLines.length * 4);
+    
+    doc.setFillColor(240, 240, 240);
+    doc.rect(10, y, 190, alturaBloque, 'F');
+    
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 51, 102);
+    doc.text('CONVOCADOS:', 12, y + 5);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(50, 50, 50);
+    doc.setFontSize(7);
+    
+    jugadoresLines.forEach((linea, idx) => {
+        doc.text(linea, 38, y + 5 + (idx * 4));
+    });
+    
+    y += alturaBloque + 4;
+}
             
             y += 3;
             
@@ -4725,33 +4782,335 @@ function renderizarConvocatoria() {
             if (ordenados.length === 0) {
                 tablaBody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9ca3af;">No hay estadisticas</td></tr>';
             } else {
-                tablaBody.innerHTML = ordenados.map(j => {
-                    const inicial = j.player?.name?.charAt(0) || '?';
-                    return `
-                        <tr>
-                            <td>
-                                <div class="jugador-cell">
-                                    <div class="jugador-mini-foto">
-                                        ${j.player?.photo_url ? `<img src="${j.player.photo_url}">` : inicial}
-                                    </div>
-                                    <div>
-                                        <strong>${j.player?.name || 'Sin nombre'}</strong>
-                                        <div style="font-size:12px;color:#6b7280;">${j.player?.position || ''}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>${j.pj}</td>
-                            <td>${j.min}</td>
-                            <td><strong>${j.goles}</strong></td>
-                            <td>${j.asist}</td>
-                            <td>${j.ta}</td>
-                            <td>${j.tr}</td>
-                        </tr>
-                    `;
-                }).join('');
+               tablaBody.innerHTML = ordenados.map(j => {
+    const inicial = j.player?.name?.charAt(0) || '?';
+    const playerId = j.player?.id;
+    return `
+        <tr onclick="abrirFichaJugador('${playerId}')" style="cursor: pointer;" title="Ver ficha completa">
+            <td>
+                <div class="jugador-cell">
+                    <div class="jugador-mini-foto">
+                        ${j.player?.photo_url ? `<img src="${j.player.photo_url}">` : inicial}
+                    </div>
+                    <div>
+                        <strong>${j.player?.name || 'Sin nombre'}</strong>
+                        <div style="font-size:12px;color:#6b7280;">${j.player?.position || ''}</div>
+                    </div>
+                </div>
+            </td>
+            <td>${j.pj}</td>
+            <td>${j.min}</td>
+            <td><strong>${j.goles}</strong></td>
+            <td>${j.asist}</td>
+            <td>${j.ta}</td>
+            <td>${j.tr}</td>
+        </tr>
+    `;
+}).join('');
             }
         }
+        // ========== FICHA JUGADOR ==========
+let fichaJugadorActual = null;
+
+async function abrirFichaJugador(playerId) {
+    if (!playerId) return;
+    
+    fichaJugadorActual = playerId;
+    const tempId = document.getElementById('stats-temporada').value || seasonId;
+    
+    // Cargar datos del jugador
+    const { data: jugador } = await supabase
+        .from('players')
+        .select('*')
+        .eq('id', playerId)
+        .single();
+    
+    if (!jugador) {
+        alert('Jugador no encontrado');
+        return;
+    }
+    
+    // Actualizar header del modal
+    const fotoDiv = document.getElementById('ficha-foto');
+    if (jugador.photo_url) {
+        fotoDiv.innerHTML = `<img src="${jugador.photo_url}" style="width:100%;height:100%;object-fit:cover;">`;
+    } else {
+        fotoDiv.innerHTML = jugador.name?.charAt(0) || '?';
+    }
+    document.getElementById('ficha-nombre').textContent = jugador.name || 'Sin nombre';
+    document.getElementById('ficha-posicion').textContent = jugador.position || 'Sin posición';
+    
+    // Datos personales
+    const datosDiv = document.getElementById('ficha-datos-personales');
+    const edad = jugador.birth_date ? calcularEdad(jugador.birth_date) : null;
+    datosDiv.innerHTML = `
+        ${jugador.birth_date ? `<div><strong>Edad:</strong> ${edad} años</div>` : ''}
+        ${jugador.height_cm ? `<div><strong>Altura:</strong> ${jugador.height_cm} cm</div>` : ''}
+        ${jugador.weight_kg ? `<div><strong>Peso:</strong> ${jugador.weight_kg} kg</div>` : ''}
+        ${jugador.dominant_foot ? `<div><strong>Pie:</strong> ${jugador.dominant_foot}</div>` : ''}
+        ${jugador.phone ? `<div><strong>Tel:</strong> ${jugador.phone}</div>` : ''}
+        ${jugador.email ? `<div><strong>Email:</strong> ${jugador.email}</div>` : ''}
+    `;
+    
+    // Cargar estadísticas del jugador en la temporada
+    const { data: stats } = await supabase
+        .from('match_player_stats')
+        .select('*, matches!inner(id, opponent, match_date, home_away, team_goals, opponent_goals, result, season_id)')
+        .eq('player_id', playerId)
+        .eq('matches.season_id', tempId)
+        .order('matches(match_date)', { ascending: false });
+    
+    // Calcular resumen
+    let totalPJ = 0, totalMin = 0, totalGoles = 0, totalAsist = 0, totalTA = 0, totalTR = 0;
+    (stats || []).forEach(s => {
+        if (s.minutes_played > 0) totalPJ++;
+        totalMin += s.minutes_played || 0;
+        totalGoles += s.goals || 0;
+        totalAsist += s.assists || 0;
+        totalTA += s.yellow_cards || 0;
+        totalTR += s.red_cards || 0;
+    });
+    
+    // Mostrar resumen
+    document.getElementById('ficha-stats-resumen').innerHTML = `
+        <div style="text-align:center;padding:15px;background:#ecfdf5;border-radius:10px;">
+            <div style="font-size:28px;font-weight:700;color:#059669;">${totalPJ}</div>
+            <div style="font-size:12px;color:#6b7280;">Partidos</div>
+        </div>
+        <div style="text-align:center;padding:15px;background:#eff6ff;border-radius:10px;">
+            <div style="font-size:28px;font-weight:700;color:#3b82f6;">${totalMin}</div>
+            <div style="font-size:12px;color:#6b7280;">Minutos</div>
+        </div>
+        <div style="text-align:center;padding:15px;background:#fef3c7;border-radius:10px;">
+            <div style="font-size:28px;font-weight:700;color:#d97706;">${totalGoles}</div>
+            <div style="font-size:12px;color:#6b7280;">Goles</div>
+        </div>
+        <div style="text-align:center;padding:15px;background:#f3e8ff;border-radius:10px;">
+            <div style="font-size:28px;font-weight:700;color:#9333ea;">${totalAsist}</div>
+            <div style="font-size:12px;color:#6b7280;">Asistencias</div>
+        </div>
+        <div style="text-align:center;padding:15px;background:#fef2f2;border-radius:10px;">
+            <div style="font-size:28px;font-weight:700;color:#ef4444;">${totalTA}</div>
+            <div style="font-size:12px;color:#6b7280;">Amarillas</div>
+        </div>
+        <div style="text-align:center;padding:15px;background:#fee2e2;border-radius:10px;">
+            <div style="font-size:28px;font-weight:700;color:#dc2626;">${totalTR}</div>
+            <div style="font-size:12px;color:#6b7280;">Rojas</div>
+        </div>
+    `;
+    
+    // Mostrar detalle partido a partido
+    const tbody = document.getElementById('ficha-partidos-body');
+    if (!stats || stats.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#9ca3af;padding:20px;">No hay partidos registrados</td></tr>';
+    } else {
+        tbody.innerHTML = stats.map(s => {
+            const m = s.matches;
+            const fecha = new Date(m.match_date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+            const esLocal = m.home_away === 'home';
+            const marcador = esLocal ? `${m.team_goals || 0}-${m.opponent_goals || 0}` : `${m.opponent_goals || 0}-${m.team_goals || 0}`;
+            
+            let resultadoClass = '';
+            let resultadoTexto = marcador;
+            if (m.result === 'win') resultadoClass = 'color:#059669;font-weight:600;';
+            else if (m.result === 'loss') resultadoClass = 'color:#dc2626;font-weight:600;';
+            else if (m.result === 'draw') resultadoClass = 'color:#d97706;';
+            
+            return `
+                <tr>
+                    <td>${fecha}</td>
+                    <td>${esLocal ? 'vs ' : '@ '}${m.opponent}</td>
+                    <td style="${resultadoClass}">${resultadoTexto}</td>
+                    <td>${s.minutes_played || 0}'</td>
+                    <td><strong>${s.goals || 0}</strong></td>
+                    <td>${s.assists || 0}</td>
+                    <td>${s.yellow_cards || 0}</td>
+                    <td>${s.red_cards || 0}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+    
+    document.getElementById('modal-ficha-jugador').style.display = 'flex';
+}
+
+function calcularEdad(fechaNacimiento) {
+    const hoy = new Date();
+    const nacimiento = new Date(fechaNacimiento);
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const mes = hoy.getMonth() - nacimiento.getMonth();
+    if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+        edad--;
+    }
+    return edad;
+}
+
+function cerrarModalFichaJugador(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('modal-ficha-jugador').style.display = 'none';
+}
+
+async function exportarFichaJugadorPDF() {
+    if (!fichaJugadorActual) return;
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const tempId = document.getElementById('stats-temporada').value || seasonId;
+    
+    // Cargar datos
+    const { data: jugador } = await supabase.from('players').select('*').eq('id', fichaJugadorActual).single();
+    const { data: club } = await supabase.from('clubs').select('name, logo_url').eq('id', clubId).single();
+    const { data: temporada } = await supabase.from('seasons').select('name').eq('id', tempId).single();
+    const { data: stats } = await supabase
+        .from('match_player_stats')
+        .select('*, matches!inner(opponent, match_date, home_away, team_goals, opponent_goals, result, season_id)')
+        .eq('player_id', fichaJugadorActual)
+        .eq('matches.season_id', tempId)
+        .order('matches(match_date)', { ascending: false });
+    
+    // Calcular totales
+    let totalPJ = 0, totalMin = 0, totalGoles = 0, totalAsist = 0, totalTA = 0, totalTR = 0;
+    (stats || []).forEach(s => {
+        if (s.minutes_played > 0) totalPJ++;
+        totalMin += s.minutes_played || 0;
+        totalGoles += s.goals || 0;
+        totalAsist += s.assists || 0;
+        totalTA += s.yellow_cards || 0;
+        totalTR += s.red_cards || 0;
+    });
+    
+    // ===== HEADER =====
+    doc.setFillColor(31, 41, 55);
+    doc.rect(0, 0, 210, 50, 'F');
+    
+    // Foto del jugador (placeholder circular)
+    doc.setFillColor(107, 114, 128);
+    doc.circle(30, 25, 15, 'F');
+    if (jugador.photo_url) {
+        try {
+            doc.addImage(jugador.photo_url, 'JPEG', 15, 10, 30, 30);
+        } catch (e) {
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(20);
+            doc.text(jugador.name?.charAt(0) || '?', 30, 28, { align: 'center' });
+        }
+    } else {
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(20);
+        doc.text(jugador.name?.charAt(0) || '?', 30, 28, { align: 'center' });
+    }
+    
+    // Nombre y posición
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text(jugador.name || 'Sin nombre', 55, 20);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(jugador.position || '', 55, 30);
+    doc.setFontSize(10);
+    doc.text(`${club?.name || 'Mi Club'} - ${temporada?.name || 'Temporada'}`, 55, 40);
+    
+    // Escudo del club
+    if (club?.logo_url) {
+        try {
+            doc.addImage(club.logo_url, 'PNG', 175, 10, 25, 25);
+        } catch (e) {}
+    }
+    
+    let y = 60;
+    
+    // ===== DATOS PERSONALES =====
+    doc.setTextColor(30, 30, 30);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('DATOS PERSONALES', 15, y);
+    y += 8;
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    const edad = jugador.birth_date ? calcularEdad(jugador.birth_date) : null;
+    let datosLinea = [];
+    if (edad) datosLinea.push(`Edad: ${edad} años`);
+    if (jugador.height_cm) datosLinea.push(`Altura: ${jugador.height_cm} cm`);
+    if (jugador.weight_kg) datosLinea.push(`Peso: ${jugador.weight_kg} kg`);
+    if (jugador.dominant_foot) datosLinea.push(`Pie: ${jugador.dominant_foot}`);
+    doc.text(datosLinea.join('   |   '), 15, y);
+    y += 15;
+    
+    // ===== RESUMEN ESTADÍSTICAS =====
+    doc.setFillColor(240, 240, 240);
+    doc.rect(15, y - 5, 180, 25, 'F');
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 30, 30);
+    doc.text('RESUMEN DE TEMPORADA', 15, y + 2);
+    y += 12;
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`PJ: ${totalPJ}   |   Min: ${totalMin}   |   Goles: ${totalGoles}   |   Asist: ${totalAsist}   |   TA: ${totalTA}   |   TR: ${totalTR}`, 15, y + 2);
+    y += 20;
+    
+    // ===== DETALLE PARTIDOS =====
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('PARTICIPACION POR PARTIDO', 15, y);
+    y += 8;
+    
+    if (stats && stats.length > 0) {
+        const tableData = stats.map(s => {
+            const m = s.matches;
+            const fecha = new Date(m.match_date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+            const esLocal = m.home_away === 'home';
+            const marcador = esLocal ? `${m.team_goals || 0}-${m.opponent_goals || 0}` : `${m.opponent_goals || 0}-${m.team_goals || 0}`;
+            return [
+                fecha,
+                (esLocal ? 'vs ' : '@ ') + m.opponent,
+                marcador,
+                s.minutes_played || 0,
+                s.goals || 0,
+                s.assists || 0,
+                s.yellow_cards || 0,
+                s.red_cards || 0
+            ];
+        });
         
+        doc.autoTable({
+            startY: y,
+            head: [['Fecha', 'Rival', 'Res', 'Min', 'Gol', 'Asi', 'TA', 'TR']],
+            body: tableData,
+            theme: 'striped',
+            headStyles: { fillColor: [31, 41, 55], fontSize: 9 },
+            styles: { fontSize: 9, cellPadding: 3 },
+            columnStyles: {
+                0: { cellWidth: 22 },
+                1: { cellWidth: 50 },
+                2: { cellWidth: 18 },
+                3: { cellWidth: 18 },
+                4: { cellWidth: 18 },
+                5: { cellWidth: 18 },
+                6: { cellWidth: 18 },
+                7: { cellWidth: 18 }
+            }
+        });
+    } else {
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(150, 150, 150);
+        doc.text('No hay partidos registrados en esta temporada', 105, y + 10, { align: 'center' });
+    }
+    
+    // ===== FOOTER =====
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text('Generado con TopLiderCoach.com', 105, 285, { align: 'center' });
+    
+    // Guardar
+    const nombreArchivo = `ficha_${jugador.name?.replace(/\s+/g, '_') || 'jugador'}.pdf`;
+    doc.save(nombreArchivo);
+}
         // ========== PDF EXPORTS ==========
      // ========== PDF CONVOCATORIA ==========
 async function generarPDFConvocatoria() {
@@ -4998,6 +5357,313 @@ if (horaSalida) infoCitacion.push(`Hora: ${horaSalida}h`);
     
     // Guardar
     const nombreArchivo = `convocatoria_${rival.replace(/\s+/g, '_')}_${fecha}.pdf`;
+    doc.save(nombreArchivo);
+}
+async function generarPDFAlineacion() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Obtener datos del formulario
+    const rival = document.getElementById('partido-rival').value || 'Rival';
+    const fecha = document.getElementById('partido-fecha').value;
+    const hora = document.getElementById('partido-hora').value || '';
+    const estadio = document.getElementById('partido-estadio').value || '';
+    const localidad = document.getElementById('partido-localidad').value;
+    const competicion = document.getElementById('partido-competicion').value || '';
+    const jornada = document.getElementById('partido-jornada').value || '';
+    const formato = parseInt(document.getElementById('partido-formato').value) || 11;
+    
+    // Obtener datos del club
+    const { data: club } = await supabase.from('clubs').select('name, logo_url').eq('id', clubId).single();
+    
+    // Formatear fecha
+    const fechaFormateada = fecha ? new Date(fecha).toLocaleDateString('es-ES', { 
+        weekday: 'long', 
+        day: 'numeric', 
+        month: 'long', 
+        year: 'numeric' 
+    }) : '';
+    
+    // Obtener titulares y suplentes
+    const titulares = plantillaPartido
+        .filter(sp => titularesPartido.includes(String(sp.id)))
+        .sort((a, b) => (a.shirt_number || 99) - (b.shirt_number || 99));
+    
+    const suplentes = plantillaPartido
+        .filter(sp => convocadosPartido.includes(String(sp.id)) && !titularesPartido.includes(String(sp.id)))
+        .sort((a, b) => (a.shirt_number || 99) - (b.shirt_number || 99));
+    
+    const esLocal = localidad === 'home';
+    
+    // ===== HEADER =====
+    doc.setFillColor(59, 130, 246); // Azul
+    doc.rect(0, 0, 210, 45, 'F');
+    
+    // Escudo del club
+    let tituloX = 15;
+    if (club && club.logo_url) {
+        try {
+            doc.addImage(club.logo_url, 'PNG', 12, 7, 30, 30);
+            tituloX = 50;
+        } catch (e) {
+            console.log('No se pudo cargar el escudo');
+        }
+    }
+    
+    // Título
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.text('ALINEACION', tituloX, 20);
+    
+    // Subtítulo
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    const subtitulo = `${club?.name || 'Mi Equipo'} - ${competicion || 'Partido'}`;
+    doc.text(subtitulo, tituloX, 30);
+    
+    // Formato
+    doc.setFontSize(10);
+    doc.text(`Futbol ${formato}`, tituloX, 38);
+    
+    let y = 55;
+    
+    // ===== DATOS DEL PARTIDO =====
+    doc.setFillColor(240, 240, 240);
+    doc.rect(15, y - 5, 180, 35, 'F');
+    
+    // Equipos y VS
+    doc.setTextColor(30, 30, 30);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    
+    const equipoLocal = esLocal ? (club?.name || 'Mi Equipo') : rival;
+    const equipoVisitante = esLocal ? rival : (club?.name || 'Mi Equipo');
+    
+    doc.text(equipoLocal, 50, y + 8, { align: 'center' });
+    doc.text('VS', 105, y + 8, { align: 'center' });
+    doc.text(equipoVisitante, 160, y + 8, { align: 'center' });
+    
+    // Etiquetas Local/Visitante
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text('LOCAL', 50, y + 16, { align: 'center' });
+    doc.text('VISITANTE', 160, y + 16, { align: 'center' });
+    
+    // Info partido
+    doc.setFontSize(10);
+    doc.setTextColor(80, 80, 80);
+    let infoPartido = [];
+    if (fechaFormateada) infoPartido.push(fechaFormateada);
+    if (hora) infoPartido.push(hora + 'h');
+    if (jornada) infoPartido.push(jornada);
+    doc.text(infoPartido.join('  •  '), 105, y + 25, { align: 'center' });
+    
+    if (estadio) {
+        doc.setFontSize(9);
+        doc.text(estadio, 105, y + 30, { align: 'center' });
+    }
+    
+    y += 45;
+    
+    // ===== TITULARES =====
+    doc.setFillColor(59, 130, 246);
+    doc.rect(15, y, 180, 10, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`TITULARES (${titulares.length})`, 20, y + 7);
+    
+    y += 15;
+    
+    if (titulares.length === 0) {
+        doc.setTextColor(150, 150, 150);
+        doc.setFontSize(10);
+        doc.text('No hay titulares seleccionados', 105, y + 5, { align: 'center' });
+        y += 15;
+    } else {
+        // Mostrar titulares en 2 columnas
+        const mitad = Math.ceil(titulares.length / 2);
+        const col1 = titulares.slice(0, mitad);
+        const col2 = titulares.slice(mitad);
+        
+        const col1X = 20;
+        const col2X = 115;
+        let maxY = y;
+        
+        // Columna 1
+        col1.forEach((sp, idx) => {
+            const jugador = sp.players;
+            if (!jugador) return;
+            
+            // Fondo alternado
+            if (idx % 2 === 0) {
+                doc.setFillColor(239, 246, 255);
+                doc.rect(15, y - 4, 85, 12, 'F');
+            }
+            
+            // Dorsal
+            doc.setFillColor(59, 130, 246);
+            doc.roundedRect(col1X, y - 3, 12, 10, 2, 2, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text(String(sp.shirt_number || '-'), col1X + 6, y + 4, { align: 'center' });
+            
+            // Nombre
+            doc.setTextColor(30, 30, 30);
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'normal');
+            doc.text(jugador.name || 'Sin nombre', col1X + 17, y + 4);
+            
+            y += 12;
+        });
+        
+        maxY = y;
+        y = maxY - (col1.length * 12); // Volver arriba para columna 2
+        
+        // Columna 2
+        col2.forEach((sp, idx) => {
+            const jugador = sp.players;
+            if (!jugador) return;
+            
+            // Fondo alternado
+            if (idx % 2 === 0) {
+                doc.setFillColor(239, 246, 255);
+                doc.rect(110, y - 4, 85, 12, 'F');
+            }
+            
+            // Dorsal
+            doc.setFillColor(59, 130, 246);
+            doc.roundedRect(col2X, y - 3, 12, 10, 2, 2, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text(String(sp.shirt_number || '-'), col2X + 6, y + 4, { align: 'center' });
+            
+            // Nombre
+            doc.setTextColor(30, 30, 30);
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'normal');
+            doc.text(jugador.name || 'Sin nombre', col2X + 17, y + 4);
+            
+            y += 12;
+        });
+        
+        y = Math.max(maxY, y) + 10;
+    }
+    
+    // ===== SUPLENTES =====
+    doc.setFillColor(107, 114, 128); // Gris
+    doc.rect(15, y, 180, 10, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`SUPLENTES (${suplentes.length})`, 20, y + 7);
+    
+    y += 15;
+    
+    if (suplentes.length === 0) {
+        doc.setTextColor(150, 150, 150);
+        doc.setFontSize(10);
+        doc.text('No hay suplentes', 105, y + 5, { align: 'center' });
+        y += 15;
+    } else {
+        // Mostrar suplentes en 2 columnas
+        const mitad = Math.ceil(suplentes.length / 2);
+        const col1 = suplentes.slice(0, mitad);
+        const col2 = suplentes.slice(mitad);
+        
+        const col1X = 20;
+        const col2X = 115;
+        let maxY = y;
+        
+        // Columna 1
+        col1.forEach((sp, idx) => {
+            const jugador = sp.players;
+            if (!jugador) return;
+            
+            // Fondo alternado
+            if (idx % 2 === 0) {
+                doc.setFillColor(243, 244, 246);
+                doc.rect(15, y - 4, 85, 12, 'F');
+            }
+            
+            // Dorsal
+            doc.setFillColor(107, 114, 128);
+            doc.roundedRect(col1X, y - 3, 12, 10, 2, 2, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text(String(sp.shirt_number || '-'), col1X + 6, y + 4, { align: 'center' });
+            
+            // Nombre
+            doc.setTextColor(30, 30, 30);
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'normal');
+            doc.text(jugador.name || 'Sin nombre', col1X + 17, y + 4);
+            
+            y += 12;
+        });
+        
+        maxY = y;
+        y = maxY - (col1.length * 12);
+        
+        // Columna 2
+        col2.forEach((sp, idx) => {
+            const jugador = sp.players;
+            if (!jugador) return;
+            
+            // Fondo alternado
+            if (idx % 2 === 0) {
+                doc.setFillColor(243, 244, 246);
+                doc.rect(110, y - 4, 85, 12, 'F');
+            }
+            
+            // Dorsal
+            doc.setFillColor(107, 114, 128);
+            doc.roundedRect(col2X, y - 3, 12, 10, 2, 2, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text(String(sp.shirt_number || '-'), col2X + 6, y + 4, { align: 'center' });
+            
+            // Nombre
+            doc.setTextColor(30, 30, 30);
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'normal');
+            doc.text(jugador.name || 'Sin nombre', col2X + 17, y + 4);
+            
+            y += 12;
+        });
+        
+        y = Math.max(maxY, y) + 10;
+    }
+    
+    // ===== ESPACIO PARA NOTAS =====
+    y += 5;
+    doc.setDrawColor(200, 200, 200);
+    doc.setFillColor(255, 255, 240);
+    doc.rect(15, y, 180, 30, 'FD');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(150, 150, 150);
+    doc.text('NOTAS / TACTICA:', 18, y + 6);
+    
+    // Líneas para escribir
+    doc.setDrawColor(220, 220, 220);
+    for (let lineY = y + 12; lineY < y + 28; lineY += 7) {
+        doc.line(18, lineY, 192, lineY);
+    }
+    
+    // ===== FOOTER =====
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text('Generado con TopLiderCoach.com', 105, 287, { align: 'center' });
+    
+    // Guardar
+    const nombreArchivo = `alineacion_${rival.replace(/\s+/g, '_')}_${fecha}.pdf`;
     doc.save(nombreArchivo);
 }
         async function exportarPartidoPDF(partidoId) {

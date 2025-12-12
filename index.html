@@ -1904,7 +1904,204 @@
             background: #d1fae5;
             color: #059669;
         }
+/* ========== CALENDARIO DE PARTIDOS ========== */
+/* Añadir estos estilos en la sección de CSS */
 
+/* Leyenda del calendario */
+.calendario-leyenda {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.leyenda-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.leyenda-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+}
+
+.leyenda-color.victoria {
+    background: #d1fae5;
+    border: 2px solid #10b981;
+}
+
+.leyenda-color.empate {
+    background: #fef3c7;
+    border: 2px solid #f59e0b;
+}
+
+.leyenda-color.derrota {
+    background: #fee2e2;
+    border: 2px solid #ef4444;
+}
+
+.leyenda-color.pendiente {
+    background: #e0f2fe;
+    border: 2px solid #3b82f6;
+}
+
+/* Eventos de partido en calendario */
+.calendario-evento.partido {
+    font-size: 10px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    margin-bottom: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.calendario-evento.partido:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.calendario-evento.partido.victoria {
+    background: #d1fae5;
+    color: #065f46;
+    border-left: 3px solid #10b981;
+}
+
+.calendario-evento.partido.empate {
+    background: #fef3c7;
+    color: #92400e;
+    border-left: 3px solid #f59e0b;
+}
+
+.calendario-evento.partido.derrota {
+    background: #fee2e2;
+    color: #991b1b;
+    border-left: 3px solid #ef4444;
+}
+
+.calendario-evento.partido.pendiente {
+    background: #e0f2fe;
+    color: #1e40af;
+    border-left: 3px solid #3b82f6;
+}
+
+.calendario-evento.partido .rival {
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.calendario-evento.partido .resultado {
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.calendario-evento.partido .hora {
+    font-size: 9px;
+    opacity: 0.8;
+}
+
+/* Resumen mensual */
+.calendario-resumen {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8fafc;
+    border-radius: 12px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+}
+
+.resumen-stat {
+    text-align: center;
+    padding: 15px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.resumen-stat .numero {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.resumen-stat .label {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+.resumen-stat.victorias {
+    border-top: 3px solid #10b981;
+}
+
+.resumen-stat.empates {
+    border-top: 3px solid #f59e0b;
+}
+
+.resumen-stat.derrotas {
+    border-top: 3px solid #ef4444;
+}
+
+.resumen-stat.pendientes {
+    border-top: 3px solid #3b82f6;
+}
+
+.resumen-stat.goles-favor {
+    border-top: 3px solid #059669;
+}
+
+.resumen-stat.goles-contra {
+    border-top: 3px solid #dc2626;
+}
+
+/* Día del calendario con partido */
+.calendario-dia.tiene-partido {
+    background: #fafafa;
+}
+
+.calendario-dia.tiene-partido.hoy {
+    background: #f0f0ff;
+}
+
+/* Mejoras responsive para calendario */
+@media (max-width: 768px) {
+    .calendario-evento.partido {
+        font-size: 9px;
+        padding: 3px 4px;
+    }
+    
+    .calendario-evento.partido .resultado {
+        font-size: 10px;
+    }
+    
+    .calendario-leyenda {
+        gap: 10px;
+    }
+    
+    .leyenda-item {
+        font-size: 11px;
+    }
+    
+    .calendario-resumen {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .calendario-resumen {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
         /* ========== MIS SESIONES ========== */
         .sesion-card {
             background: white;
@@ -2741,10 +2938,11 @@
         
         <!-- ==================== MODULO: MATCHSTATS ==================== -->
         <div id="modulo-matchstats" class="vista-modulo">
-            <div class="sub-tabs matchstats-subtabs">
-                <button class="sub-tab active" onclick="cambiarSubTab('matchstats', 'partidos', this)">Partidos</button>
-                <button class="sub-tab" onclick="cambiarSubTab('matchstats', 'estadisticas', this)">Estadisticas</button>
-            </div>
+          <div class="sub-tabs matchstats-subtabs">
+    <button class="sub-tab active" onclick="cambiarSubTab('matchstats', 'partidos', this)">Partidos</button>
+    <button class="sub-tab" onclick="cambiarSubTab('matchstats', 'estadisticas', this)">Estadísticas</button>
+    <button class="sub-tab" onclick="cambiarSubTab('matchstats', 'calendario-partidos', this)">📅 Calendario</button>
+</div>
             
             <!-- Sub: Partidos -->
             <div id="matchstats-partidos" class="vista-contenido active">
@@ -2753,11 +2951,22 @@
                     <button class="btn-primary green" onclick="abrirModalPartido()">+ Nuevo Partido</button>
                 </div>
                 
-                <div class="filtros-bar">
-                    <button class="filtro-btn active" onclick="filtrarPartidos('todos', this)">Todos</button>
-                    <button class="filtro-btn" onclick="filtrarPartidos('proximos', this)">Proximos</button>
-                    <button class="filtro-btn" onclick="filtrarPartidos('jugados', this)">Jugados</button>
-                </div>
+              <div class="filtros-bar">
+    <div class="filtro-grupo">
+        <label>Desde:</label>
+        <input type="date" id="filtro-partido-desde">
+    </div>
+    <div class="filtro-grupo">
+        <label>Hasta:</label>
+        <input type="date" id="filtro-partido-hasta">
+    </div>
+    <button class="btn-primary green" onclick="cargarPartidos()" style="padding: 8px 16px;">Filtrar</button>
+    <button class="btn-secondary" onclick="limpiarFiltroPartidos()" style="padding: 8px 16px;">Limpiar</button>
+    <div style="border-left: 2px solid #e5e7eb; height: 30px; margin: 0 10px;"></div>
+    <button class="filtro-btn active" onclick="filtrarPartidos('todos', this)">Todos</button>
+    <button class="filtro-btn" onclick="filtrarPartidos('proximos', this)">Próximos</button>
+    <button class="filtro-btn" onclick="filtrarPartidos('jugados', this)">Jugados</button>
+</div>
                 
                 <div id="lista-partidos" class="grid-cards">
                     <div class="loading">Cargando partidos...</div>
@@ -2803,6 +3012,44 @@
                 </div>
             </div>
         </div>
+        <!-- Sub: Calendario de Partidos -->
+<div id="matchstats-calendario-partidos" class="vista-contenido">
+    <div class="calendario-container">
+        <div class="calendario-header">
+            <h2>📅 Calendario de Partidos</h2>
+            <div class="calendario-nav">
+                <button onclick="mesAnteriorPartidos()">◀ Anterior</button>
+                <span class="mes-actual" id="mes-actual-partidos">Diciembre 2025</span>
+                <button onclick="mesSiguientePartidos()">Siguiente ▶</button>
+            </div>
+        </div>
+        
+        <!-- Leyenda -->
+        <div class="calendario-leyenda">
+            <span class="leyenda-item">
+                <span class="leyenda-color victoria"></span> Victoria
+            </span>
+            <span class="leyenda-item">
+                <span class="leyenda-color empate"></span> Empate
+            </span>
+            <span class="leyenda-item">
+                <span class="leyenda-color derrota"></span> Derrota
+            </span>
+            <span class="leyenda-item">
+                <span class="leyenda-color pendiente"></span> Pendiente
+            </span>
+        </div>
+        
+        <div class="calendario-grid" id="calendario-partidos">
+            <!-- Se genera dinámicamente -->
+        </div>
+        
+        <!-- Resumen del mes -->
+        <div class="calendario-resumen" id="calendario-resumen-partidos">
+            <!-- Se genera dinámicamente -->
+        </div>
+    </div>
+</div>
 <!-- ==================== MODULO: TU CUERPO TÉCNICO ==================== -->
 <div id="modulo-staff" class="vista-modulo">
     <div class="staff-container">
@@ -3403,6 +3650,8 @@
         let sesion = { nombre: '', fecha: '', calentamiento: [], principal: [], enfriamiento: [] };
         let calendarioMesSesiones = new Date().getMonth();
         let calendarioAnioSesiones = new Date().getFullYear();
+        let calendarioMesPartidos = new Date().getMonth();
+let calendarioAnioPartidos = new Date().getFullYear();
         const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
         // MatchStats
         let filtroPartidos = 'todos';
@@ -3411,7 +3660,125 @@
         let plantillaPartido = [];
         // Config
         let jugadorEditando = null;
+        // ========== CALENDARIO DE PARTIDOS ==========
+async function cargarCalendarioPartidos() {
+    const mesActualEl = document.getElementById('mes-actual-partidos');
+    const grid = document.getElementById('calendario-partidos');
+    const resumenEl = document.getElementById('calendario-resumen-partidos');
+    
+    if (!mesActualEl || !grid) return;
+    
+    mesActualEl.textContent = MESES[calendarioMesPartidos] + ' ' + calendarioAnioPartidos;
+    
+    const ultimoDia = new Date(calendarioAnioPartidos, calendarioMesPartidos + 1, 0);
+    const inicioMes = calendarioAnioPartidos + '-' + String(calendarioMesPartidos + 1).padStart(2, '0') + '-01';
+    const finMes = calendarioAnioPartidos + '-' + String(calendarioMesPartidos + 1).padStart(2, '0') + '-' + ultimoDia.getDate();
+    
+    const { data: partidos } = await supabase
+        .from('matches')
+        .select('*')
+        .eq('club_id', clubId)
+        .eq('season_id', seasonId)
+        .gte('match_date', inicioMes)
+        .lte('match_date', finMes)
+        .order('match_date');
+    
+    const partidosPorDia = {};
+    (partidos || []).forEach(function(p) {
+        const dia = new Date(p.match_date).getDate();
+        if (!partidosPorDia[dia]) partidosPorDia[dia] = [];
+        partidosPorDia[dia].push(p);
+    });
+    
+    const victorias = partidos ? partidos.filter(function(p) { return p.result === 'win'; }).length : 0;
+    const empates = partidos ? partidos.filter(function(p) { return p.result === 'draw'; }).length : 0;
+    const derrotas = partidos ? partidos.filter(function(p) { return p.result === 'loss'; }).length : 0;
+    const pendientes = partidos ? partidos.filter(function(p) { return !p.result; }).length : 0;
+    const golesFavor = partidos ? partidos.reduce(function(sum, p) { return sum + (p.team_goals || 0); }, 0) : 0;
+    const golesContra = partidos ? partidos.reduce(function(sum, p) { return sum + (p.opponent_goals || 0); }, 0) : 0;
+    
+    var html = '';
+    var diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+    for (var i = 0; i < diasSemana.length; i++) {
+        html += '<div class="calendario-dia-header">' + diasSemana[i] + '</div>';
+    }
+    
+    var primerDia = new Date(calendarioAnioPartidos, calendarioMesPartidos, 1);
+    var diaInicio = primerDia.getDay();
+    diaInicio = diaInicio === 0 ? 7 : diaInicio;
+    
+    for (var i = 1; i < diaInicio; i++) {
+        html += '<div class="calendario-dia otro-mes"></div>';
+    }
+    
+    var hoy = new Date();
+    for (var dia = 1; dia <= ultimoDia.getDate(); dia++) {
+        var esHoy = dia === hoy.getDate() && calendarioMesPartidos === hoy.getMonth() && calendarioAnioPartidos === hoy.getFullYear();
+        var tienePartido = partidosPorDia[dia] && partidosPorDia[dia].length > 0;
         
+        var eventosHTML = '';
+        if (tienePartido) {
+            for (var j = 0; j < partidosPorDia[dia].length; j++) {
+                var p = partidosPorDia[dia][j];
+                var resultClass = p.result ? (p.result === 'win' ? 'victoria' : (p.result === 'draw' ? 'empate' : 'derrota')) : 'pendiente';
+                var esLocal = p.home_away === 'home';
+                var resultadoTexto = '';
+                if (p.result) {
+                    var gF = p.team_goals || 0;
+                    var gC = p.opponent_goals || 0;
+                    resultadoTexto = esLocal ? (gF + '-' + gC) : (gC + '-' + gF);
+                } else {
+                    resultadoTexto = p.kick_off_time ? p.kick_off_time.slice(0, 5) : 'Por jugar';
+                }
+                eventosHTML += '<div class="calendario-evento partido ' + resultClass + '" onclick="verPartido(\'' + p.id + '\')" title="' + p.opponent + '">' +
+                    '<span class="rival">' + (esLocal ? 'vs' : '@') + ' ' + p.opponent + '</span>' +
+                    '<span class="resultado">' + resultadoTexto + '</span>' +
+                '</div>';
+            }
+        }
+        
+        html += '<div class="calendario-dia ' + (esHoy ? 'hoy' : '') + ' ' + (tienePartido ? 'tiene-partido' : '') + '">' +
+            '<div class="numero">' + dia + '</div>' +
+            eventosHTML +
+        '</div>';
+    }
+    
+    grid.innerHTML = html;
+    
+    if (resumenEl) {
+        resumenEl.innerHTML = 
+            '<div class="resumen-stat victorias"><div class="numero">' + victorias + '</div><div class="label">Victorias</div></div>' +
+            '<div class="resumen-stat empates"><div class="numero">' + empates + '</div><div class="label">Empates</div></div>' +
+            '<div class="resumen-stat derrotas"><div class="numero">' + derrotas + '</div><div class="label">Derrotas</div></div>' +
+            '<div class="resumen-stat pendientes"><div class="numero">' + pendientes + '</div><div class="label">Pendientes</div></div>' +
+            '<div class="resumen-stat goles-favor"><div class="numero">' + golesFavor + '</div><div class="label">GF</div></div>' +
+            '<div class="resumen-stat goles-contra"><div class="numero">' + golesContra + '</div><div class="label">GC</div></div>';
+    }
+}
+
+function mesAnteriorPartidos() {
+    calendarioMesPartidos--;
+    if (calendarioMesPartidos < 0) {
+        calendarioMesPartidos = 11;
+        calendarioAnioPartidos--;
+    }
+    cargarCalendarioPartidos();
+}
+
+function mesSiguientePartidos() {
+    calendarioMesPartidos++;
+    if (calendarioMesPartidos > 11) {
+        calendarioMesPartidos = 0;
+        calendarioAnioPartidos++;
+    }
+    cargarCalendarioPartidos();
+}
+
+function limpiarFiltroPartidos() {
+    document.getElementById('filtro-partido-desde').value = '';
+    document.getElementById('filtro-partido-hasta').value = '';
+    cargarPartidos();
+}
         // ========== LOGIN ==========
         async function login() {
             const username = document.getElementById('username').value;
@@ -3590,16 +3957,22 @@
             if (modulo === 'planificador') {
                 if (subtab === 'mis-sesiones') cargarMisSesiones();
                 else if (subtab === 'calendario') cargarCalendarioSesiones();
-            } else if (modulo === 'matchstats') {
-                if (subtab === 'estadisticas') {
-                    cargarSelectorTemporadasStats();
-                    cargarEstadisticas();
-                }
+  } else if (modulo === 'matchstats') {
+        if (subtab === 'estadisticas') {
+            cargarSelectorTemporadasStats();
+            cargarEstadisticas();
+        } else if (subtab === 'calendario-partidos') {
+            cargarCalendarioPartidos();
+        } else if (subtab === 'partidos') {
+            cargarPartidos();
+        }
+    } else if (modulo === 'config') {
             } else if (modulo === 'config') {
                 if (subtab === 'temporadas') cargarTemporadas();
                 else if (subtab === 'plantilla') {
                     cargarSelectorTemporadas();
                     cargarPlantilla();
+                    
                 }
             }
         }
@@ -4530,7 +4903,7 @@ if (s.players && s.players.length > 0) {
             }
             cargarCalendarioSesiones();
         }
-        
+   
         // ========== MATCHSTATS: PARTIDOS ==========
         function filtrarPartidos(filtro, btn) {
             document.querySelectorAll('.filtros-bar .filtro-btn').forEach(b => b.classList.remove('active'));
@@ -4552,7 +4925,16 @@ if (s.players && s.players.length > 0) {
                     .order('match_date', { ascending: false });
                 
                 const hoy = new Date().toISOString().split('T')[0];
-                
+                // Filtros de fecha del calendario
+const desde = document.getElementById('filtro-partido-desde')?.value;
+const hasta = document.getElementById('filtro-partido-hasta')?.value;
+
+if (desde) {
+    query = query.gte('match_date', desde);
+}
+if (hasta) {
+    query = query.lte('match_date', hasta);
+}
                 if (filtroPartidos === 'proximos') {
                     query = query.gte('match_date', hoy).is('result', null);
                 } else if (filtroPartidos === 'jugados') {

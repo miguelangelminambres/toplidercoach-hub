@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    <script src="config.js"></script>
+    <script src="https://toplidercoach.com/config.js"></script>
     <style>
         * {
             margin: 0;
@@ -111,10 +111,21 @@
         }
         
         .app-header h1 {
-            font-size: 22px;
-            font-weight: 700;
-        }
-        
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    color: #f97316 !important;
+    margin: 0 !important;
+}
+.header-brand {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+}
+
+.header-logo {
+    height: 40px !important;
+    width: auto !important;
+}
         .header-right {
             display: flex;
             align-items: center;
@@ -179,59 +190,59 @@
             background: rgba(255,255,255,0.25);
         }
         
-        /* ========== TABS PRINCIPALES ========== */
-        .main-tabs {
-            display: flex;
-            background: white;
-            border-bottom: 2px solid #e5e7eb;
-            padding: 0 20px;
-        }
-        
-        .main-tab {
-            padding: 18px 30px;
-            border: none;
-            background: none;
-            font-size: 15px;
-            font-weight: 600;
-            color: #6b7280;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -2px;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .main-tab:hover {
-            color: #374151;
-            background: #f9fafb;
-        }
-        
-        .main-tab.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-        }
-        
-        .main-tab.planificador.active {
-            color: #7c3aed;
-            border-bottom-color: #7c3aed;
-        }
-        
-        .main-tab.matchstats.active {
-            color: #059669;
-            border-bottom-color: #059669;
-        }
-        
-        .main-tab.config.active {
-            color: #d97706;
-            border-bottom-color: #d97706;
-        }
-        .main-tab.staff.active {
-    color: #dc2626;
-    border-bottom-color: #dc2626;
+      /* ========== TABS PRINCIPALES ========== */
+.main-tabs {
+    display: flex !important;
+    background: #1e293b !important;
+    border-bottom: 2px solid #334155 !important;
+    padding: 0 20px !important;
 }
 
+.main-tab {
+    padding: 18px 30px !important;
+    border: none !important;
+    background: none !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    color: #ffffff !important;
+    cursor: pointer !important;
+    border-bottom: 3px solid transparent !important;
+    margin-bottom: -2px !important;
+    transition: all 0.2s !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.main-tab:hover {
+    color: #f97316 !important;
+    background: rgba(255,255,255,0.1) !important;
+}
+
+.main-tab.active {
+    color: #667eea !important;
+    border-bottom-color: #667eea !important;
+}
+
+.main-tab.planificador.active {
+    color: #f97316 !important;
+    border-bottom-color: #f97316 !important;
+}
+
+.main-tab.matchstats.active {
+    color: #10b981 !important;
+    border-bottom-color: #10b981 !important;
+}
+
+.main-tab.config.active {
+    color: #f59e0b !important;
+    border-bottom-color: #f59e0b !important;
+}
+
+.main-tab.staff.active {
+    color: #ef4444 !important;
+    border-bottom-color: #ef4444 !important;
+}
 /* ========== TU CUERPO TÉCNICO ========== */
 .staff-container {
     padding: 30px;
@@ -2669,7 +2680,10 @@
     <div id="app-container" style="display: none;">
         <!-- Header -->
         <header class="app-header">
-            <h1>HUB TopLiderCoach</h1>
+            <div class="header-brand">
+    <img src="https://toplidercoach.com/wp-content/uploads/2025/11/diseno-sin-titulo-11.png" alt="TopLiderCoach" class="header-logo">
+    <h1>HUB TopLiderCoach</h1>
+</div>
             <div class="header-right">
                 <div class="club-badge" id="club-badge">
                     <div class="club-initial" id="club-initial">?</div>
@@ -3050,6 +3064,7 @@
             <!-- Se genera dinámicamente -->
         </div>
     </div>
+</div>
 </div>
 <!-- ==================== MODULO: TU CUERPO TÉCNICO ==================== -->
 <div id="modulo-staff" class="vista-modulo">
@@ -3968,15 +3983,16 @@ function limpiarFiltroPartidos() {
             cargarPartidos();
         }
     } else if (modulo === 'config') {
-            } else if (modulo === 'config') {
-                if (subtab === 'temporadas') cargarTemporadas();
-                else if (subtab === 'plantilla') {
-                    cargarSelectorTemporadas();
-                    cargarPlantilla();
-                    
-                }
-            }
+        if (subtab === 'temporadas') cargarTemporadas();
+        else if (subtab === 'plantilla') {
+            cargarSelectorTemporadas();
+            cargarPlantilla();
+        } else if (subtab === 'datos-club') {
+            cargarDatosClub();
         }
+    }
+}
+       
         
         // ========== PLANIFICADOR: EJERCICIOS ==========
         async function cargarEjercicios(pagina = 1) {

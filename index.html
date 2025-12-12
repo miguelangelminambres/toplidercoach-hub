@@ -7,6 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="config.js"></script>
     <style>
         * {
             margin: 0;
@@ -7273,7 +7274,7 @@ function generarVideoParaVerPartido(videoUrl) {
 // 3. En verPartido() - añadir el video al HTML del modal:
 // ${p.video_url ? generarVideoParaVerPartido(p.video_url) : ''}
  // ========== TU CUERPO TÉCNICO (IA) ==========
-const GROQ_API_KEY = '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';
+const GROQ_API_KEY = CONFIG.GROQ_API_KEY;
 
 const staffConfig = {
     johan: {

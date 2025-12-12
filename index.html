@@ -2659,6 +2659,312 @@
                 grid-template-columns: 1fr repeat(3, 1fr) !important;
             }
         }
+        /* ========== ANÁLISIS DE PARTIDOS ========== */
+.analisis-container {
+    padding: 20px !important;
+    max-width: 900px !important;
+    margin: 0 auto !important;
+}
+
+.analisis-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 25px !important;
+    flex-wrap: wrap !important;
+    gap: 15px !important;
+}
+
+.analisis-header h2 {
+    margin: 0 !important;
+    color: #1e293b !important;
+    font-size: 24px !important;
+}
+
+.analisis-selector {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+.analisis-selector label {
+    font-weight: 600 !important;
+    color: #374151 !important;
+}
+
+.analisis-selector select {
+    padding: 10px 15px !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    min-width: 250px !important;
+    cursor: pointer !important;
+}
+
+.analisis-partido-info {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+    color: white !important;
+    padding: 20px !important;
+    border-radius: 12px !important;
+    margin-bottom: 25px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+.analisis-seccion {
+    background: white !important;
+    border-radius: 12px !important;
+    padding: 25px !important;
+    margin-bottom: 20px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+}
+
+.analisis-seccion h3 {
+    margin: 0 0 20px 0 !important;
+    color: #1e293b !important;
+    font-size: 18px !important;
+    padding-bottom: 10px !important;
+    border-bottom: 2px solid #e5e7eb !important;
+}
+
+/* Rival header con escudo */
+.rival-header {
+    display: flex !important;
+    align-items: center !important;
+    gap: 20px !important;
+    padding: 20px !important;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+}
+
+.rival-badge {
+    width: 80px !important;
+    height: 80px !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    background: white !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+}
+
+.rival-badge img {
+    max-width: 70px !important;
+    max-height: 70px !important;
+    object-fit: contain !important;
+}
+
+.logo-placeholder {
+    font-size: 40px !important;
+}
+
+.rival-info h3 {
+    margin: 0 0 10px 0 !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+.btn-subir-logo {
+    padding: 8px 16px !important;
+    background: #f97316 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    font-size: 13px !important;
+}
+
+.btn-subir-logo:hover {
+    background: #ea580c !important;
+}
+
+/* Formaciones */
+.formacion-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    margin-bottom: 20px !important;
+}
+
+.formacion-group label {
+    font-weight: 600 !important;
+    color: #374151 !important;
+    min-width: 120px !important;
+}
+
+.select-formacion {
+    padding: 10px 15px !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+}
+
+.formacion-cambios {
+    background: #f8fafc !important;
+    padding: 15px !important;
+    border-radius: 8px !important;
+    margin-bottom: 20px !important;
+}
+
+.cambios-titulo {
+    font-size: 13px !important;
+    color: #6b7280 !important;
+    margin: 0 0 10px 0 !important;
+}
+
+.cambio-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin-bottom: 8px !important;
+}
+
+.cambio-row span {
+    color: #6b7280 !important;
+    font-size: 13px !important;
+}
+
+.cambio-row input[type="number"] {
+    width: 60px !important;
+    padding: 8px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    text-align: center !important;
+    font-size: 14px !important;
+}
+
+.select-formacion-small {
+    padding: 8px 12px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    font-size: 13px !important;
+    cursor: pointer !important;
+}
+
+/* Campos de análisis */
+.analisis-campos {
+    display: grid !important;
+    gap: 20px !important;
+}
+
+.campo-analisis label {
+    display: block !important;
+    font-weight: 600 !important;
+    color: #374151 !important;
+    margin-bottom: 8px !important;
+}
+
+.campo-analisis textarea {
+    width: 100% !important;
+    padding: 12px !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    resize: vertical !important;
+    font-family: inherit !important;
+}
+
+.campo-analisis textarea:focus {
+    outline: none !important;
+    border-color: #f97316 !important;
+}
+
+#general-conclusions {
+    width: 100% !important;
+    padding: 15px !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    resize: vertical !important;
+    font-family: inherit !important;
+}
+
+/* Historial rival */
+.historial-rival {
+    background: #f0f9ff !important;
+    border: 2px solid #0ea5e9 !important;
+}
+
+/* Botones */
+.analisis-botones {
+    display: flex !important;
+    gap: 15px !important;
+    justify-content: center !important;
+    margin-top: 30px !important;
+}
+
+.btn-guardar-analisis {
+    padding: 15px 40px !important;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 10px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: transform 0.2s, box-shadow 0.2s !important;
+}
+
+.btn-guardar-analisis:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4) !important;
+}
+
+.btn-pdf-analisis {
+    padding: 15px 40px !important;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 10px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: transform 0.2s, box-shadow 0.2s !important;
+}
+
+.btn-pdf-analisis:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .analisis-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+    
+    .analisis-selector {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        width: 100% !important;
+    }
+    
+    .analisis-selector select {
+        width: 100% !important;
+    }
+    
+    .formacion-group {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+    
+    .cambio-row {
+        flex-wrap: wrap !important;
+    }
+    
+    .analisis-botones {
+        flex-direction: column !important;
+    }
+    
+    .btn-guardar-analisis,
+    .btn-pdf-analisis {
+        width: 100% !important;
+    }
+}
     </style>
 </head>
 <body>
@@ -2957,6 +3263,7 @@
     <button class="sub-tab active" onclick="cambiarSubTab('matchstats', 'partidos', this)">Partidos</button>
     <button class="sub-tab" onclick="cambiarSubTab('matchstats', 'estadisticas', this)">Estadísticas</button>
     <button class="sub-tab" onclick="cambiarSubTab('matchstats', 'calendario-partidos', this)">📅 Calendario</button>
+    <button class="sub-tab" onclick="cambiarSubTab('matchstats', 'analisis', this)">📊 Análisis</button>
 </div>
             
             <!-- Sub: Partidos -->
@@ -3065,6 +3372,271 @@
         </div>
     </div>
 </div>
+</div>
+<!-- Sub: Análisis de Partidos -->
+<div id="matchstats-analisis" class="vista-contenido">
+    <div class="analisis-container">
+        
+        <!-- Selector de partido -->
+        <div class="analisis-header">
+            <h2>📊 Análisis de Partido</h2>
+            <div class="analisis-selector">
+                <label>Selecciona partido:</label>
+                <select id="analisis-partido-select" onchange="cargarAnalisisPartido()">
+                    <option value="">-- Elige un partido jugado --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Contenido del análisis (se muestra al seleccionar partido) -->
+        <div id="analisis-contenido" style="display: none;">
+            
+            <!-- Info del partido seleccionado -->
+            <div class="analisis-partido-info" id="analisis-partido-info"></div>
+
+            <!-- Gestión del rival -->
+            <div class="analisis-seccion rival-header">
+                <div class="rival-badge">
+                    <img id="rival-logo-preview" src="" alt="Escudo rival" style="display:none;">
+                    <div id="rival-logo-placeholder" class="logo-placeholder">🛡️</div>
+                </div>
+                <div class="rival-info">
+                    <h3 id="rival-nombre">Rival</h3>
+                    <input type="file" id="rival-logo-input" accept="image/*" onchange="subirLogoRival()" style="display:none;">
+                    <button class="btn-subir-logo" onclick="document.getElementById('rival-logo-input').click()">📷 Subir escudo</button>
+                </div>
+            </div>
+
+            <!-- Mi Equipo -->
+            <div class="analisis-seccion">
+                <h3>🏠 Mi Equipo</h3>
+                
+                <div class="formacion-group">
+                    <label>Sistema inicial:</label>
+                    <select id="team-formation-initial" class="select-formacion">
+                        <option value="">Seleccionar...</option>
+                        <option value="1-4-3-3">1-4-3-3</option>
+                        <option value="1-4-4-2">1-4-4-2</option>
+                        <option value="1-4-2-3-1">1-4-2-3-1</option>
+                        <option value="1-4-1-4-1">1-4-1-4-1</option>
+                        <option value="1-3-5-2">1-3-5-2</option>
+                        <option value="1-3-4-3">1-3-4-3</option>
+                        <option value="1-5-3-2">1-5-3-2</option>
+                        <option value="1-5-4-1">1-5-4-1</option>
+                        <option value="1-4-5-1">1-4-5-1</option>
+                        <option value="1-4-4-1-1">1-4-4-1-1</option>
+                    </select>
+                </div>
+
+                <div class="formacion-cambios">
+                    <p class="cambios-titulo">Cambios de sistema durante el partido:</p>
+                    <div class="cambio-row">
+                        <span>Min</span>
+                        <input type="number" id="team-change1-min" min="1" max="120" placeholder="--">
+                        <span>→</span>
+                        <select id="team-change1-system" class="select-formacion-small">
+                            <option value="">--</option>
+                            <option value="1-4-3-3">1-4-3-3</option>
+                            <option value="1-4-4-2">1-4-4-2</option>
+                            <option value="1-4-2-3-1">1-4-2-3-1</option>
+                            <option value="1-4-1-4-1">1-4-1-4-1</option>
+                            <option value="1-3-5-2">1-3-5-2</option>
+                            <option value="1-3-4-3">1-3-4-3</option>
+                            <option value="1-5-3-2">1-5-3-2</option>
+                            <option value="1-5-4-1">1-5-4-1</option>
+                        </select>
+                    </div>
+                    <div class="cambio-row">
+                        <span>Min</span>
+                        <input type="number" id="team-change2-min" min="1" max="120" placeholder="--">
+                        <span>→</span>
+                        <select id="team-change2-system" class="select-formacion-small">
+                            <option value="">--</option>
+                            <option value="1-4-3-3">1-4-3-3</option>
+                            <option value="1-4-4-2">1-4-4-2</option>
+                            <option value="1-4-2-3-1">1-4-2-3-1</option>
+                            <option value="1-4-1-4-1">1-4-1-4-1</option>
+                            <option value="1-3-5-2">1-3-5-2</option>
+                            <option value="1-3-4-3">1-3-4-3</option>
+                            <option value="1-5-3-2">1-5-3-2</option>
+                            <option value="1-5-4-1">1-5-4-1</option>
+                        </select>
+                    </div>
+                    <div class="cambio-row">
+                        <span>Min</span>
+                        <input type="number" id="team-change3-min" min="1" max="120" placeholder="--">
+                        <span>→</span>
+                        <select id="team-change3-system" class="select-formacion-small">
+                            <option value="">--</option>
+                            <option value="1-4-3-3">1-4-3-3</option>
+                            <option value="1-4-4-2">1-4-4-2</option>
+                            <option value="1-4-2-3-1">1-4-2-3-1</option>
+                            <option value="1-4-1-4-1">1-4-1-4-1</option>
+                            <option value="1-3-5-2">1-3-5-2</option>
+                            <option value="1-3-4-3">1-3-4-3</option>
+                            <option value="1-5-3-2">1-5-3-2</option>
+                            <option value="1-5-4-1">1-5-4-1</option>
+                        </select>
+                    </div>
+                    <div class="cambio-row">
+                        <span>Min</span>
+                        <input type="number" id="team-change4-min" min="1" max="120" placeholder="--">
+                        <span>→</span>
+                        <select id="team-change4-system" class="select-formacion-small">
+                            <option value="">--</option>
+                            <option value="1-4-3-3">1-4-3-3</option>
+                            <option value="1-4-4-2">1-4-4-2</option>
+                            <option value="1-4-2-3-1">1-4-2-3-1</option>
+                            <option value="1-4-1-4-1">1-4-1-4-1</option>
+                            <option value="1-3-5-2">1-3-5-2</option>
+                            <option value="1-3-4-3">1-3-4-3</option>
+                            <option value="1-5-3-2">1-5-3-2</option>
+                            <option value="1-5-4-1">1-5-4-1</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="analisis-campos">
+                    <div class="campo-analisis">
+                        <label>💪 Puntos fuertes</label>
+                        <textarea id="team-strengths" rows="3" placeholder="¿Qué hicimos bien?"></textarea>
+                    </div>
+                    <div class="campo-analisis">
+                        <label>📈 Aspectos a mejorar</label>
+                        <textarea id="team-improvements" rows="3" placeholder="¿Qué podemos mejorar?"></textarea>
+                    </div>
+                    <div class="campo-analisis">
+                        <label>📋 Notas tácticas</label>
+                        <textarea id="team-tactical-notes" rows="3" placeholder="Observaciones tácticas..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rival -->
+            <div class="analisis-seccion">
+                <h3>⚔️ Rival</h3>
+                
+                <div class="formacion-group">
+                    <label>Sistema inicial:</label>
+                    <select id="opponent-formation-initial" class="select-formacion">
+                        <option value="">Seleccionar...</option>
+                        <option value="1-4-3-3">1-4-3-3</option>
+                        <option value="1-4-4-2">1-4-4-2</option>
+                        <option value="1-4-2-3-1">1-4-2-3-1</option>
+                        <option value="1-4-1-4-1">1-4-1-4-1</option>
+                        <option value="1-3-5-2">1-3-5-2</option>
+                        <option value="1-3-4-3">1-3-4-3</option>
+                        <option value="1-5-3-2">1-5-3-2</option>
+                        <option value="1-5-4-1">1-5-4-1</option>
+                        <option value="1-4-5-1">1-4-5-1</option>
+                        <option value="1-4-4-1-1">1-4-4-1-1</option>
+                    </select>
+                </div>
+
+                <div class="formacion-cambios">
+                    <p class="cambios-titulo">Cambios de sistema durante el partido:</p>
+                    <div class="cambio-row">
+                        <span>Min</span>
+                        <input type="number" id="opponent-change1-min" min="1" max="120" placeholder="--">
+                        <span>→</span>
+                        <select id="opponent-change1-system" class="select-formacion-small">
+                            <option value="">--</option>
+                            <option value="1-4-3-3">1-4-3-3</option>
+                            <option value="1-4-4-2">1-4-4-2</option>
+                            <option value="1-4-2-3-1">1-4-2-3-1</option>
+                            <option value="1-4-1-4-1">1-4-1-4-1</option>
+                            <option value="1-3-5-2">1-3-5-2</option>
+                            <option value="1-3-4-3">1-3-4-3</option>
+                            <option value="1-5-3-2">1-5-3-2</option>
+                            <option value="1-5-4-1">1-5-4-1</option>
+                        </select>
+                    </div>
+                    <div class="cambio-row">
+                        <span>Min</span>
+                        <input type="number" id="opponent-change2-min" min="1" max="120" placeholder="--">
+                        <span>→</span>
+                        <select id="opponent-change2-system" class="select-formacion-small">
+                            <option value="">--</option>
+                            <option value="1-4-3-3">1-4-3-3</option>
+                            <option value="1-4-4-2">1-4-4-2</option>
+                            <option value="1-4-2-3-1">1-4-2-3-1</option>
+                            <option value="1-4-1-4-1">1-4-1-4-1</option>
+                            <option value="1-3-5-2">1-3-5-2</option>
+                            <option value="1-3-4-3">1-3-4-3</option>
+                            <option value="1-5-3-2">1-5-3-2</option>
+                            <option value="1-5-4-1">1-5-4-1</option>
+                        </select>
+                    </div>
+                    <div class="cambio-row">
+                        <span>Min</span>
+                        <input type="number" id="opponent-change3-min" min="1" max="120" placeholder="--">
+                        <span>→</span>
+                        <select id="opponent-change3-system" class="select-formacion-small">
+                            <option value="">--</option>
+                            <option value="1-4-3-3">1-4-3-3</option>
+                            <option value="1-4-4-2">1-4-4-2</option>
+                            <option value="1-4-2-3-1">1-4-2-3-1</option>
+                            <option value="1-4-1-4-1">1-4-1-4-1</option>
+                            <option value="1-3-5-2">1-3-5-2</option>
+                            <option value="1-3-4-3">1-3-4-3</option>
+                            <option value="1-5-3-2">1-5-3-2</option>
+                            <option value="1-5-4-1">1-5-4-1</option>
+                        </select>
+                    </div>
+                    <div class="cambio-row">
+                        <span>Min</span>
+                        <input type="number" id="opponent-change4-min" min="1" max="120" placeholder="--">
+                        <span>→</span>
+                        <select id="opponent-change4-system" class="select-formacion-small">
+                            <option value="">--</option>
+                            <option value="1-4-3-3">1-4-3-3</option>
+                            <option value="1-4-4-2">1-4-4-2</option>
+                            <option value="1-4-2-3-1">1-4-2-3-1</option>
+                            <option value="1-4-1-4-1">1-4-1-4-1</option>
+                            <option value="1-3-5-2">1-3-5-2</option>
+                            <option value="1-3-4-3">1-3-4-3</option>
+                            <option value="1-5-3-2">1-5-3-2</option>
+                            <option value="1-5-4-1">1-5-4-1</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="analisis-campos">
+                    <div class="campo-analisis">
+                        <label>💪 Puntos fuertes del rival</label>
+                        <textarea id="opponent-strengths" rows="3" placeholder="¿Qué hacen bien?"></textarea>
+                    </div>
+                    <div class="campo-analisis">
+                        <label>📉 Puntos débiles del rival</label>
+                        <textarea id="opponent-weaknesses" rows="3" placeholder="¿Dónde podemos hacerles daño?"></textarea>
+                    </div>
+                    <div class="campo-analisis">
+                        <label>⭐ Jugadores clave</label>
+                        <textarea id="opponent-key-players" rows="3" placeholder="Jugadores a vigilar..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conclusiones generales -->
+            <div class="analisis-seccion">
+                <h3>📝 Conclusiones Generales</h3>
+                <textarea id="general-conclusions" rows="5" placeholder="Resumen del partido, aprendizajes, ideas para futuros enfrentamientos..."></textarea>
+            </div>
+
+            <!-- Historial vs este rival -->
+            <div class="analisis-seccion historial-rival" id="historial-rival" style="display:none;">
+                <h3>📚 Historial vs <span id="historial-rival-nombre"></span></h3>
+                <div id="historial-partidos"></div>
+            </div>
+
+            <!-- Botones -->
+            <div class="analisis-botones">
+                <button class="btn-guardar-analisis" onclick="guardarAnalisis()">💾 Guardar Análisis</button>
+                <button class="btn-pdf-analisis" onclick="generarPDFAnalisis()">📄 Generar PDF</button>
+            </div>
+
+        </div>
+    </div>
 </div>
 <!-- ==================== MODULO: TU CUERPO TÉCNICO ==================== -->
 <div id="modulo-staff" class="vista-modulo">
@@ -3795,6 +4367,589 @@ function limpiarFiltroPartidos() {
     document.getElementById('filtro-partido-hasta').value = '';
     cargarPartidos();
 }
+// ========== ANÁLISIS DE PARTIDOS ==========
+let analisisActual = null;
+let partidoSeleccionadoAnalisis = null;
+let opponentActual = null;
+
+async function cargarPartidosParaAnalisis() {
+    const select = document.getElementById('analisis-partido-select');
+    select.innerHTML = '<option value="">-- Elige un partido jugado --</option>';
+    
+    const { data: partidos } = await supabase
+        .from('matches')
+        .select('*')
+        .eq('club_id', clubId)
+        .eq('season_id', seasonId)
+        .not('result', 'is', null)
+        .order('match_date', { ascending: false });
+    
+    if (partidos && partidos.length > 0) {
+        partidos.forEach(p => {
+            const fecha = new Date(p.match_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+            const esLocal = p.home_away === 'home';
+            const gF = p.team_goals || 0;
+            const gC = p.opponent_goals || 0;
+            const marcador = esLocal ? gF + '-' + gC : gC + '-' + gF;
+            const resultado = p.result === 'win' ? '✅' : p.result === 'draw' ? '🟡' : '❌';
+            
+            const option = document.createElement('option');
+            option.value = p.id;
+            option.textContent = resultado + ' ' + fecha + ' - ' + (esLocal ? 'vs ' : '@ ') + p.opponent + ' (' + marcador + ')';
+            select.appendChild(option);
+        });
+    }
+}
+
+async function cargarAnalisisPartido() {
+    const select = document.getElementById('analisis-partido-select');
+    const matchId = select.value;
+    const contenido = document.getElementById('analisis-contenido');
+    
+    if (!matchId) {
+        contenido.style.display = 'none';
+        return;
+    }
+    
+    contenido.style.display = 'block';
+    
+    // Cargar datos del partido
+    const { data: partido } = await supabase
+        .from('matches')
+        .select('*')
+        .eq('id', matchId)
+        .single();
+    
+    if (partido) {
+        partidoSeleccionadoAnalisis = partido;
+        mostrarInfoPartido(partido);
+        await buscarOCrearRival(partido.opponent);
+        await cargarAnalisisExistente(matchId);
+        await cargarHistorialRival(partido.opponent);
+    }
+}
+
+function mostrarInfoPartido(partido) {
+    const info = document.getElementById('analisis-partido-info');
+    const fecha = new Date(partido.match_date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const esLocal = partido.home_away === 'home';
+    const gF = partido.team_goals || 0;
+    const gC = partido.opponent_goals || 0;
+    
+    const resultadoTexto = partido.result === 'win' ? 'Victoria' : partido.result === 'draw' ? 'Empate' : 'Derrota';
+    const resultadoColor = partido.result === 'win' ? '#10b981' : partido.result === 'draw' ? '#f59e0b' : '#ef4444';
+    
+    info.innerHTML = 
+        '<div class="partido-info-izq">' +
+            '<div style="font-size: 14px; opacity: 0.8;">' + fecha + '</div>' +
+            '<div style="font-size: 20px; font-weight: 700; margin-top: 5px;">' +
+                (esLocal ? (clubData?.name || 'Mi Equipo') + ' vs ' + partido.opponent : partido.opponent + ' vs ' + (clubData?.name || 'Mi Equipo')) +
+            '</div>' +
+            (partido.competition ? '<div style="margin-top: 5px; font-size: 13px; opacity: 0.8;">' + partido.competition + '</div>' : '') +
+        '</div>' +
+        '<div class="partido-info-der" style="text-align: right;">' +
+            '<div style="font-size: 32px; font-weight: 700;">' + (esLocal ? gF + ' - ' + gC : gC + ' - ' + gF) + '</div>' +
+            '<div style="background: ' + resultadoColor + '; padding: 5px 15px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-top: 5px; display: inline-block;">' + resultadoTexto + '</div>' +
+        '</div>';
+}
+
+async function buscarOCrearRival(nombreRival) {
+    // Buscar si el rival ya existe
+    const { data: rival } = await supabase
+        .from('opponents')
+        .select('*')
+        .eq('club_id', clubId)
+        .eq('name', nombreRival)
+        .single();
+    
+    if (rival) {
+        opponentActual = rival;
+        mostrarRival(rival);
+    } else {
+        // Crear nuevo rival
+        const { data: nuevoRival } = await supabase
+            .from('opponents')
+            .insert({
+                club_id: clubId,
+                name: nombreRival
+            })
+            .select()
+            .single();
+        
+        opponentActual = nuevoRival;
+        mostrarRival(nuevoRival);
+    }
+}
+
+function mostrarRival(rival) {
+    document.getElementById('rival-nombre').textContent = rival.name;
+    
+    const logoPreview = document.getElementById('rival-logo-preview');
+    const logoPlaceholder = document.getElementById('rival-logo-placeholder');
+    
+    if (rival.logo_url) {
+        logoPreview.src = rival.logo_url;
+        logoPreview.style.display = 'block';
+        logoPlaceholder.style.display = 'none';
+    } else {
+        logoPreview.style.display = 'none';
+        logoPlaceholder.style.display = 'flex';
+    }
+}
+
+async function subirLogoRival() {
+    const input = document.getElementById('rival-logo-input');
+    const file = input.files[0];
+    
+    if (!file || !opponentActual) return;
+    
+    // Convertir a base64 para guardar (simple approach)
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        const logoUrl = e.target.result;
+        
+        // Actualizar en la base de datos
+        await supabase
+            .from('opponents')
+            .update({ logo_url: logoUrl })
+            .eq('id', opponentActual.id);
+        
+        opponentActual.logo_url = logoUrl;
+        mostrarRival(opponentActual);
+    };
+    reader.readAsDataURL(file);
+}
+
+async function cargarAnalisisExistente(matchId) {
+    const { data: analisis } = await supabase
+        .from('match_analysis')
+        .select('*')
+        .eq('match_id', matchId)
+        .single();
+    
+    // Limpiar formulario
+    limpiarFormularioAnalisis();
+    
+    if (analisis) {
+        analisisActual = analisis;
+        
+        // Mi equipo - Formaciones
+        document.getElementById('team-formation-initial').value = analisis.team_formation_initial || '';
+        document.getElementById('team-change1-min').value = analisis.team_formation_change1_minute || '';
+        document.getElementById('team-change1-system').value = analisis.team_formation_change1_system || '';
+        document.getElementById('team-change2-min').value = analisis.team_formation_change2_minute || '';
+        document.getElementById('team-change2-system').value = analisis.team_formation_change2_system || '';
+        document.getElementById('team-change3-min').value = analisis.team_formation_change3_minute || '';
+        document.getElementById('team-change3-system').value = analisis.team_formation_change3_system || '';
+        document.getElementById('team-change4-min').value = analisis.team_formation_change4_minute || '';
+        document.getElementById('team-change4-system').value = analisis.team_formation_change4_system || '';
+        
+        // Mi equipo - Análisis
+        document.getElementById('team-strengths').value = analisis.team_strengths || '';
+        document.getElementById('team-improvements').value = analisis.team_improvements || '';
+        document.getElementById('team-tactical-notes').value = analisis.team_tactical_notes || '';
+        
+        // Rival - Formaciones
+        document.getElementById('opponent-formation-initial').value = analisis.opponent_formation_initial || '';
+        document.getElementById('opponent-change1-min').value = analisis.opponent_formation_change1_minute || '';
+        document.getElementById('opponent-change1-system').value = analisis.opponent_formation_change1_system || '';
+        document.getElementById('opponent-change2-min').value = analisis.opponent_formation_change2_minute || '';
+        document.getElementById('opponent-change2-system').value = analisis.opponent_formation_change2_system || '';
+        document.getElementById('opponent-change3-min').value = analisis.opponent_formation_change3_minute || '';
+        document.getElementById('opponent-change3-system').value = analisis.opponent_formation_change3_system || '';
+        document.getElementById('opponent-change4-min').value = analisis.opponent_formation_change4_minute || '';
+        document.getElementById('opponent-change4-system').value = analisis.opponent_formation_change4_system || '';
+        
+        // Rival - Análisis
+        document.getElementById('opponent-strengths').value = analisis.opponent_strengths || '';
+        document.getElementById('opponent-weaknesses').value = analisis.opponent_weaknesses || '';
+        document.getElementById('opponent-key-players').value = analisis.opponent_key_players || '';
+        
+        // Conclusiones
+        document.getElementById('general-conclusions').value = analisis.general_conclusions || '';
+    } else {
+        analisisActual = null;
+    }
+}
+
+function limpiarFormularioAnalisis() {
+    document.getElementById('team-formation-initial').value = '';
+    document.getElementById('team-change1-min').value = '';
+    document.getElementById('team-change1-system').value = '';
+    document.getElementById('team-change2-min').value = '';
+    document.getElementById('team-change2-system').value = '';
+    document.getElementById('team-change3-min').value = '';
+    document.getElementById('team-change3-system').value = '';
+    document.getElementById('team-change4-min').value = '';
+    document.getElementById('team-change4-system').value = '';
+    document.getElementById('team-strengths').value = '';
+    document.getElementById('team-improvements').value = '';
+    document.getElementById('team-tactical-notes').value = '';
+    document.getElementById('opponent-formation-initial').value = '';
+    document.getElementById('opponent-change1-min').value = '';
+    document.getElementById('opponent-change1-system').value = '';
+    document.getElementById('opponent-change2-min').value = '';
+    document.getElementById('opponent-change2-system').value = '';
+    document.getElementById('opponent-change3-min').value = '';
+    document.getElementById('opponent-change3-system').value = '';
+    document.getElementById('opponent-change4-min').value = '';
+    document.getElementById('opponent-change4-system').value = '';
+    document.getElementById('opponent-strengths').value = '';
+    document.getElementById('opponent-weaknesses').value = '';
+    document.getElementById('opponent-key-players').value = '';
+    document.getElementById('general-conclusions').value = '';
+}
+
+async function guardarAnalisis() {
+    if (!partidoSeleccionadoAnalisis) {
+        alert('Selecciona un partido primero');
+        return;
+    }
+    
+    const datos = {
+        match_id: partidoSeleccionadoAnalisis.id,
+        club_id: clubId,
+        opponent_id: opponentActual?.id,
+        
+        // Mi equipo
+        team_formation_initial: document.getElementById('team-formation-initial').value || null,
+        team_formation_change1_minute: document.getElementById('team-change1-min').value ? parseInt(document.getElementById('team-change1-min').value) : null,
+        team_formation_change1_system: document.getElementById('team-change1-system').value || null,
+        team_formation_change2_minute: document.getElementById('team-change2-min').value ? parseInt(document.getElementById('team-change2-min').value) : null,
+        team_formation_change2_system: document.getElementById('team-change2-system').value || null,
+        team_formation_change3_minute: document.getElementById('team-change3-min').value ? parseInt(document.getElementById('team-change3-min').value) : null,
+        team_formation_change3_system: document.getElementById('team-change3-system').value || null,
+        team_formation_change4_minute: document.getElementById('team-change4-min').value ? parseInt(document.getElementById('team-change4-min').value) : null,
+        team_formation_change4_system: document.getElementById('team-change4-system').value || null,
+        team_strengths: document.getElementById('team-strengths').value || null,
+        team_improvements: document.getElementById('team-improvements').value || null,
+        team_tactical_notes: document.getElementById('team-tactical-notes').value || null,
+        
+        // Rival
+        opponent_formation_initial: document.getElementById('opponent-formation-initial').value || null,
+        opponent_formation_change1_minute: document.getElementById('opponent-change1-min').value ? parseInt(document.getElementById('opponent-change1-min').value) : null,
+        opponent_formation_change1_system: document.getElementById('opponent-change1-system').value || null,
+        opponent_formation_change2_minute: document.getElementById('opponent-change2-min').value ? parseInt(document.getElementById('opponent-change2-min').value) : null,
+        opponent_formation_change2_system: document.getElementById('opponent-change2-system').value || null,
+        opponent_formation_change3_minute: document.getElementById('opponent-change3-min').value ? parseInt(document.getElementById('opponent-change3-min').value) : null,
+        opponent_formation_change3_system: document.getElementById('opponent-change3-system').value || null,
+        opponent_formation_change4_minute: document.getElementById('opponent-change4-min').value ? parseInt(document.getElementById('opponent-change4-min').value) : null,
+        opponent_formation_change4_system: document.getElementById('opponent-change4-system').value || null,
+        opponent_strengths: document.getElementById('opponent-strengths').value || null,
+        opponent_weaknesses: document.getElementById('opponent-weaknesses').value || null,
+        opponent_key_players: document.getElementById('opponent-key-players').value || null,
+        
+        // General
+        general_conclusions: document.getElementById('general-conclusions').value || null,
+        updated_at: new Date().toISOString()
+    };
+    
+    let error;
+    
+    if (analisisActual) {
+        // Actualizar
+        const result = await supabase
+            .from('match_analysis')
+            .update(datos)
+            .eq('id', analisisActual.id);
+        error = result.error;
+    } else {
+        // Crear nuevo
+        const result = await supabase
+            .from('match_analysis')
+            .insert(datos)
+            .select()
+            .single();
+        error = result.error;
+        if (result.data) analisisActual = result.data;
+    }
+    
+    if (error) {
+        alert('Error al guardar: ' + error.message);
+    } else {
+        alert('✅ Análisis guardado correctamente');
+    }
+}
+
+async function cargarHistorialRival(nombreRival) {
+    const historialDiv = document.getElementById('historial-rival');
+    const historialPartidos = document.getElementById('historial-partidos');
+    const historialNombre = document.getElementById('historial-rival-nombre');
+    
+    // Buscar partidos contra este rival
+    const { data: partidos } = await supabase
+        .from('matches')
+        .select('*')
+        .eq('club_id', clubId)
+        .eq('opponent', nombreRival)
+        .not('result', 'is', null)
+        .neq('id', partidoSeleccionadoAnalisis.id)
+        .order('match_date', { ascending: false });
+    
+    if (partidos && partidos.length > 0) {
+        historialDiv.style.display = 'block';
+        historialNombre.textContent = nombreRival;
+        
+        let html = '<div class="historial-lista">';
+        
+        for (const p of partidos) {
+            const fecha = new Date(p.match_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+            const esLocal = p.home_away === 'home';
+            const gF = p.team_goals || 0;
+            const gC = p.opponent_goals || 0;
+            const marcador = esLocal ? gF + '-' + gC : gC + '-' + gF;
+            const resultado = p.result === 'win' ? '✅' : p.result === 'draw' ? '🟡' : '❌';
+            
+            // Verificar si tiene análisis
+            const { data: analisis } = await supabase
+                .from('match_analysis')
+                .select('id')
+                .eq('match_id', p.id)
+                .single();
+            
+            html += '<div class="historial-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: white; border-radius: 8px; margin-bottom: 8px;">' +
+                '<div>' +
+                    '<span style="font-weight: 600;">' + resultado + ' ' + marcador + '</span>' +
+                    '<span style="color: #6b7280; margin-left: 10px;">' + fecha + ' - ' + (esLocal ? 'Local' : 'Visitante') + '</span>' +
+                '</div>' +
+                (analisis ? '<span style="font-size: 12px; background: #dbeafe; color: #1d4ed8; padding: 4px 8px; border-radius: 4px;">📊 Analizado</span>' : '') +
+            '</div>';
+        }
+        
+        html += '</div>';
+        historialPartidos.innerHTML = html;
+    } else {
+        historialDiv.style.display = 'none';
+    }
+}
+
+async function generarPDFAnalisis() {
+    if (!partidoSeleccionadoAnalisis) {
+        alert('Selecciona un partido primero');
+        return;
+    }
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    const partido = partidoSeleccionadoAnalisis;
+    const fecha = new Date(partido.match_date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const esLocal = partido.home_away === 'home';
+    const gF = partido.team_goals || 0;
+    const gC = partido.opponent_goals || 0;
+    const marcador = esLocal ? gF + ' - ' + gC : gC + ' - ' + gF;
+    
+    let y = 15;
+    
+    // Colores
+    const colorPrimario = [30, 41, 59];
+    const colorVerde = [16, 185, 129];
+    const colorNaranja = [249, 115, 22];
+    const colorRojo = [239, 68, 68];
+    const colorGris = [107, 114, 128];
+    
+    // ===== HEADER =====
+    doc.setFillColor(colorPrimario[0], colorPrimario[1], colorPrimario[2]);
+    doc.rect(0, 0, 210, 55, 'F');
+    
+    // Título
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont(undefined, 'bold');
+    doc.text('ANALISIS DE PARTIDO', 105, 15, { align: 'center' });
+    
+    // Fecha
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text(fecha.toUpperCase(), 105, 23, { align: 'center' });
+    
+    // Escudos y equipos
+    const equipoLocal = esLocal ? (clubData?.name || 'Mi Equipo') : partido.opponent;
+    const equipoVisitante = esLocal ? partido.opponent : (clubData?.name || 'Mi Equipo');
+    
+    // Intentar cargar escudos
+    try {
+        // Escudo local (mi equipo si es local, rival si es visitante)
+        if (esLocal && clubData?.logo_url) {
+    doc.addImage(clubData.logo_url, 'PNG', 30, 28, 20, 20);
+        } else if (!esLocal && opponentActual?.logo_url) {
+            doc.addImage(opponentActual.logo_url, 'PNG', 30, 28, 20, 20);
+        }
+        
+        // Escudo visitante (rival si es local, mi equipo si es visitante)
+        if (esLocal && opponentActual?.logo_url) {
+            doc.addImage(opponentActual.logo_url, 'PNG', 160, 28, 20, 20);
+        } else if (!esLocal && clubData?.logo_url) {
+    doc.addImage(clubData.logo_url, 'PNG', 160, 28, 20, 20);
+        }
+    } catch (e) {
+        console.log('No se pudieron cargar los escudos');
+    }
+    
+    // Nombres equipos
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.text(equipoLocal, 55, 38);
+    doc.text(equipoVisitante, 155, 38, { align: 'right' });
+    
+    // VS
+    doc.setFontSize(10);
+    doc.text('VS', 105, 35, { align: 'center' });
+    
+    // Resultado
+    const colorResultado = partido.result === 'win' ? colorVerde : partido.result === 'draw' ? colorNaranja : colorRojo;
+    doc.setFillColor(colorResultado[0], colorResultado[1], colorResultado[2]);
+    doc.roundedRect(85, 42, 40, 10, 2, 2, 'F');
+    doc.setFontSize(14);
+    doc.setTextColor(255, 255, 255);
+    doc.text(marcador, 105, 50, { align: 'center' });
+    
+    y = 65;
+    
+    // Función auxiliar para añadir sección
+    function addSeccion(titulo, color) {
+        if (y > 250) {
+            doc.addPage();
+            y = 20;
+        }
+        doc.setFillColor(color[0], color[1], color[2]);
+        doc.rect(15, y, 180, 10, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(11);
+        doc.setFont(undefined, 'bold');
+        doc.text(titulo, 20, y + 7);
+        y += 15;
+        doc.setTextColor(0, 0, 0);
+    }
+    
+    // Función auxiliar para añadir campo
+    function addCampo(label, valor) {
+        if (!valor || valor.trim() === '') return;
+        if (y > 270) {
+            doc.addPage();
+            y = 20;
+        }
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(colorGris[0], colorGris[1], colorGris[2]);
+        doc.text(label, 20, y);
+        y += 5;
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(0, 0, 0);
+        const lines = doc.splitTextToSize(valor, 170);
+        lines.forEach(function(line) {
+            if (y > 280) {
+                doc.addPage();
+                y = 20;
+            }
+            doc.text(line, 20, y);
+            y += 5;
+        });
+        y += 3;
+    }
+    
+    // Función auxiliar para añadir formación
+    function addFormacion(label, formacion, cambios) {
+        if (!formacion && cambios.filter(c => c.min && c.sys).length === 0) return;
+        if (y > 270) {
+            doc.addPage();
+            y = 20;
+        }
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(colorGris[0], colorGris[1], colorGris[2]);
+        doc.text(label, 20, y);
+        y += 6;
+        doc.setTextColor(0, 0, 0);
+        
+        if (formacion) {
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text(formacion, 20, y);
+            y += 7;
+        }
+        
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'normal');
+        cambios.forEach(function(cambio) {
+            if (cambio.min && cambio.sys) {
+                doc.setTextColor(colorNaranja[0], colorNaranja[1], colorNaranja[2]);
+                doc.text('Min ' + cambio.min + "'", 20, y);
+                doc.setTextColor(0, 0, 0);
+                doc.text(' -> ' + cambio.sys, 40, y);
+                y += 5;
+            }
+        });
+        y += 3;
+    }
+    
+    // ===== MI EQUIPO =====
+    addSeccion('MI EQUIPO', colorVerde);
+    
+    const teamFormation = document.getElementById('team-formation-initial').value;
+    const teamCambios = [
+        { min: document.getElementById('team-change1-min').value, sys: document.getElementById('team-change1-system').value },
+        { min: document.getElementById('team-change2-min').value, sys: document.getElementById('team-change2-system').value },
+        { min: document.getElementById('team-change3-min').value, sys: document.getElementById('team-change3-system').value },
+        { min: document.getElementById('team-change4-min').value, sys: document.getElementById('team-change4-system').value }
+    ];
+    
+    addFormacion('Sistema de juego:', teamFormation, teamCambios);
+    addCampo('Puntos fuertes:', document.getElementById('team-strengths').value);
+    addCampo('Aspectos a mejorar:', document.getElementById('team-improvements').value);
+    addCampo('Notas tacticas:', document.getElementById('team-tactical-notes').value);
+    
+    y += 5;
+    
+    // ===== RIVAL =====
+    addSeccion('RIVAL: ' + partido.opponent.toUpperCase(), colorRojo);
+    
+    const oppFormation = document.getElementById('opponent-formation-initial').value;
+    const oppCambios = [
+        { min: document.getElementById('opponent-change1-min').value, sys: document.getElementById('opponent-change1-system').value },
+        { min: document.getElementById('opponent-change2-min').value, sys: document.getElementById('opponent-change2-system').value },
+        { min: document.getElementById('opponent-change3-min').value, sys: document.getElementById('opponent-change3-system').value },
+        { min: document.getElementById('opponent-change4-min').value, sys: document.getElementById('opponent-change4-system').value }
+    ];
+    
+    addFormacion('Sistema de juego:', oppFormation, oppCambios);
+    addCampo('Puntos fuertes:', document.getElementById('opponent-strengths').value);
+    addCampo('Puntos debiles:', document.getElementById('opponent-weaknesses').value);
+    addCampo('Jugadores clave:', document.getElementById('opponent-key-players').value);
+    
+    y += 5;
+    
+    // ===== CONCLUSIONES =====
+    const conclusions = document.getElementById('general-conclusions').value;
+    if (conclusions && conclusions.trim() !== '') {
+        addSeccion('CONCLUSIONES', colorPrimario);
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        const lines = doc.splitTextToSize(conclusions, 170);
+        lines.forEach(function(line) {
+            if (y > 280) {
+                doc.addPage();
+                y = 20;
+            }
+            doc.text(line, 20, y);
+            y += 5;
+        });
+    }
+    
+    // ===== FOOTER =====
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(colorGris[0], colorGris[1], colorGris[2]);
+        doc.text('TopLiderCoach - Analisis de Partido', 105, 290, { align: 'center' });
+        doc.text('Pagina ' + i + ' de ' + totalPages, 195, 290, { align: 'right' });
+    }
+    
+    // Guardar
+    const nombreArchivo = 'Analisis_' + partido.opponent.replace(/\s+/g, '_') + '_' + partido.match_date + '.pdf';
+    doc.save(nombreArchivo);
+}
         // ========== LOGIN ==========
         async function login() {
             const username = document.getElementById('username').value;
@@ -3973,7 +5128,10 @@ function limpiarFiltroPartidos() {
             if (modulo === 'planificador') {
                 if (subtab === 'mis-sesiones') cargarMisSesiones();
                 else if (subtab === 'calendario') cargarCalendarioSesiones();
-  } else if (modulo === 'matchstats') {
+ 
+      
+  
+   } else if (modulo === 'matchstats') {
         if (subtab === 'estadisticas') {
             cargarSelectorTemporadasStats();
             cargarEstadisticas();
@@ -3981,6 +5139,8 @@ function limpiarFiltroPartidos() {
             cargarCalendarioPartidos();
         } else if (subtab === 'partidos') {
             cargarPartidos();
+        } else if (subtab === 'analisis') {
+            cargarPartidosParaAnalisis();
         }
     } else if (modulo === 'config') {
         if (subtab === 'temporadas') cargarTemporadas();
@@ -3992,7 +5152,6 @@ function limpiarFiltroPartidos() {
         }
     }
 }
-       
         
         // ========== PLANIFICADOR: EJERCICIOS ==========
         async function cargarEjercicios(pagina = 1) {

@@ -2965,6 +2965,173 @@
         width: 100% !important;
     }
 }
+/* ========== CAMPO DE FÚTBOL VISUAL ========== */
+.campo-futbol-container {
+    margin-top: 20px;
+    background: #1a1a2e;
+    border-radius: 12px;
+    padding: 15px;
+}
+
+.campo-futbol {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    height: 500px;
+    margin: 0 auto;
+    background: linear-gradient(to bottom, #2d5a27 0%, #3d7a37 50%, #2d5a27 100%);
+    border: 3px solid rgba(255,255,255,0.8);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.campo-futbol::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: rgba(255,255,255,0.6);
+}
+
+.campo-futbol::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px;
+    height: 80px;
+    border: 2px solid rgba(255,255,255,0.6);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.campo-area-grande-arriba {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 65%;
+    height: 18%;
+    border: 2px solid rgba(255,255,255,0.6);
+    border-top: none;
+}
+
+.campo-area-grande-abajo {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 65%;
+    height: 18%;
+    border: 2px solid rgba(255,255,255,0.6);
+    border-bottom: none;
+}
+
+.campo-area-pequena-arriba {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30%;
+    height: 7%;
+    border: 2px solid rgba(255,255,255,0.6);
+    border-top: none;
+}
+
+.campo-area-pequena-abajo {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30%;
+    height: 7%;
+    border: 2px solid rgba(255,255,255,0.6);
+    border-bottom: none;
+}
+
+.jugador-posicion {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 50px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.jugador-posicion:hover {
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+.jugador-posicion-circulo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #3b82f6;
+    border: 2px solid white;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    font-size: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.jugador-posicion-circulo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.jugador-posicion-circulo.vacio {
+    background: rgba(255,255,255,0.2);
+    border: 2px dashed rgba(255,255,255,0.5);
+    font-size: 18px;
+}
+
+.jugador-posicion-nombre {
+    font-size: 9px;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 60px;
+}
+
+.jugador-posicion-dorsal {
+    position: absolute;
+    top: -5px;
+    right: 0px;
+    background: #f59e0b;
+    color: white;
+    font-size: 8px;
+    font-weight: bold;
+    padding: 1px 4px;
+    border-radius: 8px;
+}
+
+.campo-titulo {
+    color: white;
+    font-size: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.campo-sistema-badge {
+    background: #3b82f6;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+}
     </style>
 </head>
 <body>
@@ -3427,7 +3594,24 @@
                         <option value="1-4-4-1-1">1-4-4-1-1</option>
                     </select>
                 </div>
-
+<!-- CAMPO VISUAL -->
+                <div class="campo-futbol-container" id="campo-container" style="display:none;">
+                    <div class="campo-titulo">
+                        <span>⚽ Alineación</span>
+                        <span class="campo-sistema-badge" id="campo-sistema-label">--</span>
+                    </div>
+                    <div class="campo-futbol" id="campo-futbol">
+                        <div class="campo-area-grande-arriba"></div>
+                        <div class="campo-area-pequena-arriba"></div>
+                        <div class="campo-area-grande-abajo"></div>
+                        <div class="campo-area-pequena-abajo"></div>
+                        <!-- Los jugadores se añaden dinámicamente -->
+                    </div>
+                    <div id="suplentes-campo" style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px; display: none;">
+                        <p style="color: #9ca3af; font-size: 12px; margin-bottom: 8px;">📋 Suplentes:</p>
+                        <div id="suplentes-lista" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                    </div>
+                </div>
                 <div class="formacion-cambios">
                     <p class="cambios-titulo">Cambios de sistema durante el partido:</p>
                     <div class="cambio-row">
@@ -3821,10 +4005,16 @@
                 <!-- DATOS DEL PARTIDO -->
                 <div class="seccion-modal">
                     <h4 class="seccion-titulo">Datos del Partido</h4>
-                    <div class="form-row">
+                  <div class="form-row">
                         <div class="form-group">
                             <label>Rival *</label>
-                            <input type="text" id="partido-rival" placeholder="Nombre del equipo rival">
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <div id="partido-rival-escudo" style="width: 40px; height: 40px; border-radius: 8px; background: #f3f4f6; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px dashed #d1d5db; overflow: hidden;" onclick="document.getElementById('partido-rival-escudo-input').click()">
+                                    <span style="font-size: 20px;">🛡️</span>
+                                </div>
+                                <input type="file" id="partido-rival-escudo-input" accept="image/*" style="display: none;" onchange="previsualizarEscudoRival(event)">
+                                <input type="text" id="partido-rival" placeholder="Nombre del equipo rival" style="flex: 1;">
+                            </div>
                         </div>
                         <div class="form-group">
                             <label>Competicion</label>
@@ -4496,7 +4686,363 @@ function mostrarRival(rival) {
         logoPlaceholder.style.display = 'flex';
     }
 }
+// ========== CAMPO DE FÚTBOL VISUAL ==========
+const SISTEMAS_POSICIONES = {
+    '1-4-3-3': [
+        { pos: 'POR', x: 50, y: 92 },
+        { pos: 'LD', x: 85, y: 75 },
+        { pos: 'DFC', x: 65, y: 78 },
+        { pos: 'DFC', x: 35, y: 78 },
+        { pos: 'LI', x: 15, y: 75 },
+        { pos: 'MC', x: 50, y: 55 },
+        { pos: 'MC', x: 75, y: 48 },
+        { pos: 'MC', x: 25, y: 48 },
+        { pos: 'ED', x: 82, y: 22 },
+        { pos: 'DC', x: 50, y: 18 },
+        { pos: 'EI', x: 18, y: 22 }
+    ],
+    '1-4-4-2': [
+        { pos: 'POR', x: 50, y: 92 },
+        { pos: 'LD', x: 85, y: 75 },
+        { pos: 'DFC', x: 65, y: 78 },
+        { pos: 'DFC', x: 35, y: 78 },
+        { pos: 'LI', x: 15, y: 75 },
+        { pos: 'MD', x: 82, y: 50 },
+        { pos: 'MC', x: 62, y: 55 },
+        { pos: 'MC', x: 38, y: 55 },
+        { pos: 'MI', x: 18, y: 50 },
+        { pos: 'DC', x: 62, y: 22 },
+        { pos: 'DC', x: 38, y: 22 }
+    ],
+    '1-4-2-3-1': [
+        { pos: 'POR', x: 50, y: 92 },
+        { pos: 'LD', x: 85, y: 75 },
+        { pos: 'DFC', x: 65, y: 78 },
+        { pos: 'DFC', x: 35, y: 78 },
+        { pos: 'LI', x: 15, y: 75 },
+        { pos: 'MCD', x: 62, y: 58 },
+        { pos: 'MCD', x: 38, y: 58 },
+        { pos: 'ED', x: 80, y: 35 },
+        { pos: 'MP', x: 50, y: 38 },
+        { pos: 'EI', x: 20, y: 35 },
+        { pos: 'DC', x: 50, y: 18 }
+    ],
+    '1-4-1-4-1': [
+        { pos: 'POR', x: 50, y: 92 },
+        { pos: 'LD', x: 85, y: 75 },
+        { pos: 'DFC', x: 65, y: 78 },
+        { pos: 'DFC', x: 35, y: 78 },
+        { pos: 'LI', x: 15, y: 75 },
+        { pos: 'MCD', x: 50, y: 58 },
+        { pos: 'MD', x: 82, y: 42 },
+        { pos: 'MC', x: 62, y: 45 },
+        { pos: 'MC', x: 38, y: 45 },
+        { pos: 'MI', x: 18, y: 42 },
+        { pos: 'DC', x: 50, y: 18 }
+    ],
+    '1-3-5-2': [
+        { pos: 'POR', x: 50, y: 92 },
+        { pos: 'DFC', x: 75, y: 78 },
+        { pos: 'DFC', x: 50, y: 80 },
+        { pos: 'DFC', x: 25, y: 78 },
+        { pos: 'CAD', x: 88, y: 55 },
+        { pos: 'MC', x: 65, y: 52 },
+        { pos: 'MC', x: 50, y: 55 },
+        { pos: 'MC', x: 35, y: 52 },
+        { pos: 'CAI', x: 12, y: 55 },
+        { pos: 'DC', x: 62, y: 22 },
+        { pos: 'DC', x: 38, y: 22 }
+    ],
+    '1-3-4-3': [
+        { pos: 'POR', x: 50, y: 92 },
+        { pos: 'DFC', x: 75, y: 78 },
+        { pos: 'DFC', x: 50, y: 80 },
+        { pos: 'DFC', x: 25, y: 78 },
+        { pos: 'MD', x: 85, y: 52 },
+        { pos: 'MC', x: 62, y: 55 },
+        { pos: 'MC', x: 38, y: 55 },
+        { pos: 'MI', x: 15, y: 52 },
+        { pos: 'ED', x: 78, y: 22 },
+        { pos: 'DC', x: 50, y: 18 },
+        { pos: 'EI', x: 22, y: 22 }
+    ],
+    '1-5-3-2': [
+        { pos: 'POR', x: 50, y: 92 },
+        { pos: 'CAD', x: 90, y: 70 },
+        { pos: 'DFC', x: 70, y: 78 },
+        { pos: 'DFC', x: 50, y: 80 },
+        { pos: 'DFC', x: 30, y: 78 },
+        { pos: 'CAI', x: 10, y: 70 },
+        { pos: 'MC', x: 70, y: 50 },
+        { pos: 'MC', x: 50, y: 52 },
+        { pos: 'MC', x: 30, y: 50 },
+        { pos: 'DC', x: 62, y: 22 },
+        { pos: 'DC', x: 38, y: 22 }
+    ],
+    '1-5-4-1': [
+        { pos: 'POR', x: 50, y: 92 },
+        { pos: 'CAD', x: 90, y: 70 },
+        { pos: 'DFC', x: 70, y: 78 },
+        { pos: 'DFC', x: 50, y: 80 },
+        { pos: 'DFC', x: 30, y: 78 },
+        { pos: 'CAI', x: 10, y: 70 },
+        { pos: 'MD', x: 80, y: 45 },
+        { pos: 'MC', x: 60, y: 50 },
+        { pos: 'MC', x: 40, y: 50 },
+        { pos: 'MI', x: 20, y: 45 },
+        { pos: 'DC', x: 50, y: 18 }
+    ],
+    '1-4-5-1': [
+        { pos: 'POR', x: 50, y: 92 },
+        { pos: 'LD', x: 85, y: 75 },
+        { pos: 'DFC', x: 65, y: 78 },
+        { pos: 'DFC', x: 35, y: 78 },
+        { pos: 'LI', x: 15, y: 75 },
+        { pos: 'MD', x: 85, y: 48 },
+        { pos: 'MC', x: 65, y: 52 },
+        { pos: 'MC', x: 50, y: 50 },
+        { pos: 'MC', x: 35, y: 52 },
+        { pos: 'MI', x: 15, y: 48 },
+        { pos: 'DC', x: 50, y: 18 }
+    ],
+    '1-4-4-1-1': [
+        { pos: 'POR', x: 50, y: 92 },
+        { pos: 'LD', x: 85, y: 75 },
+        { pos: 'DFC', x: 65, y: 78 },
+        { pos: 'DFC', x: 35, y: 78 },
+        { pos: 'LI', x: 15, y: 75 },
+        { pos: 'MD', x: 82, y: 55 },
+        { pos: 'MC', x: 62, y: 58 },
+        { pos: 'MC', x: 38, y: 58 },
+        { pos: 'MI', x: 18, y: 55 },
+        { pos: 'MP', x: 50, y: 38 },
+        { pos: 'DC', x: 50, y: 18 }
+    ]
+};
 
+let alineacionCampo = {}; // { posicionIndex: jugadorId }
+
+function mostrarCampoFutbol(sistema) {
+    const container = document.getElementById('campo-container');
+    const campo = document.getElementById('campo-futbol');
+    const label = document.getElementById('campo-sistema-label');
+    
+    if (!sistema || !SISTEMAS_POSICIONES[sistema]) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    container.style.display = 'block';
+    label.textContent = sistema;
+    
+    // Limpiar jugadores anteriores
+    campo.querySelectorAll('.jugador-posicion').forEach(el => el.remove());
+    
+    const posiciones = SISTEMAS_POSICIONES[sistema];
+    
+    posiciones.forEach((pos, index) => {
+        const jugadorAsignado = alineacionCampo[index];
+        const jugador = jugadorAsignado ? obtenerJugadorPorId(jugadorAsignado) : null;
+        
+        const div = document.createElement('div');
+        div.className = 'jugador-posicion';
+        div.style.left = pos.x + '%';
+        div.style.top = pos.y + '%';
+        div.dataset.index = index;
+        div.onclick = () => abrirSelectorJugador(index, pos.pos);
+        
+        if (jugador) {
+            div.innerHTML = `
+                <div class="jugador-posicion-circulo">
+                    ${jugador.photo_url ? `<img src="${jugador.photo_url}">` : jugador.name.charAt(0)}
+                </div>
+                ${jugador.dorsal ? `<span class="jugador-posicion-dorsal">${jugador.dorsal}</span>` : ''}
+                <div class="jugador-posicion-nombre">${jugador.name.split(' ').pop()}</div>
+            `;
+        } else {
+            div.innerHTML = `
+                <div class="jugador-posicion-circulo vacio">+</div>
+                <div class="jugador-posicion-nombre">${pos.pos}</div>
+            `;
+        }
+        
+        campo.appendChild(div);
+    });
+    
+    mostrarSuplentesCampo();
+}
+
+function obtenerJugadorPorId(id) {
+    console.log('Buscando jugador ID:', id);
+    console.log('titularesAnalisis:', window.titularesAnalisis);
+    
+    if (window.titularesAnalisis) {
+        const jugador = window.titularesAnalisis.find(j => j.id == id || j.player_id == id);
+        console.log('Jugador encontrado:', jugador);
+        if (jugador) {
+            return {
+                id: jugador.id || jugador.player_id,
+                name: jugador.name || jugador.players?.name || 'Jugador',
+                photo_url: jugador.photo_url || jugador.players?.photo_url,
+                dorsal: jugador.shirt_number || jugador.dorsal
+            };
+        }
+    }
+    return null;
+}
+function abrirSelectorJugador(posIndex, posNombre) {
+    // Obtener jugadores disponibles (titulares no asignados)
+    const asignados = Object.values(alineacionCampo);
+    const disponibles = (window.titularesAnalisis || []).filter(j => {
+        const jId = j.id || j.player_id;
+        return !asignados.includes(jId) || alineacionCampo[posIndex] == jId;
+    });
+    
+    if (disponibles.length === 0) {
+        alert('No hay jugadores disponibles');
+        return;
+    }
+    
+    // Crear modal simple de selección
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.style.display = 'flex';
+    modal.style.zIndex = '10000';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 350px; max-height: 80vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h3>Seleccionar ${posNombre}</h3>
+                <button class="btn-cerrar" onclick="this.closest('.modal-overlay').remove()">×</button>
+            </div>
+            <div style="padding: 15px;">
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    ${alineacionCampo[posIndex] ? `
+                        <button onclick="quitarJugadorPosicion(${posIndex}); this.closest('.modal-overlay').remove();" 
+                            style="padding: 10px; background: #fee2e2; color: #dc2626; border: none; border-radius: 8px; cursor: pointer;">
+                            ❌ Quitar jugador
+                        </button>
+                    ` : ''}
+                    ${disponibles.map(j => {
+                        const jId = j.id || j.player_id;
+                        const nombre = j.name || j.players?.name;
+                        const foto = j.photo_url || j.players?.photo_url;
+                        const dorsal = j.shirt_number || j.dorsal || '';
+                        return `
+                            <button onclick="asignarJugadorPosicion(${posIndex}, '${jId}'); this.closest('.modal-overlay').remove();"
+                                style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #f3f4f6; border: none; border-radius: 8px; cursor: pointer; text-align: left;">
+                                <div style="width: 35px; height: 35px; border-radius: 50%; background: #e5e7eb; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                                    ${foto ? `<img src="${foto}" style="width:100%;height:100%;object-fit:cover;">` : nombre?.charAt(0)}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600;">${dorsal ? '#' + dorsal + ' ' : ''}${nombre}</div>
+                                </div>
+                            </button>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+}
+
+function asignarJugadorPosicion(posIndex, jugadorId) {
+    // Quitar de otra posición si ya estaba
+    Object.keys(alineacionCampo).forEach(key => {
+        if (alineacionCampo[key] == jugadorId) {
+            delete alineacionCampo[key];
+        }
+    });
+    
+    alineacionCampo[posIndex] = jugadorId;
+    const sistema = document.getElementById('team-formation-initial').value;
+    mostrarCampoFutbol(sistema);
+}
+
+function quitarJugadorPosicion(posIndex) {
+    delete alineacionCampo[posIndex];
+    const sistema = document.getElementById('team-formation-initial').value;
+    mostrarCampoFutbol(sistema);
+}
+
+function mostrarSuplentesCampo() {
+    const container = document.getElementById('suplentes-campo');
+    const lista = document.getElementById('suplentes-lista');
+    
+    if (!window.suplentesAnalisis || window.suplentesAnalisis.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    container.style.display = 'block';
+    lista.innerHTML = window.suplentesAnalisis.map(j => {
+        const nombre = j.name || j.players?.name;
+        const foto = j.photo_url || j.players?.photo_url;
+        const dorsal = j.shirt_number || j.dorsal || '';
+        return `
+            <div style="display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 20px;">
+                <div style="width: 24px; height: 24px; border-radius: 50%; background: #4b5563; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white;">
+                    ${foto ? `<img src="${foto}" style="width:100%;height:100%;object-fit:cover;">` : nombre?.charAt(0)}
+                </div>
+                <span style="color: white; font-size: 11px;">${dorsal ? '#' + dorsal + ' ' : ''}${nombre?.split(' ').pop()}</span>
+            </div>
+        `;
+    }).join('');
+}
+async function cargarFotosJugadores(jugadores) {
+    if (!jugadores || jugadores.length === 0) return [];
+    
+    // Obtener los player_id de todos los jugadores
+    const playerIds = jugadores.map(j => j.player_id).filter(id => id);
+    
+    if (playerIds.length === 0) return jugadores;
+    
+    // Cargar fotos desde la tabla players
+    const { data: players } = await supabase
+        .from('players')
+        .select('id, photo_url')
+        .in('id', playerIds);
+    
+    // Añadir foto a cada jugador
+    return jugadores.map(j => {
+        const playerData = players?.find(p => p.id === j.player_id);
+        return {
+            ...j,
+            photo_url: playerData?.photo_url || null
+        };
+    });
+}
+function cargarAlineacionEnCampo(titulares, suplentes) {
+    window.titularesAnalisis = titulares || [];
+    window.suplentesAnalisis = suplentes || [];
+    
+    // NO resetear si ya hay posiciones cargadas desde el análisis guardado
+    if (Object.keys(alineacionCampo).length === 0) {
+        alineacionCampo = {};
+    }
+    
+    const sistema = document.getElementById('team-formation-initial').value;
+    if (sistema) {
+        mostrarCampoFutbol(sistema);
+    }
+}
+    
+    const sistema = document.getElementById('team-formation-initial').value;
+    if (sistema) {
+        mostrarCampoFutbol(sistema);
+    }
+
+
+// Listener para el selector de sistema
+document.addEventListener('DOMContentLoaded', function() {
+    const selectorSistema = document.getElementById('team-formation-initial');
+    if (selectorSistema) {
+        selectorSistema.addEventListener('change', function() {
+            mostrarCampoFutbol(this.value);
+        });
+    }
+});
 async function subirLogoRival() {
     const input = document.getElementById('rival-logo-input');
     const file = input.files[0];
@@ -4535,6 +5081,10 @@ async function cargarAnalisisExistente(matchId) {
         
         // Mi equipo - Formaciones
         document.getElementById('team-formation-initial').value = analisis.team_formation_initial || '';
+        // Cargar posiciones del campo si existen
+        if (analisis.team_lineup_positions) {
+            alineacionCampo = analisis.team_lineup_positions;
+        }
         document.getElementById('team-change1-min').value = analisis.team_formation_change1_minute || '';
         document.getElementById('team-change1-system').value = analisis.team_formation_change1_system || '';
         document.getElementById('team-change2-min').value = analisis.team_formation_change2_minute || '';
@@ -4567,11 +5117,30 @@ async function cargarAnalisisExistente(matchId) {
         
         // Conclusiones
         document.getElementById('general-conclusions').value = analisis.general_conclusions || '';
-    } else {
+} else {
         analisisActual = null;
     }
+    
+    // Cargar titulares y suplentes en el campo visual
+    const { data: partido } = await supabase
+        .from('matches')
+        .select('titulares, suplentes')
+        .eq('id', matchId)
+        .single();
+    
+    if (partido) {
+        // Obtener fotos de los jugadores
+        const titularesConFoto = await cargarFotosJugadores(partido.titulares || []);
+        const suplentesConFoto = await cargarFotosJugadores(partido.suplentes || []);
+        cargarAlineacionEnCampo(titularesConFoto, suplentesConFoto);
+    }
+    
+    // Mostrar campo si hay sistema seleccionado
+    const sistema = document.getElementById('team-formation-initial').value;
+    if (sistema) {
+        mostrarCampoFutbol(sistema);
+    }
 }
-
 function limpiarFormularioAnalisis() {
     document.getElementById('team-formation-initial').value = '';
     document.getElementById('team-change1-min').value = '';
@@ -4641,9 +5210,14 @@ async function guardarAnalisis() {
         
         // General
         general_conclusions: document.getElementById('general-conclusions').value || null,
+        // Alineación visual
+        team_lineup_positions: Object.keys(alineacionCampo).length > 0 ? alineacionCampo : null,
         updated_at: new Date().toISOString()
     };
     
+    
+    console.log('Datos a guardar:', datos);
+    console.log('alineacionCampo:', alineacionCampo);
     let error;
     
     if (analisisActual) {
@@ -4895,12 +5469,109 @@ async function generarPDFAnalisis() {
     ];
     
     addFormacion('Sistema de juego:', teamFormation, teamCambios);
-    addCampo('Puntos fuertes:', document.getElementById('team-strengths').value);
+     // ===== CAMPO VISUAL DE ALINEACIÓN =====
+    if (teamFormation && Object.keys(alineacionCampo).length > 0) {
+        // Verificar espacio
+        if (y > 170) {
+            doc.addPage();
+            y = 20;
+        }
+        
+        // Dibujar campo
+        const campoX = 55;
+        const campoY = y + 5;
+        const campoAncho = 100;
+        const campoAlto = 75;
+        
+        // Etiqueta del sistema arriba
+        doc.setFontSize(9);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont(undefined, 'bold');
+        doc.text('Alineacion ' + teamFormation, campoX + campoAncho/2, campoY - 3, { align: 'center' });
+        
+        // Fondo verde del campo
+        doc.setFillColor(45, 90, 39);
+        doc.roundedRect(campoX, campoY, campoAncho, campoAlto, 2, 2, 'F');
+        
+        // Líneas del campo
+        doc.setDrawColor(255, 255, 255);
+        doc.setLineWidth(0.3);
+        
+        // Línea central
+        doc.line(campoX, campoY + campoAlto/2, campoX + campoAncho, campoY + campoAlto/2);
+        
+        // Círculo central
+        doc.circle(campoX + campoAncho/2, campoY + campoAlto/2, 8, 'S');
+        
+        // Área grande arriba
+        doc.rect(campoX + campoAncho*0.2, campoY, campoAncho*0.6, campoAlto*0.16, 'S');
+        
+        // Área grande abajo
+        doc.rect(campoX + campoAncho*0.2, campoY + campoAlto*0.84, campoAncho*0.6, campoAlto*0.16, 'S');
+        
+        // Área pequeña arriba
+        doc.rect(campoX + campoAncho*0.35, campoY, campoAncho*0.3, campoAlto*0.07, 'S');
+        
+        // Área pequeña abajo
+        doc.rect(campoX + campoAncho*0.35, campoY + campoAlto*0.93, campoAncho*0.3, campoAlto*0.07, 'S');
+        
+        // Dibujar jugadores en sus posiciones
+        const posiciones = SISTEMAS_POSICIONES[teamFormation];
+        if (posiciones) {
+            for (let i = 0; i < posiciones.length; i++) {
+                const jugadorId = alineacionCampo[i];
+                if (!jugadorId) continue;
+                
+                const jugador = obtenerJugadorPorId(jugadorId);
+                if (!jugador) continue;
+                
+                const pos = posiciones[i];
+                // Ajustar posición Y del portero (92% -> 88%)
+                const posY = pos.y > 90 ? 86 : pos.y;
+                const jx = campoX + (pos.x / 100) * campoAncho;
+                const jy = campoY + (posY / 100) * campoAlto;
+                
+                // Foto del jugador o círculo
+                const radioJugador = 5;
+                if (jugador.photo_url) {
+                    try {
+                        doc.addImage(jugador.photo_url, 'JPEG', jx - radioJugador, jy - radioJugador, radioJugador * 2, radioJugador * 2);
+                    } catch (e) {
+                        // Si falla la foto, dibujar círculo
+                        doc.setFillColor(59, 130, 246);
+                        doc.circle(jx, jy, radioJugador, 'F');
+                    }
+                } else {
+                    doc.setFillColor(59, 130, 246);
+                    doc.circle(jx, jy, radioJugador, 'F');
+                }
+                
+                // Dorsal (badge naranja)
+                if (jugador.dorsal) {
+                    doc.setFillColor(249, 115, 22);
+                    doc.circle(jx + 4, jy - 4, 2.5, 'F');
+                    doc.setFontSize(4);
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(String(jugador.dorsal), jx + 4, jy - 3, { align: 'center' });
+                }
+                
+                // Nombre debajo
+                doc.setFontSize(5);
+                doc.setTextColor(255, 255, 255);
+                doc.setFont(undefined, 'bold');
+                const nombreCorto = jugador.name.split(' ').pop().substring(0, 10);
+                doc.text(nombreCorto, jx, jy + radioJugador + 3, { align: 'center' });
+            }
+        }
+        
+        y += campoAlto + 15;
+    }
+     addCampo('Puntos fuertes:', document.getElementById('team-strengths').value);
     addCampo('Aspectos a mejorar:', document.getElementById('team-improvements').value);
     addCampo('Notas tacticas:', document.getElementById('team-tactical-notes').value);
     
-    y += 5;
-    
+ 
     // ===== RIVAL =====
     addSeccion('RIVAL: ' + partido.opponent.toUpperCase(), colorRojo);
     
@@ -6412,7 +7083,7 @@ async function generarPDFConvocatoriaDesdeVer(partidoId) {
 async function cargarPlantillaParaPDF() {
     const { data } = await supabase
         .from('season_players')
-        .select('id, player_id, shirt_number, players(id, name, position)')
+        .select('id, player_id, shirt_number, players(id, name, position, photo_url)')
         .eq('season_id', seasonId)
         .order('shirt_number');
     return data || [];
@@ -6434,7 +7105,7 @@ async function cargarPlantillaParaPDF() {
     try {
         const { data, error } = await supabase
             .from('season_players')
-            .select('id, player_id, shirt_number, players(id, name, position)')
+            .select('id, player_id, shirt_number, players(id, name, position, photo_url)')
             .eq('season_id', seasonId)
             .order('shirt_number');
         
@@ -7194,560 +7865,486 @@ async function exportarFichaJugadorPDF() {
 }
         // ========== PDF EXPORTS ==========
      // ========== PDF CONVOCATORIA ==========
+// ============================================================
+// PDF CONVOCATORIA - VERSIÓN COMPACTA (caben 20 jugadores)
+// ============================================================
 async function generarPDFConvocatoria() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
-    // Obtener datos del formulario
     const rival = document.getElementById('partido-rival').value || 'Rival';
     const fecha = document.getElementById('partido-fecha').value;
     const hora = document.getElementById('partido-hora').value || '';
     const estadio = document.getElementById('partido-estadio').value || '';
     const localidad = document.getElementById('partido-localidad').value;
     const competicion = document.getElementById('partido-competicion').value || '';
-    const lugarEncuentro = document.getElementById('partido-lugar-encuentro').value || '';
-    const horaSalida = document.getElementById('partido-hora-salida').value || '';
-    const fechaSalida = document.getElementById('partido-fecha-salida').value || '';
-    const notas = document.getElementById('partido-notas-convocatoria').value || '';
+    const formatoJuego = document.getElementById('partido-formato-juego')?.value || '11';
+    const lugarEncuentro = document.getElementById('partido-lugar-encuentro')?.value || '';
+    const horaSalida = document.getElementById('partido-hora-salida')?.value || '';
+    const fechaSalida = document.getElementById('partido-fecha-salida')?.value || '';
+    const notas = document.getElementById('partido-notas-convocatoria')?.value || '';
     
-    // Obtener datos del club
-    const { data: club } = await supabase.from('clubs').select('name, logo_url').eq('id', clubId).single();
+    const { data: club } = await supabase
+        .from('clubs')
+        .select('name, logo_url')
+        .eq('id', clubId)
+        .single();
     
-    // Formatear fecha
-    const fechaFormateada = fecha ? new Date(fecha).toLocaleDateString('es-ES', { 
-        weekday: 'long', 
-        day: 'numeric', 
-        month: 'long', 
-        year: 'numeric' 
-    }) : '';
-    
-    // ===== HEADER =====
-    doc.setFillColor(5, 150, 105); // Verde
-    doc.rect(0, 0, 210, 40, 'F');
-    
-    // Escudo del club
-    let tituloX = 15;
-    if (club && club.logo_url) {
-        try {
-            doc.addImage(club.logo_url, 'PNG', 12, 5, 30, 30);
-            tituloX = 50;
-        } catch (e) {
-            console.log('No se pudo cargar el escudo');
+    // Obtener jugadores convocados
+    const jugadoresConvocados = [];
+    for (const spId of convocadosPartido) {
+        const jugador = plantillaPartido.find(j => j.id === spId);
+        if (jugador) {
+            jugadoresConvocados.push({
+                id: spId,
+                nombre: jugador.players?.name || jugador.name || 'Sin nombre',
+                dorsal: jugador.shirt_number || '',
+                foto: jugador.players?.photo_url || jugador.photo_url || null
+            });
         }
     }
+    jugadoresConvocados.sort((a, b) => (a.dorsal || 99) - (b.dorsal || 99));
     
-    // Título
+    const fechaFormateada = fecha ? new Date(fecha).toLocaleDateString('es-ES', { 
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
+    }) : '';
+    const fechaCorta = fecha ? new Date(fecha).toLocaleDateString('es-ES', { 
+        day: '2-digit', month: 'short', year: 'numeric' 
+    }) : '';
+    
+    const colorPrimario = [5, 150, 105];
+    const colorSecundario = [16, 185, 129];
+    
+    // ===== HEADER (compacto) =====
+    doc.setFillColor(...colorPrimario);
+    doc.rect(0, 0, 210, 38, 'F');
+    doc.setFillColor(...colorSecundario);
+    doc.rect(0, 35, 210, 4, 'F');
+    
+    let contenidoX = 12;
+    if (club && club.logo_url) {
+        try {
+            doc.addImage(club.logo_url, 'PNG', 10, 5, 26, 26);
+            contenidoX = 42;
+        } catch (e) { console.log('No se pudo cargar el escudo'); }
+    }
+    
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
+    doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
-    doc.text('CONVOCATORIA', tituloX, 18);
-    
-    // Nombre del club
-    if (club && club.name) {
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'normal');
-        doc.text(club.name, tituloX, 28);
-    }
-    
-    // Competición
-    if (competicion) {
-        doc.setFontSize(10);
-        doc.text(competicion, tituloX, 35);
-    }
-    
-    let y = 55;
-    
-    // ===== DATOS DEL PARTIDO =====
-    doc.setFillColor(240, 240, 240);
-    doc.rect(15, y - 5, 180, 35, 'F');
-    
-    doc.setTextColor(30, 30, 30);
+    doc.text('CONVOCATORIA', contenidoX, 15);
     doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.text('PARTIDO', 20, y + 2);
-    
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
+    doc.text(club?.name || 'Mi Club', contenidoX, 23);
+    if (competicion) { doc.setFontSize(9); doc.text(competicion, contenidoX, 30); }
+    
+    // Badge formato
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(175, 10, 24, 10, 2, 2, 'F');
+    doc.setTextColor(...colorPrimario);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`F${formatoJuego}`, 187, 17, { align: 'center' });
+    
+    let y = 46;
+    
+   // ===== DATOS DEL PARTIDO (con escudos) =====
+    doc.setFillColor(248, 248, 248);
+    doc.roundedRect(10, y, 190, 24, 2, 2, 'F');
     
     const esLocal = localidad === 'home';
-    const textoPartido = esLocal 
-        ? `${club?.name || 'Mi Equipo'}  vs  ${rival}`
-        : `${rival}  vs  ${club?.name || 'Mi Equipo'}`;
+    const equipoLocal = esLocal ? (club?.name || 'Mi Equipo') : rival;
+    const equipoVisitante = esLocal ? rival : (club?.name || 'Mi Equipo');
+   const escudoLocal = esLocal ? club?.logo_url : (escudoRivalUrl || opponentActual?.logo_url || null);
+    const escudoVisitante = esLocal ? (escudoRivalUrl || opponentActual?.logo_url || null) : club?.logo_url;
     
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text(textoPartido, 105, y + 12, { align: 'center' });
-    
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(80, 80, 80);
-    
-    let infoPartido = [];
-    if (fechaFormateada) infoPartido.push(fechaFormateada);
-    if (hora) infoPartido.push(hora + 'h');
-    doc.text(infoPartido.join('  •  '), 105, y + 22, { align: 'center' });
-    
-    if (estadio) {
-        doc.text(estadio, 105, y + 28, { align: 'center' });
+    // Escudo local
+    if (escudoLocal) {
+        try { doc.addImage(escudoLocal, 'PNG', 18, y + 3, 16, 16); } catch(e) {}
     }
     
-    y += 45;
-    
-    // ===== DATOS DE CITACIÓN =====
-    if (lugarEncuentro || horaSalida) {
-        doc.setFillColor(255, 243, 205); // Amarillo claro
-        doc.rect(15, y - 5, 180, 22, 'F');
-        
-        doc.setTextColor(180, 83, 9);
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'bold');
-        doc.text('CITACION', 20, y + 2);
-        
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-        doc.setTextColor(80, 80, 80);
-        
-       let infoCitacion = [];
-if (lugarEncuentro) infoCitacion.push(`Lugar: ${lugarEncuentro}`);
-if (fechaSalida) {
-    const fechaSalidaFormateada = new Date(fechaSalida).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
-    infoCitacion.push(`Fecha: ${fechaSalidaFormateada}`);
-}
-if (horaSalida) infoCitacion.push(`Hora: ${horaSalida}h`);
-        doc.text(infoCitacion.join('     |     '), 105, y + 12, { align: 'center' });
-        
-        y += 28;
+    // Escudo visitante
+    if (escudoVisitante) {
+        try { doc.addImage(escudoVisitante, 'PNG', 176, y + 3, 16, 16); } catch(e) {}
     }
     
-    // ===== JUGADORES CONVOCADOS =====
-    y += 5;
-    doc.setFillColor(5, 150, 105);
-    doc.rect(15, y - 5, 180, 10, 'F');
-    doc.setTextColor(255, 255, 255);
+    // VS
+    doc.setTextColor(...colorPrimario);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text(`JUGADORES CONVOCADOS (${convocadosPartido.length})`, 20, y + 2);
+    doc.text('VS', 105, y + 10, { align: 'center' });
+    
+    // Nombres equipos
+    doc.setTextColor(30, 30, 30);
+    doc.setFontSize(9);
+    doc.text(equipoLocal.toUpperCase(), 55, y + 9, { align: 'center' });
+    doc.text(equipoVisitante.toUpperCase(), 155, y + 9, { align: 'center' });
+    
+    // Etiquetas
+    doc.setFontSize(6);
+    doc.setTextColor(120, 120, 120);
+    doc.text('LOCAL', 55, y + 14, { align: 'center' });
+    doc.text('VISITANTE', 155, y + 14, { align: 'center' });
+    
+    // Fecha, hora, estadio
+    doc.setTextColor(80, 80, 80);
+    doc.setFontSize(8);
+    doc.text(`${fechaCorta}  ${hora ? '| ' + hora + 'h' : ''}  ${estadio ? '| ' + estadio : ''}`, 105, y + 21, { align: 'center' });
+    
+    y += 28;
+    
+    // ===== TÍTULO CONVOCADOS =====
+    doc.setFillColor(...colorPrimario);
+    doc.roundedRect(10, y, 190, 8, 2, 2, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`JUGADORES CONVOCADOS (${jugadoresConvocados.length})`, 105, y + 5.5, { align: 'center' });
     
     y += 12;
     
-    // Lista de convocados
-    const convocados = plantillaPartido
-        .filter(sp => convocadosPartido.includes(sp.id))
-        .sort((a, b) => (a.shirt_number || 99) - (b.shirt_number || 99));
+    // ===== GRID DE JUGADORES (COMPACTO) =====
+    const columnas = 5;
+    const anchoCard = 34;
+    const altoCard = 32;
+    const espacioH = (190 - (columnas * anchoCard)) / (columnas + 1);
+    const espacioV = 4;
     
-    if (convocados.length === 0) {
-        doc.setTextColor(150, 150, 150);
-        doc.setFontSize(10);
-        doc.text('No hay jugadores convocados', 105, y + 10, { align: 'center' });
-        y += 20;
-    } else {
-        // Mostrar en 2 columnas
-        const mitad = Math.ceil(convocados.length / 2);
-        const columna1 = convocados.slice(0, mitad);
-        const columna2 = convocados.slice(mitad);
+    for (let i = 0; i < jugadoresConvocados.length; i++) {
+        const fila = Math.floor(i / columnas);
+        const col = i % columnas;
         
-        doc.setTextColor(30, 30, 30);
-        doc.setFontSize(11);
+        const xCard = 10 + espacioH + (col * (anchoCard + espacioH));
+        const yCard = y + (fila * (altoCard + espacioV));
         
-        const col1X = 25;
-        const col2X = 115;
-        let maxY = y;
-        
-        columna1.forEach((sp, idx) => {
-            const jugador = sp.players;
-            if (!jugador) return;
-            
-            // Fondo alternado
-            if (idx % 2 === 0) {
-                doc.setFillColor(248, 250, 252);
-                doc.rect(15, y - 4, 85, 12, 'F');
-            }
-            
-            // Dorsal
-            doc.setFillColor(31, 41, 55);
-            doc.roundedRect(col1X, y - 3, 10, 10, 2, 2, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'bold');
-            doc.text(String(sp.shirt_number || '-'), col1X + 5, y + 4, { align: 'center' });
-            
-            // Nombre
-            doc.setTextColor(30, 30, 30);
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'normal');
-            doc.text(jugador.name || 'Sin nombre', col1X + 15, y + 4);
-            
-            y += 12;
-        });
-        
-        maxY = y;
-        y = maxY - (columna1.length * 12); // Volver arriba para columna 2
-        
-        columna2.forEach((sp, idx) => {
-            const jugador = sp.players;
-            if (!jugador) return;
-            
-            // Fondo alternado
-            if (idx % 2 === 0) {
-                doc.setFillColor(248, 250, 252);
-                doc.rect(105, y - 4, 85, 12, 'F');
-            }
-            
-            // Dorsal
-            doc.setFillColor(31, 41, 55);
-            doc.roundedRect(col2X, y - 3, 10, 10, 2, 2, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'bold');
-            doc.text(String(sp.shirt_number || '-'), col2X + 5, y + 4, { align: 'center' });
-            
-            // Nombre
-            doc.setTextColor(30, 30, 30);
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'normal');
-            doc.text(jugador.name || 'Sin nombre', col2X + 15, y + 4);
-            
-            y += 12;
-        });
-        
-        y = Math.max(maxY, y) + 5;
+        await dibujarJugadorCardCompacta(doc, jugadoresConvocados[i], xCard, yCard, anchoCard, altoCard, colorPrimario);
     }
     
-    // ===== NOTAS =====
-    if (notas) {
-        y += 5;
-        doc.setFillColor(254, 249, 195); // Amarillo muy claro
-        const notasLines = doc.splitTextToSize(notas, 170);
-        const alturaNotas = 15 + (notasLines.length * 5);
-        doc.rect(15, y - 5, 180, alturaNotas, 'F');
+    const filasUsadas = Math.ceil(jugadoresConvocados.length / columnas);
+    y += filasUsadas * (altoCard + espacioV) + 6;
+    
+    // ===== INFORMACIÓN LOGÍSTICA =====
+    if (lugarEncuentro || fechaSalida || horaSalida || notas) {
+        let altoLogistica = 12;
+        let lineasUsadas = 0;
+        if (lugarEncuentro) lineasUsadas++;
+        if (fechaSalida || horaSalida) lineasUsadas++; // Fecha y hora en misma línea
+        if (notas) {
+            const lineasNotas = doc.splitTextToSize(notas, 165).length;
+            lineasUsadas += lineasNotas;
+        }
+        altoLogistica += lineasUsadas * 6;
         
-        doc.setTextColor(133, 77, 14);
-        doc.setFontSize(10);
+        doc.setFillColor(255, 251, 235);
+        doc.setDrawColor(245, 158, 11);
+        doc.setLineWidth(0.4);
+        doc.roundedRect(10, y, 190, altoLogistica, 2, 2, 'FD');
+        
+        doc.setTextColor(180, 83, 9);
+        doc.setFontSize(8);
         doc.setFont('helvetica', 'bold');
-        doc.text('NOTAS:', 20, y + 3);
+        doc.text('INFORMACIÓN IMPORTANTE', 105, y + 5, { align: 'center' });
         
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(80, 80, 80);
-        doc.text(notasLines, 20, y + 12);
+        let yInfo = y + 10;
+        doc.setTextColor(50, 50, 50);
+        doc.setFontSize(7);
+        
+        if (lugarEncuentro) {
+            doc.setFont('helvetica', 'bold');
+            doc.text('Punto de encuentro:', 15, yInfo);
+            doc.setFont('helvetica', 'normal');
+            doc.text(lugarEncuentro, 48, yInfo);
+            yInfo += 6;
+        }
+        
+        // Fecha y hora de salida en la misma línea
+        if (fechaSalida || horaSalida) {
+            doc.setFont('helvetica', 'bold');
+            if (fechaSalida) {
+                const fechaSalidaFormateada = new Date(fechaSalida).toLocaleDateString('es-ES', { 
+                    weekday: 'short', day: 'numeric', month: 'short' 
+                });
+                doc.text('Salida:', 15, yInfo);
+                doc.setFont('helvetica', 'normal');
+                doc.text(fechaSalidaFormateada + (horaSalida ? ' a las ' + horaSalida + 'h' : ''), 32, yInfo);
+            } else if (horaSalida) {
+                doc.text('Hora de salida:', 15, yInfo);
+                doc.setFont('helvetica', 'normal');
+                doc.text(horaSalida + 'h', 43, yInfo);
+            }
+            yInfo += 6;
+        }
+        
+        if (notas) {
+            doc.setFont('helvetica', 'bold');
+            doc.text('Notas:', 15, yInfo);
+            doc.setFont('helvetica', 'normal');
+            const notasLineas = doc.splitTextToSize(notas, 160);
+            doc.text(notasLineas, 30, yInfo);
+        }
     }
     
     // ===== FOOTER =====
-    doc.setFontSize(8);
+    doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
-    doc.text('Generado con TopLiderCoach.com', 105, 287, { align: 'center' });
+    doc.text('Generado con TopLiderCoach HUB', 105, 290, { align: 'center' });
     
-    // Guardar
-    const nombreArchivo = `convocatoria_${rival.replace(/\s+/g, '_')}_${fecha}.pdf`;
-    doc.save(nombreArchivo);
+    doc.save(`convocatoria_${rival.replace(/\s+/g, '_')}_${fecha || 'partido'}.pdf`);
 }
+
+
+// ============================================================
+// PDF ALINEACIÓN - VERSIÓN COMPACTA
+// ============================================================
 async function generarPDFAlineacion() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
-    // Obtener datos del formulario
     const rival = document.getElementById('partido-rival').value || 'Rival';
     const fecha = document.getElementById('partido-fecha').value;
     const hora = document.getElementById('partido-hora').value || '';
     const estadio = document.getElementById('partido-estadio').value || '';
     const localidad = document.getElementById('partido-localidad').value;
     const competicion = document.getElementById('partido-competicion').value || '';
-    const jornada = document.getElementById('partido-jornada').value || '';
-    const formato = parseInt(document.getElementById('partido-formato').value) || 11;
+    const formatoJuego = document.getElementById('partido-formato-juego')?.value || '11';
     
-    // Obtener datos del club
-    const { data: club } = await supabase.from('clubs').select('name, logo_url').eq('id', clubId).single();
+    const { data: club } = await supabase
+        .from('clubs')
+        .select('name, logo_url')
+        .eq('id', clubId)
+        .single();
     
-    // Formatear fecha
-    const fechaFormateada = fecha ? new Date(fecha).toLocaleDateString('es-ES', { 
-        weekday: 'long', 
-        day: 'numeric', 
-        month: 'long', 
-        year: 'numeric' 
-    }) : '';
+    const titulares = [];
+    const suplentes = [];
     
-    // Obtener titulares y suplentes
-    const titulares = plantillaPartido
-        .filter(sp => titularesPartido.includes(String(sp.id)))
-        .sort((a, b) => (a.shirt_number || 99) - (b.shirt_number || 99));
-    
-    const suplentes = plantillaPartido
-        .filter(sp => convocadosPartido.includes(String(sp.id)) && !titularesPartido.includes(String(sp.id)))
-        .sort((a, b) => (a.shirt_number || 99) - (b.shirt_number || 99));
-    
-    const esLocal = localidad === 'home';
-    
-    // ===== HEADER =====
-    doc.setFillColor(59, 130, 246); // Azul
-    doc.rect(0, 0, 210, 45, 'F');
-    
-    // Escudo del club
-    let tituloX = 15;
-    if (club && club.logo_url) {
-        try {
-            doc.addImage(club.logo_url, 'PNG', 12, 7, 30, 30);
-            tituloX = 50;
-        } catch (e) {
-            console.log('No se pudo cargar el escudo');
+    for (const spId of convocadosPartido) {
+        const jugador = plantillaPartido.find(j => j.id === spId);
+        if (jugador) {
+            const jugadorData = {
+                id: spId,
+                nombre: jugador.players?.name || jugador.name || 'Sin nombre',
+                dorsal: jugador.shirt_number || '',
+                foto: jugador.players?.photo_url || jugador.photo_url || null
+            };
+            if (titularesPartido.includes(spId)) {
+                titulares.push(jugadorData);
+            } else {
+                suplentes.push(jugadorData);
+            }
         }
     }
     
-    // Título
+    titulares.sort((a, b) => (a.dorsal || 99) - (b.dorsal || 99));
+    suplentes.sort((a, b) => (a.dorsal || 99) - (b.dorsal || 99));
+    
+    const fechaCorta = fecha ? new Date(fecha).toLocaleDateString('es-ES', { 
+        day: '2-digit', month: 'short', year: 'numeric' 
+    }) : '';
+    
+    const colorPrimario = [37, 99, 235];
+    const colorSecundario = [59, 130, 246];
+    const colorSuplentes = [107, 114, 128];
+    
+    // ===== HEADER =====
+    doc.setFillColor(...colorPrimario);
+    doc.rect(0, 0, 210, 38, 'F');
+    doc.setFillColor(...colorSecundario);
+    doc.rect(0, 35, 210, 4, 'F');
+    
+    let contenidoX = 12;
+    if (club && club.logo_url) {
+        try {
+            doc.addImage(club.logo_url, 'PNG', 10, 5, 26, 26);
+            contenidoX = 42;
+        } catch (e) { console.log('No se pudo cargar el escudo'); }
+    }
+    
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(24);
-    doc.setFont('helvetica', 'bold');
-    doc.text('ALINEACION', tituloX, 20);
-    
-    // Subtítulo
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    const subtitulo = `${club?.name || 'Mi Equipo'} - ${competicion || 'Partido'}`;
-    doc.text(subtitulo, tituloX, 30);
-    
-    // Formato
-    doc.setFontSize(10);
-    doc.text(`Futbol ${formato}`, tituloX, 38);
-    
-    let y = 55;
-    
-    // ===== DATOS DEL PARTIDO =====
-    doc.setFillColor(240, 240, 240);
-    doc.rect(15, y - 5, 180, 35, 'F');
-    
-    // Equipos y VS
-    doc.setTextColor(30, 30, 30);
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
+    doc.text('ALINEACIÓN', contenidoX, 15);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.text(club?.name || 'Mi Club', contenidoX, 23);
+    if (competicion) { doc.setFontSize(9); doc.text(competicion, contenidoX, 30); }
     
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(175, 10, 24, 10, 2, 2, 'F');
+    doc.setTextColor(...colorPrimario);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`F${formatoJuego}`, 187, 17, { align: 'center' });
+    
+    let y = 46;
+    
+    // ===== DATOS PARTIDO =====
+  // ===== DATOS DEL PARTIDO (con escudos) =====
+    doc.setFillColor(248, 248, 248);
+    doc.roundedRect(10, y, 190, 24, 2, 2, 'F');
+    
+    const esLocal = localidad === 'home';
     const equipoLocal = esLocal ? (club?.name || 'Mi Equipo') : rival;
     const equipoVisitante = esLocal ? rival : (club?.name || 'Mi Equipo');
+ const escudoLocal = esLocal ? club?.logo_url : (escudoRivalUrl || opponentActual?.logo_url || null);
+    const escudoVisitante = esLocal ? (escudoRivalUrl || opponentActual?.logo_url || null) : club?.logo_url;
     
-    doc.text(equipoLocal, 50, y + 8, { align: 'center' });
-    doc.text('VS', 105, y + 8, { align: 'center' });
-    doc.text(equipoVisitante, 160, y + 8, { align: 'center' });
-    
-    // Etiquetas Local/Visitante
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 100, 100);
-    doc.text('LOCAL', 50, y + 16, { align: 'center' });
-    doc.text('VISITANTE', 160, y + 16, { align: 'center' });
-    
-    // Info partido
-    doc.setFontSize(10);
-    doc.setTextColor(80, 80, 80);
-    let infoPartido = [];
-    if (fechaFormateada) infoPartido.push(fechaFormateada);
-    if (hora) infoPartido.push(hora + 'h');
-    if (jornada) infoPartido.push(jornada);
-    doc.text(infoPartido.join('  •  '), 105, y + 25, { align: 'center' });
-    
-    if (estadio) {
-        doc.setFontSize(9);
-        doc.text(estadio, 105, y + 30, { align: 'center' });
+    // Escudo local
+    if (escudoLocal) {
+        try { doc.addImage(escudoLocal, 'PNG', 18, y + 3, 16, 16); } catch(e) {}
     }
     
-    y += 45;
+    // Escudo visitante
+    if (escudoVisitante) {
+        try { doc.addImage(escudoVisitante, 'PNG', 176, y + 3, 16, 16); } catch(e) {}
+    }
+    
+    // VS
+    doc.setTextColor(...colorPrimario);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('VS', 105, y + 10, { align: 'center' });
+    
+    // Nombres equipos
+    doc.setTextColor(30, 30, 30);
+    doc.setFontSize(9);
+    doc.text(equipoLocal.toUpperCase(), 55, y + 9, { align: 'center' });
+    doc.text(equipoVisitante.toUpperCase(), 155, y + 9, { align: 'center' });
+    
+    // Etiquetas
+    doc.setFontSize(6);
+    doc.setTextColor(120, 120, 120);
+    doc.text('LOCAL', 55, y + 14, { align: 'center' });
+    doc.text('VISITANTE', 155, y + 14, { align: 'center' });
+    
+    // Fecha, hora, estadio
+    doc.setTextColor(80, 80, 80);
+    doc.setFontSize(8);
+    doc.text(`${fechaCorta}  ${hora ? '| ' + hora + 'h' : ''}  ${estadio ? '| ' + estadio : ''}`, 105, y + 21, { align: 'center' });
+    
+    y += 28;
     
     // ===== TITULARES =====
-    doc.setFillColor(59, 130, 246);
-    doc.rect(15, y, 180, 10, 'F');
+    doc.setFillColor(...colorPrimario);
+    doc.roundedRect(10, y, 190, 8, 2, 2, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`TITULARES (${titulares.length})`, 20, y + 7);
-    
-    y += 15;
-    
-    if (titulares.length === 0) {
-        doc.setTextColor(150, 150, 150);
-        doc.setFontSize(10);
-        doc.text('No hay titulares seleccionados', 105, y + 5, { align: 'center' });
-        y += 15;
-    } else {
-        // Mostrar titulares en 2 columnas
-        const mitad = Math.ceil(titulares.length / 2);
-        const col1 = titulares.slice(0, mitad);
-        const col2 = titulares.slice(mitad);
-        
-        const col1X = 20;
-        const col2X = 115;
-        let maxY = y;
-        
-        // Columna 1
-        col1.forEach((sp, idx) => {
-            const jugador = sp.players;
-            if (!jugador) return;
-            
-            // Fondo alternado
-            if (idx % 2 === 0) {
-                doc.setFillColor(239, 246, 255);
-                doc.rect(15, y - 4, 85, 12, 'F');
-            }
-            
-            // Dorsal
-            doc.setFillColor(59, 130, 246);
-            doc.roundedRect(col1X, y - 3, 12, 10, 2, 2, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.text(String(sp.shirt_number || '-'), col1X + 6, y + 4, { align: 'center' });
-            
-            // Nombre
-            doc.setTextColor(30, 30, 30);
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'normal');
-            doc.text(jugador.name || 'Sin nombre', col1X + 17, y + 4);
-            
-            y += 12;
-        });
-        
-        maxY = y;
-        y = maxY - (col1.length * 12); // Volver arriba para columna 2
-        
-        // Columna 2
-        col2.forEach((sp, idx) => {
-            const jugador = sp.players;
-            if (!jugador) return;
-            
-            // Fondo alternado
-            if (idx % 2 === 0) {
-                doc.setFillColor(239, 246, 255);
-                doc.rect(110, y - 4, 85, 12, 'F');
-            }
-            
-            // Dorsal
-            doc.setFillColor(59, 130, 246);
-            doc.roundedRect(col2X, y - 3, 12, 10, 2, 2, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.text(String(sp.shirt_number || '-'), col2X + 6, y + 4, { align: 'center' });
-            
-            // Nombre
-            doc.setTextColor(30, 30, 30);
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'normal');
-            doc.text(jugador.name || 'Sin nombre', col2X + 17, y + 4);
-            
-            y += 12;
-        });
-        
-        y = Math.max(maxY, y) + 10;
-    }
-    
-    // ===== SUPLENTES =====
-    doc.setFillColor(107, 114, 128); // Gris
-    doc.rect(15, y, 180, 10, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`SUPLENTES (${suplentes.length})`, 20, y + 7);
-    
-    y += 15;
-    
-    if (suplentes.length === 0) {
-        doc.setTextColor(150, 150, 150);
-        doc.setFontSize(10);
-        doc.text('No hay suplentes', 105, y + 5, { align: 'center' });
-        y += 15;
-    } else {
-        // Mostrar suplentes en 2 columnas
-        const mitad = Math.ceil(suplentes.length / 2);
-        const col1 = suplentes.slice(0, mitad);
-        const col2 = suplentes.slice(mitad);
-        
-        const col1X = 20;
-        const col2X = 115;
-        let maxY = y;
-        
-        // Columna 1
-        col1.forEach((sp, idx) => {
-            const jugador = sp.players;
-            if (!jugador) return;
-            
-            // Fondo alternado
-            if (idx % 2 === 0) {
-                doc.setFillColor(243, 244, 246);
-                doc.rect(15, y - 4, 85, 12, 'F');
-            }
-            
-            // Dorsal
-            doc.setFillColor(107, 114, 128);
-            doc.roundedRect(col1X, y - 3, 12, 10, 2, 2, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.text(String(sp.shirt_number || '-'), col1X + 6, y + 4, { align: 'center' });
-            
-            // Nombre
-            doc.setTextColor(30, 30, 30);
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'normal');
-            doc.text(jugador.name || 'Sin nombre', col1X + 17, y + 4);
-            
-            y += 12;
-        });
-        
-        maxY = y;
-        y = maxY - (col1.length * 12);
-        
-        // Columna 2
-        col2.forEach((sp, idx) => {
-            const jugador = sp.players;
-            if (!jugador) return;
-            
-            // Fondo alternado
-            if (idx % 2 === 0) {
-                doc.setFillColor(243, 244, 246);
-                doc.rect(110, y - 4, 85, 12, 'F');
-            }
-            
-            // Dorsal
-            doc.setFillColor(107, 114, 128);
-            doc.roundedRect(col2X, y - 3, 12, 10, 2, 2, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.text(String(sp.shirt_number || '-'), col2X + 6, y + 4, { align: 'center' });
-            
-            // Nombre
-            doc.setTextColor(30, 30, 30);
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'normal');
-            doc.text(jugador.name || 'Sin nombre', col2X + 17, y + 4);
-            
-            y += 12;
-        });
-        
-        y = Math.max(maxY, y) + 10;
-    }
-    
-    // ===== ESPACIO PARA NOTAS =====
-    y += 5;
-    doc.setDrawColor(200, 200, 200);
-    doc.setFillColor(255, 255, 240);
-    doc.rect(15, y, 180, 30, 'FD');
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(150, 150, 150);
-    doc.text('NOTAS / TACTICA:', 18, y + 6);
+    doc.text(`TITULARES (${titulares.length})`, 105, y + 5.5, { align: 'center' });
+    y += 12;
     
-    // Líneas para escribir
-    doc.setDrawColor(220, 220, 220);
-    for (let lineY = y + 12; lineY < y + 28; lineY += 7) {
-        doc.line(18, lineY, 192, lineY);
+    const columnas = 5;
+    const anchoCard = 34;
+    const altoCard = 32;
+    const espacioH = (190 - (columnas * anchoCard)) / (columnas + 1);
+    const espacioV = 4;
+    
+    for (let i = 0; i < titulares.length; i++) {
+        const fila = Math.floor(i / columnas);
+        const col = i % columnas;
+        const xCard = 10 + espacioH + (col * (anchoCard + espacioH));
+        const yCard = y + (fila * (altoCard + espacioV));
+        await dibujarJugadorCardCompacta(doc, titulares[i], xCard, yCard, anchoCard, altoCard, colorPrimario);
+    }
+    
+    y += Math.ceil(titulares.length / columnas) * (altoCard + espacioV) + 6;
+    
+    // ===== SUPLENTES =====
+    if (suplentes.length > 0) {
+        doc.setFillColor(...colorSuplentes);
+        doc.roundedRect(10, y, 190, 8, 2, 2, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`SUPLENTES (${suplentes.length})`, 105, y + 5.5, { align: 'center' });
+        y += 12;
+        
+        for (let i = 0; i < suplentes.length; i++) {
+            const fila = Math.floor(i / columnas);
+            const col = i % columnas;
+            const xCard = 10 + espacioH + (col * (anchoCard + espacioH));
+            const yCard = y + (fila * (altoCard + espacioV));
+            await dibujarJugadorCardCompacta(doc, suplentes[i], xCard, yCard, anchoCard, altoCard, colorSuplentes);
+        }
     }
     
     // ===== FOOTER =====
-    doc.setFontSize(8);
+    doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
-    doc.text('Generado con TopLiderCoach.com', 105, 287, { align: 'center' });
+    doc.text('Generado con TopLiderCoach HUB', 105, 290, { align: 'center' });
     
-    // Guardar
-    const nombreArchivo = `alineacion_${rival.replace(/\s+/g, '_')}_${fecha}.pdf`;
-    doc.save(nombreArchivo);
+    doc.save(`alineacion_${rival.replace(/\s+/g, '_')}_${fecha || 'partido'}.pdf`);
 }
-        async function exportarPartidoPDF(partidoId) {
+
+
+// ============================================================
+// FUNCIÓN AUXILIAR: Card de jugador COMPACTA
+// ============================================================
+async function dibujarJugadorCardCompacta(doc, jugador, x, y, ancho, alto, colorAccento) {
+    console.log('Jugador:', jugador.nombre, 'Foto URL:', jugador.foto);
+    // Fondo card
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(x, y, ancho, alto, 2, 2, 'FD');
+    
+    // Área de foto
+    const fotoSize = 18;
+    const fotoX = x + (ancho - fotoSize) / 2;
+    const fotoY = y + 3;
+    
+    let fotoOK = false;
+    if (jugador.foto) {
+        try {
+            doc.addImage(jugador.foto, 'JPEG', fotoX, fotoY, fotoSize, fotoSize);
+            fotoOK = true;
+        } catch (e) {
+            // Si falla, dibujamos placeholder
+        }
+    }
+    
+    // Placeholder si no hay foto
+    if (!fotoOK) {
+        doc.setFillColor(230, 230, 230);
+        doc.circle(fotoX + fotoSize/2, fotoY + fotoSize/2, fotoSize/2, 'F');
+        doc.setFillColor(...colorAccento);
+        const cx = fotoX + fotoSize/2;
+        const cy = fotoY + fotoSize/2;
+        doc.circle(cx, cy - 2, 3, 'F');
+        doc.ellipse(cx, cy + 4, 5, 3, 'F');
+    }
+    
+    // Dorsal (badge pequeño arriba derecha)
+    if (jugador.dorsal) {
+        const dorsalX = x + ancho - 10;
+        const dorsalY = y + 1;
+        doc.setFillColor(...colorAccento);
+        doc.roundedRect(dorsalX, dorsalY, 9, 6, 1, 1, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(5);
+        doc.setFont('helvetica', 'bold');
+        doc.text(String(jugador.dorsal), dorsalX + 4.5, dorsalY + 4.2, { align: 'center' });
+    }
+    
+    // Nombre (abajo centrado)
+    doc.setTextColor(30, 30, 30);
+    doc.setFontSize(6);
+    doc.setFont('helvetica', 'bold');
+    
+    let nombre = jugador.nombre;
+    if (nombre.length > 14) {
+        const partes = nombre.split(' ');
+        if (partes.length > 1) {
+            nombre = partes[0].charAt(0) + '. ' + partes[partes.length - 1];
+        }
+        if (nombre.length > 14) {
+            nombre = nombre.substring(0, 12) + '..';
+        }
+    }
+    
+    doc.text(nombre, x + ancho/2, y + alto - 3, { align: 'center' });
+}
+
+                async function exportarPartidoPDF(partidoId) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
@@ -8154,7 +8751,64 @@ return `
             document.getElementById('modal-jugador').style.display = 'none';
             jugadorEditando = null;
         }
-        
+        // ========== ESCUDO RIVAL EN MODAL PARTIDO ==========
+let escudoRivalUrl = null;
+
+function previsualizarEscudoRival(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        escudoRivalUrl = e.target.result; // Guardar el base64
+        const container = document.getElementById('partido-rival-escudo');
+        container.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
+        container.style.border = 'none';
+    };
+    reader.readAsDataURL(file);
+}
+
+async function subirEscudoRivalPartido() {
+    const input = document.getElementById('partido-rival-escudo-input');
+    if (!input.files.length) return null;
+    
+    const file = input.files[0];
+    const fileName = `rival_${Date.now()}.${file.name.split('.').pop()}`;
+    
+    const { data, error } = await supabase.storage
+        .from('logos')
+        .upload(fileName, file);
+    
+    if (error) {
+        console.error('Error subiendo escudo rival:', error);
+        return null;
+    }
+    
+    const { data: urlData } = supabase.storage
+        .from('logos')
+        .getPublicUrl(fileName);
+    
+    return urlData.publicUrl;
+}
+
+function resetearEscudoRival() {
+    escudoRivalUrl = null;
+    const container = document.getElementById('partido-rival-escudo');
+    container.innerHTML = '<span style="font-size: 20px;">🛡️</span>';
+    container.style.border = '2px dashed #d1d5db';
+    document.getElementById('partido-rival-escudo-input').value = '';
+}
+
+function cargarEscudoRival(url) {
+    if (url) {
+        escudoRivalUrl = url;
+        const container = document.getElementById('partido-rival-escudo');
+        container.innerHTML = `<img src="${url}" style="width: 100%; height: 100%; object-fit: cover;">`;
+        container.style.border = 'none';
+    } else {
+        resetearEscudoRival();
+    }
+}
         function previsualizarFotoJugador(event) {
             const file = event.target.files[0];
             if (!file) return;

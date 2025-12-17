@@ -4407,9 +4407,9 @@
         const SUPABASE_URL = 'https://cqteodxyvavyroxeshoz.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxdGVvZHh5dmF2eXJveGVzaG96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyNzc2OTksImV4cCI6MjA4MDg1MzY5OX0.8sJC6twae2pnrf8NDVlOV2KnSOhBC1RrqWC0IiuE614';
         
-        let supabase = null;
+        let supabaseClient = null;
         try {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             console.log('Supabase configurado');
         } catch (e) {
             console.error('Error Supabase:', e);
@@ -4452,7 +4452,7 @@ async function cargarCalendarioPartidos() {
     const inicioMes = calendarioAnioPartidos + '-' + String(calendarioMesPartidos + 1).padStart(2, '0') + '-01';
     const finMes = calendarioAnioPartidos + '-' + String(calendarioMesPartidos + 1).padStart(2, '0') + '-' + ultimoDia.getDate();
     
-    const { data: partidos } = await supabase
+    const { data: partidos } = await supabaseClient
         .from('matches')
         .select('*')
         .eq('club_id', clubId)
@@ -4566,7 +4566,7 @@ async function cargarPartidosParaAnalisis() {
     const select = document.getElementById('analisis-partido-select');
     select.innerHTML = '<option value="">-- Elige un partido jugado --</option>';
     
-    const { data: partidos } = await supabase
+    const { data: partidos } = await supabaseClient
         .from('matches')
         .select('*')
         .eq('club_id', clubId)
@@ -4604,7 +4604,7 @@ async function cargarAnalisisPartido() {
     contenido.style.display = 'block';
     
     // Cargar datos del partido
-    const { data: partido } = await supabase
+    const { data: partido } = await supabaseClient
         .from('matches')
         .select('*')
         .eq('id', matchId)
@@ -4645,7 +4645,7 @@ function mostrarInfoPartido(partido) {
 
 async function buscarOCrearRival(nombreRival) {
     // Buscar si el rival ya existe
-    const { data: rival } = await supabase
+    const { data: rival } = await supabaseClient
         .from('opponents')
         .select('*')
         .eq('club_id', clubId)
@@ -4657,7 +4657,7 @@ async function buscarOCrearRival(nombreRival) {
         mostrarRival(rival);
     } else {
         // Crear nuevo rival
-        const { data: nuevoRival } = await supabase
+        const { data: nuevoRival } = await supabaseClient
             .from('opponents')
             .insert({
                 club_id: clubId,
@@ -4999,7 +4999,7 @@ async function cargarFotosJugadores(jugadores) {
     if (playerIds.length === 0) return jugadores;
     
     // Cargar fotos desde la tabla players
-    const { data: players } = await supabase
+    const { data: players } = await supabaseClient
         .from('players')
         .select('id, photo_url')
         .in('id', playerIds);
@@ -5055,7 +5055,7 @@ async function subirLogoRival() {
         const logoUrl = e.target.result;
         
         // Actualizar en la base de datos
-        await supabase
+        await supabaseClient
             .from('opponents')
             .update({ logo_url: logoUrl })
             .eq('id', opponentActual.id);
@@ -5067,7 +5067,7 @@ async function subirLogoRival() {
 }
 
 async function cargarAnalisisExistente(matchId) {
-    const { data: analisis } = await supabase
+    const { data: analisis } = await supabaseClient
         .from('match_analysis')
         .select('*')
         .eq('match_id', matchId)
@@ -5122,7 +5122,7 @@ async function cargarAnalisisExistente(matchId) {
     }
     
     // Cargar titulares y suplentes en el campo visual
-    const { data: partido } = await supabase
+    const { data: partido } = await supabaseClient
         .from('matches')
         .select('titulares, suplentes')
         .eq('id', matchId)
@@ -5222,14 +5222,14 @@ async function guardarAnalisis() {
     
     if (analisisActual) {
         // Actualizar
-        const result = await supabase
+        const result = await supabaseClient
             .from('match_analysis')
             .update(datos)
             .eq('id', analisisActual.id);
         error = result.error;
     } else {
         // Crear nuevo
-        const result = await supabase
+        const result = await supabaseClient
             .from('match_analysis')
             .insert(datos)
             .select()
@@ -5251,7 +5251,7 @@ async function cargarHistorialRival(nombreRival) {
     const historialNombre = document.getElementById('historial-rival-nombre');
     
     // Buscar partidos contra este rival
-    const { data: partidos } = await supabase
+    const { data: partidos } = await supabaseClient
         .from('matches')
         .select('*')
         .eq('club_id', clubId)
@@ -5275,7 +5275,7 @@ async function cargarHistorialRival(nombreRival) {
             const resultado = p.result === 'win' ? '✅' : p.result === 'draw' ? '🟡' : '❌';
             
             // Verificar si tiene análisis
-            const { data: analisis } = await supabase
+            const { data: analisis } = await supabaseClient
                 .from('match_analysis')
                 .select('id')
                 .eq('match_id', p.id)
@@ -5686,14 +5686,14 @@ async function generarPDFAnalisis() {
         // ========== CLUB & TEMPORADA ==========
         async function inicializarClub() {
             try {
-                let { data: club, error } = await supabase
+                let { data: club, error } = await supabaseClient
                     .from('clubs')
                     .select('*')
                     .eq('wp_user_id', usuario.id)
                     .single();
                 
                 if (error && error.code === 'PGRST116') {
-                    const { data: nuevoClub } = await supabase
+                    const { data: nuevoClub } = await supabaseClient
                         .from('clubs')
                         .insert({
                             wp_user_id: usuario.id,
@@ -5730,7 +5730,7 @@ async function generarPDFAnalisis() {
         
         async function cargarTemporadaActiva() {
             try {
-                const { data: temporada, error } = await supabase
+                const { data: temporada, error } = await supabaseClient
                     .from('seasons')
                     .select('*')
                     .eq('club_id', clubId)
@@ -5756,7 +5756,7 @@ async function generarPDFAnalisis() {
             let inicioTemp = mes >= 7 ? `${anio}-08-01` : `${anio - 1}-08-01`;
             let finTemp = mes >= 7 ? `${anio + 1}-06-30` : `${anio}-06-30`;
             
-            const { data: nuevaTemp } = await supabase
+            const { data: nuevaTemp } = await supabaseClient
                 .from('seasons')
                 .insert({
                     club_id: clubId,
@@ -5904,7 +5904,7 @@ async function generarPDFAnalisis() {
             }
             
             try {
-               const { data: jugadores, error } = await supabase
+               const { data: jugadores, error } = await supabaseClient
                     .from('season_players')
                     .select('id, player_id, shirt_number, players(id, name)')
                     .eq('season_id', seasonId)
@@ -6233,7 +6233,7 @@ async function generarPDFAnalisis() {
             }
             
             try {
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('training_sessions')
                     .insert({
                         club_id: clubId,
@@ -6273,7 +6273,7 @@ async function generarPDFAnalisis() {
                 const fechaDesde = document.getElementById('filtro-sesion-desde').value;
                 const fechaHasta = document.getElementById('filtro-sesion-hasta').value;
                 
-                let query = supabase
+                let query = supabaseClient
                     .from('training_sessions')
                     .select('*')
                     .eq('club_id', clubId);
@@ -6347,7 +6347,7 @@ async function generarPDFAnalisis() {
         
         async function cargarSesionEnEditor(id) {
             try {
-                const { data } = await supabase
+                const { data } = await supabaseClient
                     .from('training_sessions')
                     .select('*')
                     .eq('id', id)
@@ -6377,7 +6377,7 @@ async function generarPDFAnalisis() {
         async function eliminarSesion(id) {
             if (!confirm('¿Eliminar esta sesion?')) return;
             
-            await supabase.from('training_sessions').delete().eq('id', id);
+            await supabaseClient.from('training_sessions').delete().eq('id', id);
             cargarMisSesiones();
         }
         
@@ -6385,8 +6385,8 @@ async function exportarSesionPDF(id) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            const { data: s } = await supabase.from('training_sessions').select('*').eq('id', id).single();
-            const { data: club } = await supabase.from('clubs').select('name, logo_url').eq('id', clubId).single();
+            const { data: s } = await supabaseClient.from('training_sessions').select('*').eq('id', id).single();
+            const { data: club } = await supabaseClient.from('clubs').select('name, logo_url').eq('id', clubId).single();
             
             const fecha = new Date(s.session_date).toLocaleDateString('es-ES');
             const hora = s.session_time ? s.session_time.substring(0, 5) : '';
@@ -6681,7 +6681,7 @@ if (s.players && s.players.length > 0) {
             const inicioMes = `${calendarioAnioSesiones}-${String(calendarioMesSesiones + 1).padStart(2, '0')}-01`;
             const finMes = `${calendarioAnioSesiones}-${String(calendarioMesSesiones + 1).padStart(2, '0')}-${ultimoDia.getDate()}`;
             
-            const { data: sesiones } = await supabase
+            const { data: sesiones } = await supabaseClient
                 .from('training_sessions')
                 .select('id, name, session_date')
                 .eq('club_id', clubId)
@@ -6764,7 +6764,7 @@ if (s.players && s.players.length > 0) {
             lista.innerHTML = '<div class="loading">Cargando partidos...</div>';
             
             try {
-                let query = supabase
+                let query = supabaseClient
                     .from('matches')
                     .select('*')
                     .eq('club_id', clubId)
@@ -6880,7 +6880,7 @@ document.getElementById('video-preview-container').style.display = 'none';
             await cargarConvocatoria();
             
             if (partidoId) {
-                const { data: p } = await supabase.from('matches').select('*').eq('id', partidoId).single();
+                const { data: p } = await supabaseClient.from('matches').select('*').eq('id', partidoId).single();
                 if (p) {
                     document.getElementById('partido-id').value = p.id;
                     document.getElementById('partido-rival').value = p.opponent || '';
@@ -6918,13 +6918,13 @@ if (p.titulares && Array.isArray(p.titulares)) {
             document.getElementById('modal-partido').style.display = 'flex';
         }
         async function verPartido(partidoId) {
-    const { data: p } = await supabase.from('matches').select('*').eq('id', partidoId).single();
+    const { data: p } = await supabaseClient.from('matches').select('*').eq('id', partidoId).single();
     if (!p) {
         alert('Partido no encontrado');
         return;
     }
     
-    const { data: club } = await supabase.from('clubs').select('name, logo_url').eq('id', clubId).single();
+    const { data: club } = await supabaseClient.from('clubs').select('name, logo_url').eq('id', clubId).single();
     
     const fecha = new Date(p.match_date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     const hora = p.kick_off_time ? p.kick_off_time.slice(0, 5) : '';
@@ -7056,7 +7056,7 @@ function cerrarModalVerPartido(event) {
 
 async function generarPDFConvocatoriaDesdeVer(partidoId) {
     // Cargar datos del partido y generar PDF
-    const { data: p } = await supabase.from('matches').select('*').eq('id', partidoId).single();
+    const { data: p } = await supabaseClient.from('matches').select('*').eq('id', partidoId).single();
     if (!p) return;
     
     // Cargar en el formulario temporalmente para usar la función existente
@@ -7081,7 +7081,7 @@ async function generarPDFConvocatoriaDesdeVer(partidoId) {
 }
 
 async function cargarPlantillaParaPDF() {
-    const { data } = await supabase
+    const { data } = await supabaseClient
         .from('season_players')
         .select('id, player_id, shirt_number, players(id, name, position, photo_url)')
         .eq('season_id', seasonId)
@@ -7103,7 +7103,7 @@ async function cargarPlantillaParaPDF() {
     }
     
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('season_players')
             .select('id, player_id, shirt_number, players(id, name, position, photo_url)')
             .eq('season_id', seasonId)
@@ -7305,9 +7305,9 @@ function renderizarConvocatoria() {
            try {
     let resultado;
     if (partidoId) {
-        resultado = await supabase.from('matches').update(partidoData).eq('id', partidoId);
+        resultado = await supabaseClient.from('matches').update(partidoData).eq('id', partidoId);
     } else {
-        resultado = await supabase.from('matches').insert(partidoData);
+        resultado = await supabaseClient.from('matches').insert(partidoData);
     }
     
     if (resultado.error) {
@@ -7325,8 +7325,8 @@ function renderizarConvocatoria() {
         
         async function eliminarPartido(id) {
             if (!confirm('¿Eliminar este partido?')) return;
-            await supabase.from('match_player_stats').delete().eq('match_id', id);
-            await supabase.from('matches').delete().eq('id', id);
+            await supabaseClient.from('match_player_stats').delete().eq('match_id', id);
+            await supabaseClient.from('matches').delete().eq('id', id);
             cargarPartidos();
         }
         
@@ -7334,7 +7334,7 @@ function renderizarConvocatoria() {
       async function abrirModalResultado(partidoId) {
     document.getElementById('resultado-partido-id').value = partidoId;
     
-    const { data: p } = await supabase.from('matches').select('*').eq('id', partidoId).single();
+    const { data: p } = await supabaseClient.from('matches').select('*').eq('id', partidoId).single();
     
     if (!p) {
         alert('Partido no encontrado');
@@ -7352,7 +7352,7 @@ function renderizarConvocatoria() {
         grid.innerHTML = '<p style="color:#9ca3af;text-align:center;padding:20px;">No hay jugadores convocados en este partido.<br>Edita el partido primero para añadir convocados.</p>';
     } else {
         // Cargar estadísticas existentes
-        const { data: statsExist } = await supabase
+        const { data: statsExist } = await supabaseClient
             .from('match_player_stats')
             .select('*')
             .eq('match_id', partidoId);
@@ -7402,7 +7402,7 @@ function renderizarConvocatoria() {
     else if (gF < gC) resultado = 'loss';
     
     // Actualizar resultado del partido
-    const { error: errorPartido } = await supabase.from('matches').update({
+    const { error: errorPartido } = await supabaseClient.from('matches').update({
         team_goals: gF,
         opponent_goals: gC,
         result: resultado
@@ -7426,7 +7426,7 @@ function renderizarConvocatoria() {
         const rojas = parseInt(row.querySelector('.stat-rojas').value) || 0;
         
         // Verificar si ya existe un registro para este jugador en este partido
-        const { data: existente } = await supabase
+        const { data: existente } = await supabaseClient
             .from('match_player_stats')
             .select('id')
             .eq('match_id', partidoId)
@@ -7435,7 +7435,7 @@ function renderizarConvocatoria() {
         
         if (existente) {
             // Actualizar registro existente
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('match_player_stats')
                 .update({
                     minutes_played: minutos,
@@ -7449,7 +7449,7 @@ function renderizarConvocatoria() {
             if (error) errores.push(error.message);
         } else {
             // Crear nuevo registro
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('match_player_stats')
                 .insert({
                     match_id: partidoId,
@@ -7479,7 +7479,7 @@ function renderizarConvocatoria() {
         // ========== MATCHSTATS: ESTADÍSTICAS ==========
         async function cargarSelectorTemporadasStats() {
             const select = document.getElementById('stats-temporada');
-            const { data } = await supabase.from('seasons').select('*').eq('club_id', clubId).order('start_date', { ascending: false });
+            const { data } = await supabaseClient.from('seasons').select('*').eq('club_id', clubId).order('start_date', { ascending: false });
             
             select.innerHTML = (data || []).map(t => {
                 const selected = t.id === seasonId ? 'selected' : '';
@@ -7493,7 +7493,7 @@ function renderizarConvocatoria() {
             const tablaBody = document.getElementById('stats-tabla-body');
             
             // Resumen partidos
-            const { data: partidos } = await supabase.from('matches').select('*').eq('season_id', tempId).not('result', 'is', null);
+            const { data: partidos } = await supabaseClient.from('matches').select('*').eq('season_id', tempId).not('result', 'is', null);
             
             const victorias = partidos?.filter(p => p.result === 'win').length || 0;
             const empates = partidos?.filter(p => p.result === 'draw').length || 0;
@@ -7510,7 +7510,7 @@ function renderizarConvocatoria() {
             `;
             
             // Stats por jugador
-            const { data: stats } = await supabase
+            const { data: stats } = await supabaseClient
                 .from('match_player_stats')
                 .select('*, players(id, name, position, photo_url), matches!inner(season_id)')
                 .eq('matches.season_id', tempId);
@@ -7571,7 +7571,7 @@ async function abrirFichaJugador(playerId) {
     const tempId = document.getElementById('stats-temporada').value || seasonId;
     
     // Cargar datos del jugador
-    const { data: jugador } = await supabase
+    const { data: jugador } = await supabaseClient
         .from('players')
         .select('*')
         .eq('id', playerId)
@@ -7605,7 +7605,7 @@ async function abrirFichaJugador(playerId) {
     `;
     
     // Cargar estadísticas del jugador en la temporada
-    const { data: stats } = await supabase
+    const { data: stats } = await supabaseClient
         .from('match_player_stats')
         .select('*, matches!inner(id, opponent, match_date, home_away, team_goals, opponent_goals, result, season_id)')
         .eq('player_id', playerId)
@@ -7710,10 +7710,10 @@ async function exportarFichaJugadorPDF() {
     const tempId = document.getElementById('stats-temporada').value || seasonId;
     
     // Cargar datos
-    const { data: jugador } = await supabase.from('players').select('*').eq('id', fichaJugadorActual).single();
-    const { data: club } = await supabase.from('clubs').select('name, logo_url').eq('id', clubId).single();
-    const { data: temporada } = await supabase.from('seasons').select('name').eq('id', tempId).single();
-    const { data: stats } = await supabase
+    const { data: jugador } = await supabaseClient.from('players').select('*').eq('id', fichaJugadorActual).single();
+    const { data: club } = await supabaseClient.from('clubs').select('name, logo_url').eq('id', clubId).single();
+    const { data: temporada } = await supabaseClient.from('seasons').select('name').eq('id', tempId).single();
+    const { data: stats } = await supabaseClient
         .from('match_player_stats')
         .select('*, matches!inner(opponent, match_date, home_away, team_goals, opponent_goals, result, season_id)')
         .eq('player_id', fichaJugadorActual)
@@ -7884,7 +7884,7 @@ async function generarPDFConvocatoria() {
     const fechaSalida = document.getElementById('partido-fecha-salida')?.value || '';
     const notas = document.getElementById('partido-notas-convocatoria')?.value || '';
     
-    const { data: club } = await supabase
+    const { data: club } = await supabaseClient
         .from('clubs')
         .select('name, logo_url')
         .eq('id', clubId)
@@ -8108,7 +8108,7 @@ async function generarPDFAlineacion() {
     const competicion = document.getElementById('partido-competicion').value || '';
     const formatoJuego = document.getElementById('partido-formato-juego')?.value || '11';
     
-    const { data: club } = await supabase
+    const { data: club } = await supabaseClient
         .from('clubs')
         .select('name, logo_url')
         .eq('id', clubId)
@@ -8348,8 +8348,8 @@ async function dibujarJugadorCardCompacta(doc, jugador, x, y, ancho, alto, color
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            const { data: p } = await supabase.from('matches').select('*').eq('id', partidoId).single();
-            const { data: stats } = await supabase.from('match_player_stats').select('*, players(name, position)').eq('match_id', partidoId).order('minutes_played', { ascending: false });
+            const { data: p } = await supabaseClient.from('matches').select('*').eq('id', partidoId).single();
+            const { data: stats } = await supabaseClient.from('match_player_stats').select('*, players(name, position)').eq('match_id', partidoId).order('minutes_played', { ascending: false });
             
             const fecha = new Date(p.match_date).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             
@@ -8424,8 +8424,8 @@ async function dibujarJugadorCardCompacta(doc, jugador, x, y, ancho, alto, color
             const doc = new jsPDF();
             
             const tempId = document.getElementById('stats-temporada').value || seasonId;
-            const { data: temp } = await supabase.from('seasons').select('name').eq('id', tempId).single();
-            const { data: partidos } = await supabase.from('matches').select('*').eq('season_id', tempId).not('result', 'is', null);
+            const { data: temp } = await supabaseClient.from('seasons').select('name').eq('id', tempId).single();
+            const { data: partidos } = await supabaseClient.from('matches').select('*').eq('season_id', tempId).not('result', 'is', null);
             
             const victorias = partidos?.filter(p => p.result === 'win').length || 0;
             const empates = partidos?.filter(p => p.result === 'draw').length || 0;
@@ -8433,7 +8433,7 @@ async function dibujarJugadorCardCompacta(doc, jugador, x, y, ancho, alto, color
             const gF = partidos?.reduce((sum, p) => sum + (p.team_goals || 0), 0) || 0;
             const gC = partidos?.reduce((sum, p) => sum + (p.opponent_goals || 0), 0) || 0;
             
-            const { data: stats } = await supabase.from('match_player_stats').select('*, players(name, position), matches!inner(season_id)').eq('matches.season_id', tempId);
+            const { data: stats } = await supabaseClient.from('match_player_stats').select('*, players(name, position), matches!inner(season_id)').eq('matches.season_id', tempId);
             
             const jugadorStats = {};
             (stats || []).forEach(s => {
@@ -8490,7 +8490,7 @@ async function dibujarJugadorCardCompacta(doc, jugador, x, y, ancho, alto, color
         async function cargarDatosClub() {
             if (!clubId) return;
             
-            const { data } = await supabase.from('clubs').select('*').eq('id', clubId).single();
+            const { data } = await supabaseClient.from('clubs').select('*').eq('id', clubId).single();
             clubData = data;
             
             document.getElementById('club-nombre').value = data.name || '';
@@ -8528,14 +8528,14 @@ async function dibujarJugadorCardCompacta(doc, jugador, x, y, ancho, alto, color
             if (escudoInput.files.length > 0) {
                 const file = escudoInput.files[0];
                 const fileName = `club-${clubId}-${Date.now()}.${file.name.split('.').pop()}`;
-                const { error: upErr } = await supabase.storage.from('logos').upload(fileName, file);
+                const { error: upErr } = await supabaseClient.storage.from('logos').upload(fileName, file);
                 if (!upErr) {
-                    const { data: urlData } = supabase.storage.from('logos').getPublicUrl(fileName);
+                    const { data: urlData } = supabaseClient.storage.from('logos').getPublicUrl(fileName);
                     logoUrl = urlData.publicUrl;
                 }
             }
             
-            await supabase.from('clubs').update({
+            await supabaseClient.from('clubs').update({
                 name: nombre,
                 country: document.getElementById('club-pais').value,
                 team_format: document.getElementById('club-formato').value,
@@ -8559,7 +8559,7 @@ async function dibujarJugadorCardCompacta(doc, jugador, x, y, ancho, alto, color
             const lista = document.getElementById('lista-temporadas');
             lista.innerHTML = '<div class="loading">Cargando...</div>';
             
-            const { data } = await supabase.from('seasons').select('*').eq('club_id', clubId).order('start_date', { ascending: false });
+            const { data } = await supabaseClient.from('seasons').select('*').eq('club_id', clubId).order('start_date', { ascending: false });
             
             if (!data || data.length === 0) {
                 lista.innerHTML = '<p style="text-align:center;color:#9ca3af;">No hay temporadas</p>';
@@ -8589,7 +8589,7 @@ async function dibujarJugadorCardCompacta(doc, jugador, x, y, ancho, alto, color
             const nombre = document.getElementById('nueva-temp-nombre').value.trim();
             if (!nombre) { alert('El nombre es obligatorio'); return; }
             
-            await supabase.from('seasons').insert({
+            await supabaseClient.from('seasons').insert({
                 club_id: clubId,
                 name: nombre,
                 start_date: document.getElementById('nueva-temp-inicio').value || null,
@@ -8608,8 +8608,8 @@ async function dibujarJugadorCardCompacta(doc, jugador, x, y, ancho, alto, color
         async function activarTemporada(tempId) {
             if (!confirm('Activar esta temporada?')) return;
             
-            await supabase.from('seasons').update({ is_active: false }).eq('club_id', clubId);
-            await supabase.from('seasons').update({ is_active: true }).eq('id', tempId);
+            await supabaseClient.from('seasons').update({ is_active: false }).eq('club_id', clubId);
+            await supabaseClient.from('seasons').update({ is_active: true }).eq('id', tempId);
             
             seasonId = tempId;
             alert('Temporada activada');
@@ -8619,7 +8619,7 @@ async function dibujarJugadorCardCompacta(doc, jugador, x, y, ancho, alto, color
         // ========== MI CLUB: PLANTILLA ==========
         async function cargarSelectorTemporadas() {
             const select = document.getElementById('plantilla-temporada');
-            const { data } = await supabase.from('seasons').select('*').eq('club_id', clubId).order('start_date', { ascending: false });
+            const { data } = await supabaseClient.from('seasons').select('*').eq('club_id', clubId).order('start_date', { ascending: false });
             
             select.innerHTML = (data || []).map(t => {
                 const selected = t.is_active ? 'selected' : '';
@@ -8635,7 +8635,7 @@ async function dibujarJugadorCardCompacta(doc, jugador, x, y, ancho, alto, color
             lista.innerHTML = '<div class="loading">Cargando...</div>';
             
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('season_players')
                     .select('id, player_id, shirt_number, players(id, name, status, position, photo_url)')
                     .eq('season_id', tempId)
@@ -8718,8 +8718,8 @@ return `
             jugadorEditando = { playerId, spId };
             document.getElementById('modal-jugador-titulo').textContent = 'Editar Jugador';
             
-            const { data: player } = await supabase.from('players').select('*').eq('id', playerId).single();
-            const { data: sp } = await supabase.from('season_players').select('shirt_number').eq('id', spId).single();
+            const { data: player } = await supabaseClient.from('players').select('*').eq('id', playerId).single();
+            const { data: sp } = await supabaseClient.from('season_players').select('shirt_number').eq('id', spId).single();
             
             document.getElementById('jugador-id').value = playerId;
             document.getElementById('jugador-sp-id').value = spId;
@@ -8775,7 +8775,7 @@ async function subirEscudoRivalPartido() {
     const file = input.files[0];
     const fileName = `rival_${Date.now()}.${file.name.split('.').pop()}`;
     
-    const { data, error } = await supabase.storage
+    const { data, error } = await supabaseClient.storage
         .from('logos')
         .upload(fileName, file);
     
@@ -8784,7 +8784,7 @@ async function subirEscudoRivalPartido() {
         return null;
     }
     
-    const { data: urlData } = supabase.storage
+    const { data: urlData } = supabaseClient.storage
         .from('logos')
         .getPublicUrl(fileName);
     
@@ -8838,9 +8838,9 @@ function cargarEscudoRival(url) {
             if (fotoInput.files.length > 0) {
                 const file = fotoInput.files[0];
                 const fileName = `player-${Date.now()}.${file.name.split('.').pop()}`;
-                const { error: upErr } = await supabase.storage.from('photos').upload(fileName, file);
+                const { error: upErr } = await supabaseClient.storage.from('photos').upload(fileName, file);
                 if (!upErr) {
-                    const { data: urlData } = supabase.storage.from('photos').getPublicUrl(fileName);
+                    const { data: urlData } = supabaseClient.storage.from('photos').getPublicUrl(fileName);
                     photoUrl = urlData.publicUrl;
                 }
             }
@@ -8861,11 +8861,11 @@ function cargarEscudoRival(url) {
             if (photoUrl) playerData.photo_url = photoUrl;
             
             if (jugadorEditando) {
-                await supabase.from('players').update(playerData).eq('id', jugadorEditando.playerId);
-                await supabase.from('season_players').update({ shirt_number: parseInt(dorsal) }).eq('id', jugadorEditando.spId);
+                await supabaseClient.from('players').update(playerData).eq('id', jugadorEditando.playerId);
+                await supabaseClient.from('season_players').update({ shirt_number: parseInt(dorsal) }).eq('id', jugadorEditando.spId);
             } else {
-                const { data: newPlayer } = await supabase.from('players').insert(playerData).select().single();
-                await supabase.from('season_players').insert({
+                const { data: newPlayer } = await supabaseClient.from('players').insert(playerData).select().single();
+                await supabaseClient.from('season_players').insert({
                     season_id: tempId,
                     player_id: newPlayer.id,
                     shirt_number: parseInt(dorsal)
@@ -8879,7 +8879,7 @@ function cargarEscudoRival(url) {
         
         async function eliminarJugadorDePlantilla(spId) {
             if (!confirm('Eliminar este jugador de la plantilla?')) return;
-            await supabase.from('season_players').delete().eq('id', spId);
+            await supabaseClient.from('season_players').delete().eq('id', spId);
             cargarPlantilla();
         }
         // ========== VIDEO DEL PARTIDO ==========
@@ -9233,7 +9233,7 @@ let chatHistory = [];
 // Obtener datos del club y plantilla
 async function obtenerContextoClub() {
     try {
-        const { data: jugadores } = await supabase
+        const { data: jugadores } = await supabaseClient
             .from('season_players')
             .select('id, shirt_number, players(id, name, position)')
             .eq('season_id', seasonId)
@@ -9258,14 +9258,14 @@ async function obtenerContextoClub() {
 async function obtenerContextoEstadisticas() {
     try {
         // Partidos de la temporada
-        const { data: partidos } = await supabase
+        const { data: partidos } = await supabaseClient
             .from('matches')
             .select('*')
             .eq('season_id', seasonId)
             .order('match_date', { ascending: false });
         
         // Estadísticas de jugadores
-        const { data: stats } = await supabase
+        const { data: stats } = await supabaseClient
             .from('match_player_stats')
             .select('*, players(id, name, position), matches!inner(id, opponent, match_date, result, team_goals, opponent_goals, season_id)')
             .eq('matches.season_id', seasonId);
@@ -9361,7 +9361,7 @@ async function obtenerTemasDisponibles() {
 // Obtener sesiones recientes para Johan
 async function obtenerContextoSesiones() {
     try {
-        const { data: sesiones } = await supabase
+        const { data: sesiones } = await supabaseClient
             .from('training_sessions')
             .select('id, name, session_date, objective, warm_up, main_part, cool_down')
             .eq('club_id', clubId)

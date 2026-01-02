@@ -10006,5 +10006,488 @@ function formatearRespuesta(texto) {
             renderizarSesion();
         });
     </script>
+    <script>
+// ========== SISTEMA DE ASISTENCIA Y BIENESTAR ==========
+
+// Variables globales asistencia
+let asistenciaMesActual = new Date().toISOString().slice(0, 7); // YYYY-MM
+
+// Cargar selector de meses
+async function cargarSelectorMeses() {
+    const select = document.getElementById('asistencia-mes');
+    if (!select) return;
+    
+    select.innerHTML = '<option value="">Selecciona mes...</option>';
+    
+    // Generar últimos 12 meses
+    const hoy = new Date();
+    for (let i = 0; i < 12; i++) {
+        const fecha = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
+        const valor = fecha.toISOString().slice(0, 7);
+        const nombreMes = fecha.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+        select.innerHTML += `<option value="${valor}" ${i === 0 ? 'selected' : ''}>${nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)}</option>`;
+    }
+    
+    asistenciaMesActual = select.value;
+}
+
+// Cargar asistencia del mes
+async function cargarAsistenciaMes() {
+    const select = document.getElementById('asistencia-mes');
+    const mes = select ? select.value : asistenciaMesActual;
+    
+    if (!mes) {
+        alert('Selecciona un mes');
+        return;
+    }
+    
+    asistenciaMesActual = mes;
+    
+    const tbody = document.getElementById('asistencia-tabla-body');
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Cargando...</td></tr>';
+    
+    try {
+        // Obtener sesiones del mes
+        const inicioMes = `${mes}-01`;
+        const finMes = `${mes}-31`;
+        
+        const { data: sesiones, error: errorSesiones } = await supabase
+            .from('training_sessions')
+            .select('id, name, date')
+            .eq('club_id', clubData.id)
+            .gte('date', inicioMes)
+            .lte('date', finMes)
+            .order('date', { ascending: true });
+        
+        if (errorSesiones) throw errorSesiones;
+        
+        const totalSesiones = sesiones ? sesiones.length : 0;
+        document.getElementById('asistencia-total-sesiones').textContent = totalSesiones;
+        
+        if (totalSesiones === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#9ca3af;">No hay sesiones en este mes</td></tr>';
+            document.getElementById('asistencia-promedio').textContent = '0%';
+            return;
+        }
+        
+        // Obtener jugadores activos
+        const { data: jugadores, error: errorJugadores } = await supabase
+            .from('players')
+            .select('id, name, number, photo_url, position')
+            .eq('club_id', clubData.id)
+            .eq('status', 'available')
+            .order('number', { ascending: true });
+        
+        if (errorJugadores) throw errorJugadores;
+        
+        if (!jugadores || jugadores.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#9ca3af;">No hay jugadores registrados</td></tr>';
+            return;
+        }
+        
+        // Obtener asistencias del mes
+        const sesionIds = sesiones.map(s => s.id);
+        const { data: asistencias, error: errorAsist } = await supabase
+            .from('asistencia_sesiones')
+            .select('*')
+            .in('sesion_id', sesionIds);
+        
+        if (errorAsist) throw errorAsist;
+        
+        // Calcular stats por jugador
+        let htmlRows = '';
+        let totalPorcentaje = 0;
+        
+        for (const jugador of jugadores) {
+            const asistJugador = asistencias ? asistencias.filter(a => a.jugador_id === jugador.id) : [];
+            const asistencias_si = asistJugador.filter(a => a.asistio === true).length;
+            const porcentaje = totalSesiones > 0 ? Math.round((asistencias_si / totalSesiones) * 100) : 0;
+            totalPorcentaje += porcentaje;
+            
+            // Promedios
+            const conPeso = asistJugador.filter(a => a.peso);
+            const conWellness = asistJugador.filter(a => a.wellness);
+            const conMuscular = asistJugador.filter(a => a.estado_muscular);
+            
+            const promPeso = conPeso.length > 0 ? (conPeso.reduce((s, a) => s + parseFloat(a.peso), 0) / conPeso.length).toFixed(1) : '-';
+            const promWellness = conWellness.length > 0 ? (conWellness.reduce((s, a) => s + a.wellness, 0) / conWellness.length).toFixed(1) : '-';
+            const promMuscular = conMuscular.length > 0 ? (conMuscular.reduce((s, a) => s + a.estado_muscular, 0) / conMuscular.length).toFixed(1) : '-';
+            
+            const clasePorc = porcentaje >= 80 ? 'porcentaje-alto' : porcentaje >= 50 ? 'porcentaje-medio' : 'porcentaje-bajo';
+            
+            htmlRows += `
+                <tr>
+                    <td>
+                        <div class="jugador-cell">
+                            <div class="jugador-mini-foto">
+                                ${jugador.photo_url ? `<img src="${jugador.photo_url}" alt="">` : jugador.name.charAt(0)}
+                            </div>
+                            <div>
+                                <strong>${jugador.name}</strong>
+                                <br><small style="color:#6b7280;">#${jugador.number || '-'} - ${jugador.position || ''}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${totalSesiones}</td>
+                    <td>${asistencias_si}</td>
+                    <td class="${clasePorc}">${porcentaje}%</td>
+                    <td>${promPeso} kg</td>
+                    <td>${promWellness}</td>
+                    <td>${promMuscular}</td>
+                    <td>
+                        <button class="btn-ver-detalle" onclick="verDetalleJugador('${jugador.id}', '${jugador.name}')">👁 Ver</button>
+                        <button class="btn-pdf-jugador" onclick="generarPDFJugador('${jugador.id}')">📄 PDF</button>
+                    </td>
+                </tr>
+            `;
+        }
+        
+        tbody.innerHTML = htmlRows;
+        
+        const promedioGeneral = jugadores.length > 0 ? Math.round(totalPorcentaje / jugadores.length) : 0;
+        document.getElementById('asistencia-promedio').textContent = promedioGeneral + '%';
+        
+    } catch (error) {
+        console.error('Error cargando asistencia:', error);
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#dc2626;">Error al cargar datos</td></tr>';
+    }
+}
+
+// Ver detalle de un jugador
+async function verDetalleJugador(jugadorId, nombreJugador) {
+    const mes = asistenciaMesActual;
+    const inicioMes = `${mes}-01`;
+    const finMes = `${mes}-31`;
+    
+    try {
+        // Sesiones del mes
+        const { data: sesiones } = await supabase
+            .from('training_sessions')
+            .select('id, name, date')
+            .eq('club_id', clubData.id)
+            .gte('date', inicioMes)
+            .lte('date', finMes)
+            .order('date', { ascending: true });
+        
+        // Asistencias del jugador
+        const sesionIds = sesiones ? sesiones.map(s => s.id) : [];
+        const { data: asistencias } = await supabase
+            .from('asistencia_sesiones')
+            .select('*')
+            .eq('jugador_id', jugadorId)
+            .in('sesion_id', sesionIds);
+        
+        let htmlHistorial = '';
+        
+        for (const sesion of sesiones || []) {
+            const asist = asistencias ? asistencias.find(a => a.sesion_id === sesion.id) : null;
+            const asistio = asist ? asist.asistio : null;
+            const fechaFormato = new Date(sesion.date).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+            
+            if (asistio === true) {
+                htmlHistorial += `
+                    <div class="historial-sesion-row asistio">
+                        <div>
+                            <span class="historial-fecha">${fechaFormato}</span> - ${sesion.name}
+                        </div>
+                        <div class="historial-datos">
+                            <span>✅ Asistió</span>
+                            ${asist.peso ? `<span>⚖️ ${asist.peso}kg</span>` : ''}
+                            ${asist.wellness ? `<span>💚 ${asist.wellness}/10</span>` : ''}
+                            ${asist.estado_muscular ? `<span>💪 ${asist.estado_muscular}/10</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            } else if (asistio === false) {
+                htmlHistorial += `
+                    <div class="historial-sesion-row no-asistio">
+                        <div>
+                            <span class="historial-fecha">${fechaFormato}</span> - ${sesion.name}
+                        </div>
+                        <div>
+                            <span class="historial-motivo">${asist.motivo_ausencia || 'Sin motivo'}</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                htmlHistorial += `
+                    <div class="historial-sesion-row" style="border-left: 4px solid #9ca3af;">
+                        <div>
+                            <span class="historial-fecha">${fechaFormato}</span> - ${sesion.name}
+                        </div>
+                        <div style="color:#9ca3af;">Sin registrar</div>
+                    </div>
+                `;
+            }
+        }
+        
+        if (!htmlHistorial) htmlHistorial = '<p style="text-align:center; color:#9ca3af;">No hay sesiones en este mes</p>';
+        
+        const modalHTML = `
+            <div class="modal-overlay" onclick="if(event.target === this) this.remove()">
+                <div class="modal-content" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h3>📊 Detalle de ${nombreJugador}</h3>
+                        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p style="margin-bottom: 15px; color: #6b7280;">Mes: <strong>${new Date(mes + '-01').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}</strong></p>
+                        <div class="detalle-asistencia-historial">
+                            ${htmlHistorial}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al cargar detalle');
+    }
+}
+
+// Generar PDF individual del jugador
+async function generarPDFJugador(jugadorId) {
+    const mes = asistenciaMesActual;
+    const inicioMes = `${mes}-01`;
+    const finMes = `${mes}-31`;
+    
+    try {
+        // Datos del jugador
+        const { data: jugador } = await supabase
+            .from('players')
+            .select('*')
+            .eq('id', jugadorId)
+            .single();
+        
+        if (!jugador) {
+            alert('Jugador no encontrado');
+            return;
+        }
+        
+        // Sesiones del mes
+        const { data: sesiones } = await supabase
+            .from('training_sessions')
+            .select('id, name, date')
+            .eq('club_id', clubData.id)
+            .gte('date', inicioMes)
+            .lte('date', finMes)
+            .order('date', { ascending: true });
+        
+        const sesionIds = sesiones ? sesiones.map(s => s.id) : [];
+        
+        // Asistencias
+        const { data: asistencias } = await supabase
+            .from('asistencia_sesiones')
+            .select('*')
+            .eq('jugador_id', jugadorId)
+            .in('sesion_id', sesionIds);
+        
+        // Calcular stats
+        const totalSesiones = sesiones ? sesiones.length : 0;
+        const asistio = asistencias ? asistencias.filter(a => a.asistio === true).length : 0;
+        const faltas = asistencias ? asistencias.filter(a => a.asistio === false).length : 0;
+        const porcentaje = totalSesiones > 0 ? Math.round((asistio / totalSesiones) * 100) : 0;
+        
+        // Promedios
+        const conPeso = asistencias ? asistencias.filter(a => a.peso) : [];
+        const conWellness = asistencias ? asistencias.filter(a => a.wellness) : [];
+        const conMuscular = asistencias ? asistencias.filter(a => a.estado_muscular) : [];
+        
+        const promPeso = conPeso.length > 0 ? (conPeso.reduce((s, a) => s + parseFloat(a.peso), 0) / conPeso.length).toFixed(1) : '-';
+        const promWellness = conWellness.length > 0 ? (conWellness.reduce((s, a) => s + a.wellness, 0) / conWellness.length).toFixed(1) : '-';
+        const promMuscular = conMuscular.length > 0 ? (conMuscular.reduce((s, a) => s + a.estado_muscular, 0) / conMuscular.length).toFixed(1) : '-';
+        
+        // Motivos de ausencia
+        const motivos = {};
+        if (asistencias) {
+            asistencias.filter(a => !a.asistio && a.motivo_ausencia).forEach(a => {
+                motivos[a.motivo_ausencia] = (motivos[a.motivo_ausencia] || 0) + 1;
+            });
+        }
+        
+        // Generar PDF
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        let y = 20;
+        
+        // Header con escudo del club
+        doc.setFillColor(30, 41, 59);
+        doc.rect(0, 0, 210, 45, 'F');
+        
+        if (clubData.logo_url) {
+            try {
+                doc.addImage(clubData.logo_url, 'PNG', 15, 8, 30, 30);
+            } catch(e) {}
+        }
+        
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(20);
+        doc.setFont('helvetica', 'bold');
+        doc.text('INFORME DE ASISTENCIA', 105, 20, { align: 'center' });
+        
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        const nombreMes = new Date(mes + '-01').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+        doc.text(nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1), 105, 30, { align: 'center' });
+        
+        doc.setFontSize(10);
+        doc.text(clubData.name || 'Mi Club', 105, 38, { align: 'center' });
+        
+        y = 55;
+        
+        // Datos del jugador
+        doc.setFillColor(124, 58, 237);
+        doc.rect(15, y, 180, 10, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('DATOS DEL JUGADOR', 20, y + 7);
+        
+        y += 15;
+        doc.setTextColor(30, 41, 59);
+        doc.setFontSize(14);
+        doc.text(`${jugador.name}`, 20, y);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Dorsal: #${jugador.number || '-'}  |  Posicion: ${jugador.position || '-'}`, 20, y + 8);
+        
+        y += 25;
+        
+        // Stats de asistencia
+        doc.setFillColor(16, 185, 129);
+        doc.rect(15, y, 180, 10, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('RESUMEN DE ASISTENCIA', 20, y + 7);
+        
+        y += 18;
+        doc.setTextColor(30, 41, 59);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        
+        doc.text(`Sesiones del mes: ${totalSesiones}`, 20, y);
+        doc.text(`Asistencias: ${asistio}`, 80, y);
+        doc.text(`Ausencias: ${faltas}`, 130, y);
+        
+        y += 10;
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        const colorPorc = porcentaje >= 80 ? [16, 185, 129] : porcentaje >= 50 ? [217, 119, 6] : [220, 38, 38];
+        doc.setTextColor(...colorPorc);
+        doc.text(`Porcentaje: ${porcentaje}%`, 20, y);
+        
+        y += 15;
+        
+        // Bienestar
+        doc.setFillColor(59, 130, 246);
+        doc.rect(15, y, 180, 10, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('DATOS DE BIENESTAR (Promedios)', 20, y + 7);
+        
+        y += 18;
+        doc.setTextColor(30, 41, 59);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        
+        doc.text(`Peso promedio: ${promPeso} kg`, 20, y);
+        doc.text(`Wellness: ${promWellness}/10`, 80, y);
+        doc.text(`Estado muscular: ${promMuscular}/10`, 140, y);
+        
+        y += 15;
+        
+        // Motivos de ausencia
+        if (Object.keys(motivos).length > 0) {
+            doc.setFillColor(239, 68, 68);
+            doc.rect(15, y, 180, 10, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text('MOTIVOS DE AUSENCIA', 20, y + 7);
+            
+            y += 18;
+            doc.setTextColor(30, 41, 59);
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'normal');
+            
+            for (const [motivo, cantidad] of Object.entries(motivos)) {
+                doc.text(`- ${motivo}: ${cantidad}`, 20, y);
+                y += 7;
+            }
+            
+            y += 5;
+        }
+        
+        // Historial
+        doc.setFillColor(107, 114, 128);
+        doc.rect(15, y, 180, 10, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('HISTORIAL DEL MES', 20, y + 7);
+        
+        y += 15;
+        doc.setTextColor(30, 41, 59);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        
+        for (const sesion of sesiones || []) {
+            if (y > 270) {
+                doc.addPage();
+                y = 20;
+            }
+            
+            const asist = asistencias ? asistencias.find(a => a.sesion_id === sesion.id) : null;
+            const fechaFormato = new Date(sesion.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+            
+            let estado = 'Sin registrar';
+            if (asist) {
+                if (asist.asistio) {
+                    estado = 'Asistio';
+                    doc.setTextColor(16, 185, 129);
+                } else {
+                    estado = `Falta: ${asist.motivo_ausencia || 'Sin motivo'}`;
+                    doc.setTextColor(220, 38, 38);
+                }
+            } else {
+                doc.setTextColor(156, 163, 175);
+            }
+            
+            doc.text(`${fechaFormato} - ${sesion.name.substring(0, 35)}: ${estado}`, 20, y);
+            y += 7;
+        }
+        
+        // Footer
+        doc.setFontSize(8);
+        doc.setTextColor(156, 163, 175);
+        doc.text(`Generado el ${new Date().toLocaleDateString('es-ES')} - TopLiderCoach HUB`, 105, 290, { align: 'center' });
+        
+        // Guardar
+        const nombreArchivo = `Asistencia_${jugador.name.replace(/\s/g, '_')}_${mes}.pdf`;
+        doc.save(nombreArchivo);
+        
+    } catch (error) {
+        console.error('Error generando PDF:', error);
+        alert('Error al generar el PDF');
+    }
+}
+
+// Inicializar cuando se carga la pestaña de asistencia
+const originalCambiarSubTab = cambiarSubTab;
+cambiarSubTab = function(modulo, subtab, btn) {
+    originalCambiarSubTab(modulo, subtab, btn);
+    
+    if (modulo === 'planificador' && subtab === 'asistencia') {
+        cargarSelectorMeses();
+        cargarAsistenciaMes();
+    }
+};
+</script>
 </body>
 </html>

@@ -4630,7 +4630,54 @@
         </div>
     </div>
 </div>
+<!-- Botón flotante de Asistencia -->
+<button id="btn-asistencia" onclick="togglePanelAsistencia()" title="Asistencia y Bienestar">
+    <span>📋</span>
+</button>
 
+<style>
+#btn-asistencia {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+#btn-asistencia:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+</style>
+```
+
+---
+
+## Debería quedar así:
+```
+4632  </div>
+4633
+4634  <!-- Botón flotante de Asistencia -->
+4635  <button id="btn-asistencia" onclick="togglePanelAsistencia()" title="Asistencia y Bienestar">
+4636      <span>📋</span>
+4637  </button>
+4638
+4639  <style>
+4640  #btn-asistencia {
+       ... (el resto del CSS)
+4655  </style>
+4656
+4657  <script>
     <script>
         // ========== CONFIGURACIÓN ==========
         const API_BASE = 'https://toplidercoach.com/wp-json/toplider/v1';

@@ -3191,6 +3191,7 @@
                 <button class="sub-tab active" onclick="cambiarSubTab('planificador', 'crear', this)">Crear Sesion</button>
                 <button class="sub-tab" onclick="cambiarSubTab('planificador', 'mis-sesiones', this)">Mis Sesiones</button>
                 <button class="sub-tab" onclick="cambiarSubTab('planificador', 'calendario', this)">Calendario</button>
+                <button class="sub-tab" onclick="cambiarSubTab('planificador', 'asistencia', this)">📊 Asistencia</button>
             </div>
             
             <!-- Sub: Crear Sesión -->
@@ -3405,7 +3406,56 @@
                     <div class="loading">Cargando sesiones...</div>
                 </div>
             </div>
-            
+            <!-- Sub: Asistencia -->
+<div id="planificador-asistencia" class="vista-contenido">
+    <div class="section-header">
+        <h2>📊 Control de Asistencia</h2>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <select id="asistencia-mes" onchange="cargarAsistenciaMes()">
+                <option value="">Selecciona mes...</option>
+            </select>
+            <button class="btn-primary purple" onclick="cargarAsistenciaMes()">🔄 Actualizar</button>
+        </div>
+    </div>
+    
+    <!-- Resumen del mes -->
+    <div class="asistencia-resumen" id="asistencia-resumen">
+        <div class="asistencia-stat">
+            <span class="numero" id="asistencia-total-sesiones">0</span>
+            <span class="label">Sesiones del mes</span>
+        </div>
+        <div class="asistencia-stat">
+            <span class="numero" id="asistencia-promedio">0%</span>
+            <span class="label">Asistencia media</span>
+        </div>
+    </div>
+    
+    <!-- Tabla de jugadores -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Asistencia por Jugador</h3>
+        </div>
+        <div class="card-body" style="overflow-x: auto;">
+            <table class="stats-tabla asistencia-tabla">
+                <thead>
+                    <tr>
+                        <th>Jugador</th>
+                        <th>Sesiones</th>
+                        <th>Asistencias</th>
+                        <th>%</th>
+                        <th>Peso Prom.</th>
+                        <th>Wellness Prom.</th>
+                        <th>Muscular Prom.</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="asistencia-tabla-body">
+                    <tr><td colspan="8" style="text-align:center; color:#9ca3af;">Selecciona un mes para ver datos</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
             <!-- Sub: Calendario -->
             <div id="planificador-calendario" class="vista-contenido">
                 <div class="calendario-container">

@@ -10055,7 +10055,7 @@ async function cargarSelectorMeses() {
     const hoy = new Date();
     for (let i = 0; i < 12; i++) {
         const fecha = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
-        const valor = fecha.toISOString().slice(0, 7);
+        const valor = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
         const nombreMes = fecha.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
         select.innerHTML += `<option value="${valor}" ${i === 0 ? 'selected' : ''}>${nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)}</option>`;
     }
@@ -10078,18 +10078,31 @@ async function cargarAsistenciaMes() {
     const tbody = document.getElementById('asistencia-tabla-body');
     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Cargando...</td></tr>';
     
-    try {
-        // Obtener sesiones del mes
+   try {
+    // Obtener club del usuario
+    const { data: clubData, error: errorClub } = await supabaseClient
+        .from('clubs')
+        .select('id')
+        .eq('wp_user_id', usuario.id)
+        .single();
+    
+    if (errorClub || !clubData) {
+        throw new Error('No se encontró el club');
+    }
+
+    // Obtener sesiones del mes
         const inicioMes = `${mes}-01`;
-        const finMes = `${mes}-31`;
-        
+        const [anio, mesNum] = mes.split('-').map(Number);
+const ultimoDia = new Date(anio, mesNum, 0).getDate();
+const finMes = `${mes}-${String(ultimoDia).padStart(2, '0')}`;
+        console.log('Buscando sesiones desde:', inicioMes, 'hasta:', finMes, 'club:', clubData.id);
         const { data: sesiones, error: errorSesiones } = await supabaseClient
             .from('training_sessions')
             .select('id, session_date')
             .eq('club_id', clubData.id)
             .gte('session_date', inicioMes)
             .lte('session_date', finMes)
-            .order('date', { ascending: true });
+            .order('session_date', { ascending: true });
         
         if (errorSesiones) throw errorSesiones;
         
@@ -10103,12 +10116,12 @@ async function cargarAsistenciaMes() {
         }
         
         // Obtener jugadores activos
-        const { data: jugadores, error: errorJugadores } = await supabaseClientClientClient
+        const { data: jugadores, error: errorJugadores } = await supabaseClient
             .from('players')
-            .select('id, name, number, photo_url, position')
+            .select('id, name, shirt_number, photo_url, position')
             .eq('club_id', clubData.id)
             .eq('status', 'available')
-            .order('number', { ascending: true });
+            .order('shirt_number', { ascending: true });
         
         if (errorJugadores) throw errorJugadores;
         
@@ -10119,7 +10132,7 @@ async function cargarAsistenciaMes() {
         
         // Obtener asistencias del mes
         const sesionIds = sesiones.map(s => s.id);
-        const { data: asistencias, error: errorAsist } = await supabaseClientClientClient
+        const { data: asistencias, error: errorAsist } = await supabaseClient
             .from('asistencia_sesiones')
             .select('*')
             .in('sesion_id', sesionIds);
@@ -10189,21 +10202,23 @@ async function cargarAsistenciaMes() {
 async function verDetalleJugador(jugadorId, nombreJugador) {
     const mes = asistenciaMesActual;
     const inicioMes = `${mes}-01`;
-    const finMes = `${mes}-31`;
+    const [anio, mesNum] = mes.split('-').map(Number);
+const ultimoDia = new Date(anio, mesNum, 0).getDate();
+const finMes = `${mes}-${String(ultimoDia).padStart(2, '0')}`;
     
     try {
         // Sesiones del mes
-        const { data: sesiones } = await supabaseClientClientClient
+        const { data: sesiones } = await supabaseClient
             .from('training_sessions')
             .select('id, name, date')
             .eq('club_id', clubData.id)
             .gte('date', inicioMes)
             .lte('date', finMes)
-            .order('date', { ascending: true });
+            .order('session_date', { ascending: true });
         
         // Asistencias del jugador
         const sesionIds = sesiones ? sesiones.map(s => s.id) : [];
-        const { data: asistencias } = await supabaseClientClientClient
+        const { data: asistencias } = await supabaseClient
             .from('asistencia_sesiones')
             .select('*')
             .eq('jugador_id', jugadorId)
@@ -10284,11 +10299,13 @@ async function verDetalleJugador(jugadorId, nombreJugador) {
 async function generarPDFJugador(jugadorId) {
     const mes = asistenciaMesActual;
     const inicioMes = `${mes}-01`;
-    const finMes = `${mes}-31`;
+    const [anio, mesNum] = mes.split('-').map(Number);
+const ultimoDia = new Date(anio, mesNum, 0).getDate();
+const finMes = `${mes}-${String(ultimoDia).padStart(2, '0')}`;
     
     try {
         // Datos del jugador
-        const { data: jugador } = await supabaseClientClientClient
+        const { data: jugador } = await supabaseClient
             .from('players')
             .select('*')
             .eq('id', jugadorId)
@@ -10300,18 +10317,18 @@ async function generarPDFJugador(jugadorId) {
         }
         
         // Sesiones del mes
-        const { data: sesiones } = await supabaseClientClientClient
+        const { data: sesiones } = await supabaseClient
             .from('training_sessions')
             .select('id, name, date')
             .eq('club_id', clubData.id)
             .gte('date', inicioMes)
             .lte('date', finMes)
-            .order('date', { ascending: true });
+            .order('session_date', { ascending: true });
         
         const sesionIds = sesiones ? sesiones.map(s => s.id) : [];
         
         // Asistencias
-        const { data: asistencias } = await supabaseClientClientClient
+        const { data: asistencias } = await supabaseClient
             .from('asistencia_sesiones')
             .select('*')
             .eq('jugador_id', jugadorId)

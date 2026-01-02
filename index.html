@@ -6495,9 +6495,9 @@ async function generarPDFAnalisis() {
             }
             
             try {
-                const { error } = await supabaseClient
-                    .from('training_sessions')
-                    .insert({
+                const { data: sesionCreada, error } = await supabaseClient
+    .from('training_sessions')
+    .insert({
                         club_id: clubId,
                         season_id: seasonId,
                         name: nombre,
@@ -6514,11 +6514,32 @@ async function generarPDFAnalisis() {
                         main_part: sesion.principal,
                         cool_down: sesion.enfriamiento,
                         players: obtenerJugadoresParaGuardar()
-                    });
+                    })
+.select('id')
+.single();
                 
-                if (error) throw error;
-                
-                alert('Sesion guardada correctamente');
+              if (error) throw error;
+
+// Guardar asistencia de jugadores seleccionados
+const jugadoresParaAsistencia = obtenerJugadoresParaGuardar();
+if (jugadoresParaAsistencia.length > 0 && sesionCreada?.id) {
+    const registrosAsistencia = jugadoresParaAsistencia.map(j => ({
+        sesion_id: sesionCreada.id,
+        jugador_id: j.player_id,
+        asistio: true,
+        motivo_ausencia: null,
+        peso: null,
+        wellness: null,
+        estado_muscular: null,
+        notas: null
+    }));
+    
+    await supabaseClient
+        .from('asistencia_sesiones')
+        .insert(registrosAsistencia);
+}
+
+alert('Sesion guardada correctamente');
                 limpiarSesion();
                 
             } catch (error) {
@@ -6589,8 +6610,9 @@ async function generarPDFAnalisis() {
                             </div>
                             <div class="sesion-card-actions">
                                 <button class="btn-cargar" onclick="cargarSesionEnEditor('${s.id}')">Cargar</button>
-                                <button class="btn-pdf-sesion" onclick="exportarSesionPDF('${s.id}')">PDF</button>
-                                <button class="btn-eliminar-sesion" onclick="eliminarSesion('${s.id}')">Eliminar</button>
+<button class="btn-asistencia" onclick="abrirModalAsistenciaSesion('${s.id}')">Asistencia</button>
+<button class="btn-pdf-sesion" onclick="exportarSesionPDF('${s.id}')">PDF</button>
+<button class="btn-eliminar-sesion" onclick="eliminarSesion('${s.id}')">Eliminar</button>
                             </div>
                         </div>
                     `;

@@ -4663,21 +4663,6 @@
 
 ---
 
-## Debería quedar así:
-```
-4632  </div>
-4633
-4634  <!-- Botón flotante de Asistencia -->
-4635  <button id="btn-asistencia" onclick="togglePanelAsistencia()" title="Asistencia y Bienestar">
-4636      <span>📋</span>
-4637  </button>
-4638
-4639  <style>
-4640  #btn-asistencia {
-       ... (el resto del CSS)
-4655  </style>
-4656
-4657  <script>
     <script>
         // ========== CONFIGURACIÓN ==========
         const API_BASE = 'https://toplidercoach.com/wp-json/toplider/v1';
@@ -10098,12 +10083,12 @@ async function cargarAsistenciaMes() {
         const inicioMes = `${mes}-01`;
         const finMes = `${mes}-31`;
         
-        const { data: sesiones, error: errorSesiones } = await supabase
+        const { data: sesiones, error: errorSesiones } = await supabaseClient
             .from('training_sessions')
-            .select('id, name, date')
+            .select('id, session_date')
             .eq('club_id', clubData.id)
-            .gte('date', inicioMes)
-            .lte('date', finMes)
+            .gte('session_date', inicioMes)
+            .lte('session_date', finMes)
             .order('date', { ascending: true });
         
         if (errorSesiones) throw errorSesiones;
@@ -10118,7 +10103,7 @@ async function cargarAsistenciaMes() {
         }
         
         // Obtener jugadores activos
-        const { data: jugadores, error: errorJugadores } = await supabase
+        const { data: jugadores, error: errorJugadores } = await supabaseClientClientClient
             .from('players')
             .select('id, name, number, photo_url, position')
             .eq('club_id', clubData.id)
@@ -10134,7 +10119,7 @@ async function cargarAsistenciaMes() {
         
         // Obtener asistencias del mes
         const sesionIds = sesiones.map(s => s.id);
-        const { data: asistencias, error: errorAsist } = await supabase
+        const { data: asistencias, error: errorAsist } = await supabaseClientClientClient
             .from('asistencia_sesiones')
             .select('*')
             .in('sesion_id', sesionIds);
@@ -10208,7 +10193,7 @@ async function verDetalleJugador(jugadorId, nombreJugador) {
     
     try {
         // Sesiones del mes
-        const { data: sesiones } = await supabase
+        const { data: sesiones } = await supabaseClientClientClient
             .from('training_sessions')
             .select('id, name, date')
             .eq('club_id', clubData.id)
@@ -10218,7 +10203,7 @@ async function verDetalleJugador(jugadorId, nombreJugador) {
         
         // Asistencias del jugador
         const sesionIds = sesiones ? sesiones.map(s => s.id) : [];
-        const { data: asistencias } = await supabase
+        const { data: asistencias } = await supabaseClientClientClient
             .from('asistencia_sesiones')
             .select('*')
             .eq('jugador_id', jugadorId)
@@ -10303,7 +10288,7 @@ async function generarPDFJugador(jugadorId) {
     
     try {
         // Datos del jugador
-        const { data: jugador } = await supabase
+        const { data: jugador } = await supabaseClientClientClient
             .from('players')
             .select('*')
             .eq('id', jugadorId)
@@ -10315,7 +10300,7 @@ async function generarPDFJugador(jugadorId) {
         }
         
         // Sesiones del mes
-        const { data: sesiones } = await supabase
+        const { data: sesiones } = await supabaseClientClientClient
             .from('training_sessions')
             .select('id, name, date')
             .eq('club_id', clubData.id)
@@ -10326,7 +10311,7 @@ async function generarPDFJugador(jugadorId) {
         const sesionIds = sesiones ? sesiones.map(s => s.id) : [];
         
         // Asistencias
-        const { data: asistencias } = await supabase
+        const { data: asistencias } = await supabaseClientClientClient
             .from('asistencia_sesiones')
             .select('*')
             .eq('jugador_id', jugadorId)

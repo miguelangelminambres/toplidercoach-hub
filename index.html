@@ -4667,6 +4667,7 @@
     <div class="modal-content modal-large">
         <div class="modal-header">
             <h3>📋 Registro de Asistencia y Bienestar</h3>
+<button type="button" onclick="mostrarGuiaEscalas()" style="background:#f59e0b;color:white;border:none;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;margin-right:10px;">❓ Guía de Escalas</button>
             <button class="modal-close" onclick="cerrarModalAsistenciaSesion()">&times;</button>
         </div>
         <div class="modal-body">
@@ -10179,7 +10180,62 @@ function toggleAsistencia(btn) {
         motivoSelect.value = '';
     }
 }
-
+// Mostrar guía de escalas
+function mostrarGuiaEscalas() {
+    const modalHTML = `
+        <div class="modal-overlay" onclick="if(event.target === this) this.remove()" style="z-index:1100;">
+            <div class="modal-content" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                    <h3 style="color:white;">📊 Guía de Escalas - Wellness y Daño Muscular</h3>
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()" style="color:white;">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <!-- WELLNESS -->
+                    <div style="margin-bottom:25px;">
+                        <h4 style="background:#10b981;color:white;padding:10px 15px;border-radius:8px;margin-bottom:12px;">
+                            💚 ESCALA DE WELLNESS (1-10)
+                        </h4>
+                        <p style="font-size:12px;color:#6b7280;margin-bottom:10px;">¿Cómo te sientes hoy para entrenar?</p>
+                        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                            <tr style="background:#fee2e2;"><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;width:50px;text-align:center;">1</td><td style="padding:8px;border:1px solid #e5e7eb;"><strong>KO total:</strong> "Hoy toca recuperar sí o sí."</td></tr>
+                            <tr style="background:#fee2e2;"><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;text-align:center;">2</td><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Muy bajo:</strong> "Cuerpo pesado, energía mínima."</td></tr>
+                            <tr style="background:#fef3c7;"><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;text-align:center;">3</td><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Bajo:</strong> "Voy en modo supervivencia."</td></tr>
+                            <tr style="background:#fef3c7;"><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;text-align:center;">4</td><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Justo:</strong> "Puedo, pero con cuidado."</td></tr>
+                            <tr style="background:#fef9c3;"><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;text-align:center;">5</td><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Normal:</strong> "Estoy ok, sin chispa."</td></tr>
+                            <tr style="background:#d1fae5;"><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;text-align:center;">6</td><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Bien:</strong> "Buenas sensaciones, ritmo estable."</td></tr>
+                            <tr style="background:#d1fae5;"><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;text-align:center;">7</td><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Muy bien:</strong> "Me noto suelto y con ganas."</td></tr>
+                            <tr style="background:#bbf7d0;"><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;text-align:center;">8</td><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Excelente:</strong> "Fuerte, rápido y concentrado."</td></tr>
+                            <tr style="background:#bbf7d0;"><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;text-align:center;">9</td><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Top:</strong> "Listo para apretar de verdad."</td></tr>
+                            <tr style="background:#86efac;"><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;text-align:center;">10</td><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Prime:</strong> "Día perfecto: voy volando."</td></tr>
+                        </table>
+                    </div>
+                    
+                    <!-- DAÑO MUSCULAR -->
+                    <div>
+                        <h4 style="background:#ef4444;color:white;padding:10px 15px;border-radius:8px;margin-bottom:12px;">
+                            💪 ESCALA DE DAÑO MUSCULAR (0-10)
+                        </h4>
+                        <p style="font-size:12px;color:#6b7280;margin-bottom:10px;">¿Cuánto daño muscular sientes?</p>
+                        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                            <tr style="background:#f0fdf4;"><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;width:50px;text-align:center;">0</td><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Descanso total:</strong> Recuperación completa / no entreno</td></tr>
+                            <tr style="background:#d1fae5;"><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;text-align:center;">1</td><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Sin daño:</strong> Sensación muy buena, carga muy alta OK</td></tr>
+                            <tr style="background:#d1fae5;"><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;text-align:center;">2</td><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Daño muy leve:</strong> Rigidez mínima, carga muy alta OK</td></tr>
+                            <tr style="background:#d1fae5;"><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;text-align:center;">3</td><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Daño leve:</strong> Agujetas suaves, carga muy alta OK</td></tr>
+                            <tr style="background:#fef9c3;"><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;text-align:center;">4</td><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Daño leve-moderado:</strong> Carga alta OK</td></tr>
+                            <tr style="background:#fef9c3;"><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;text-align:center;">5</td><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Daño normal:</strong> Carga alta OK</td></tr>
+                            <tr style="background:#fef3c7;"><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;text-align:center;">6</td><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Daño moderado:</strong> Se nota en gestos fuertes</td></tr>
+                            <tr style="background:#fed7aa;"><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;text-align:center;">7</td><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Daño alto:</strong> Dolor/tensión, limitar intensidad alta</td></tr>
+                            <tr style="background:#fecaca;"><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;text-align:center;">8</td><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Daño muy alto:</strong> Me limita claramente</td></tr>
+                            <tr style="background:#fca5a5;"><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;text-align:center;">9</td><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Daño extremo:</strong> Sensación de riesgo de lesión</td></tr>
+                            <tr style="background:#ef4444;color:white;"><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;text-align:center;">10</td><td style="padding:8px;border:1px solid #e5e7eb;"><strong>LESIÓN MUSCULAR:</strong> No apto para entrenar</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
 // Cerrar modal
 function cerrarModalAsistenciaSesion() {
     document.getElementById('modal-asistencia-sesion').style.display = 'none';

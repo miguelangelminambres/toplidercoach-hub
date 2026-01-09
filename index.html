@@ -7,6 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://toplidercoach.com/config.js"></script>
     <style>
         * {
@@ -3312,6 +3313,450 @@
     border-radius: 12px;
     font-size: 12px;
 }
+/* ========== DASHBOARD PRINCIPAL ========== */
+.dashboard-container {
+    padding: 25px;
+    max-width: 1400px;
+    margin: 0 auto;
+    background: #f0f2f5;
+    min-height: calc(100vh - 120px);
+}
+
+.dashboard-header {
+    margin-bottom: 25px;
+}
+
+.dashboard-header h2 {
+    font-size: 26px;
+    color: #1f2937;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dashboard-header p {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.dashboard-selector {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.dashboard-selector label {
+    font-weight: 600;
+    color: #374151;
+    font-size: 14px;
+}
+
+.dashboard-selector select {
+    padding: 10px 15px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 14px;
+    background: white;
+    cursor: pointer;
+    min-width: 200px;
+}
+
+.dashboard-selector select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+/* Grid principal del Dashboard */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+}
+
+@media (max-width: 1024px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Tarjetas del Dashboard */
+.dashboard-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.dashboard-card-header {
+    padding: 18px 22px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.dashboard-card-header h3 {
+    font-size: 16px;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+}
+
+.dashboard-card-header .icon {
+    font-size: 20px;
+}
+
+.dashboard-card-body {
+    padding: 22px;
+}
+
+/* Stats Grid - Tarjetas de resumen */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.stat-card {
+    background: white;
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 3px 15px rgba(0,0,0,0.06);
+    border-left: 4px solid #e5e7eb;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 25px rgba(0,0,0,0.1);
+}
+
+.stat-card.victorias { border-left-color: #10b981; }
+.stat-card.empates { border-left-color: #f59e0b; }
+.stat-card.derrotas { border-left-color: #ef4444; }
+.stat-card.goles { border-left-color: #3b82f6; }
+.stat-card.sesiones { border-left-color: #8b5cf6; }
+.stat-card.asistencia { border-left-color: #06b6d4; }
+.stat-card.wellness { border-left-color: #22c55e; }
+.stat-card.alertas { border-left-color: #f97316; }
+
+.stat-card .numero {
+    font-size: 36px;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1;
+}
+
+.stat-card .label {
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 8px;
+    font-weight: 500;
+}
+
+.stat-card.victorias .numero { color: #10b981; }
+.stat-card.empates .numero { color: #f59e0b; }
+.stat-card.derrotas .numero { color: #ef4444; }
+.stat-card.goles .numero { color: #3b82f6; }
+
+/* Últimos partidos badges */
+.ultimos-partidos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.partido-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 16px;
+    border-radius: 12px;
+    min-width: 70px;
+    transition: transform 0.2s;
+    cursor: pointer;
+}
+
+.partido-badge:hover {
+    transform: scale(1.05);
+}
+
+.partido-badge.victoria {
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    border: 2px solid #22c55e;
+}
+
+.partido-badge.empate {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 2px solid #f59e0b;
+}
+
+.partido-badge.derrota {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border: 2px solid #ef4444;
+}
+
+.partido-badge .resultado {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.partido-badge .rival {
+    font-size: 10px;
+    color: #6b7280;
+    margin-top: 4px;
+    max-width: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.partido-badge .fecha {
+    font-size: 9px;
+    color: #9ca3af;
+    margin-top: 2px;
+}
+
+/* Gráficos */
+.chart-container {
+    position: relative;
+    height: 220px;
+    margin: 15px 0;
+}
+
+.chart-container.donut {
+    height: 200px;
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+/* Leyenda del gráfico donut */
+.chart-legend {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #4b5563;
+}
+
+.legend-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+}
+
+.legend-color.victoria { background: #22c55e; }
+.legend-color.empate { background: #f59e0b; }
+.legend-color.derrota { background: #ef4444; }
+
+/* Sección de próximos eventos */
+.proximos-eventos {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.evento-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border-left: 4px solid #667eea;
+    transition: background 0.2s;
+}
+
+.evento-item:hover {
+    background: #f1f5f9;
+}
+
+.evento-item.partido {
+    border-left-color: #10b981;
+}
+
+.evento-item.sesion {
+    border-left-color: #f97316;
+}
+
+.evento-fecha {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 8px;
+    min-width: 55px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.evento-fecha .dia {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1;
+}
+
+.evento-fecha .mes {
+    font-size: 11px;
+    color: #6b7280;
+    text-transform: uppercase;
+}
+
+.evento-info {
+    flex: 1;
+}
+
+.evento-info .titulo {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 14px;
+}
+
+.evento-info .subtitulo {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 3px;
+}
+
+.evento-tipo {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.evento-tipo.partido {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.evento-tipo.sesion {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+/* Alertas de bienestar */
+.alertas-wellness {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.alerta-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    background: #fef2f2;
+    border-radius: 10px;
+    border-left: 3px solid #ef4444;
+}
+
+.alerta-item.warning {
+    background: #fffbeb;
+    border-left-color: #f59e0b;
+}
+
+.alerta-item .jugador-nombre {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 14px;
+}
+
+.alerta-item .alerta-detalle {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.alerta-item .valor {
+    margin-left: auto;
+    font-weight: 700;
+    font-size: 18px;
+    color: #ef4444;
+}
+
+.alerta-item.warning .valor {
+    color: #f59e0b;
+}
+
+/* Sin datos */
+.sin-datos {
+    text-align: center;
+    padding: 40px 20px;
+    color: #9ca3af;
+}
+
+.sin-datos .icono {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.sin-datos p {
+    font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .dashboard-container {
+        padding: 15px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .stat-card {
+        padding: 15px 10px;
+    }
+    
+    .stat-card .numero {
+        font-size: 28px;
+    }
+    
+    .partido-badge {
+        padding: 10px 12px;
+        min-width: 60px;
+    }
+    
+    .partido-badge .resultado {
+        font-size: 16px;
+    }
+}
+
+/* Color especial para tab Dashboard */
+.main-tab.dashboard.active {
+    color: #667eea !important;
+    border-bottom-color: #667eea !important;
+}
+
+.main-tab.dashboard:hover {
+    color: #667eea !important;
+}
     </style>
 </head>
 <body>
@@ -3351,7 +3796,10 @@
         
        <!-- Tabs Principales -->
 <div class="main-tabs">
-    <button class="main-tab planificador active" onclick="cambiarModulo('planificador', this)">
+    <button class="main-tab dashboard active" onclick="cambiarModulo('dashboard', this)">
+        📊 Dashboard
+    </button>
+    <button class="main-tab planificador" onclick="cambiarModulo('planificador', this)">
         Planificador
     </button>
     <button class="main-tab matchstats" onclick="cambiarModulo('matchstats', this)">
@@ -3364,9 +3812,159 @@
         Mi Club
     </button>
 </div>
+      <!-- ==================== MODULO: DASHBOARD ==================== -->
+<div id="modulo-dashboard" class="vista-modulo active">
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <h2>📊 Dashboard del Equipo</h2>
+            <p>Visualiza victorias, derrotas, goles, entrenamientos y bienestar de tu equipo de un vistazo</p>
+            <div class="dashboard-selector">
+                <label>Temporada:</label>
+                <select id="dashboard-temporada" onchange="cargarDashboard()">
+                    <option value="">Todas las temporadas</option>
+                </select>
+            </div>
+        </div>
         
+        <!-- Stats principales -->
+        <div class="stats-grid" id="dashboard-stats">
+            <div class="stat-card victorias">
+                <div class="numero" id="dash-victorias">-</div>
+                <div class="label">Victorias</div>
+            </div>
+            <div class="stat-card empates">
+                <div class="numero" id="dash-empates">-</div>
+                <div class="label">Empates</div>
+            </div>
+            <div class="stat-card derrotas">
+                <div class="numero" id="dash-derrotas">-</div>
+                <div class="label">Derrotas</div>
+            </div>
+            <div class="stat-card goles">
+                <div class="numero" id="dash-goles">-</div>
+                <div class="label">Goles a favor</div>
+            </div>
+        </div>
+        
+        <!-- Grid de contenido -->
+        <div class="dashboard-grid">
+            
+            <!-- CARD: Últimos partidos -->
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <h3><span class="icon">⚽</span> Últimos 10 Partidos</h3>
+                </div>
+                <div class="dashboard-card-body">
+                    <div class="ultimos-partidos" id="dash-ultimos-partidos">
+                        <div class="sin-datos">
+                            <div class="icono">📅</div>
+                            <p>Cargando partidos...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- CARD: Distribución de resultados -->
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <h3><span class="icon">📈</span> Distribución de Resultados</h3>
+                </div>
+                <div class="dashboard-card-body">
+                    <div class="chart-container donut">
+                        <canvas id="chart-resultados"></canvas>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-color victoria"></div>
+                            <span id="legend-victorias">Victorias: 0</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color empate"></div>
+                            <span id="legend-empates">Empates: 0</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color derrota"></div>
+                            <span id="legend-derrotas">Derrotas: 0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- CARD: Goles a favor vs en contra -->
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <h3><span class="icon">🥅</span> Goles a Favor vs En Contra</h3>
+                </div>
+                <div class="dashboard-card-body">
+                    <div class="chart-container">
+                        <canvas id="chart-goles"></canvas>
+                    </div>
+                    <div style="text-align:center;margin-top:10px;">
+                        <span style="font-size:14px;color:#6b7280;">Diferencia: </span>
+                        <span id="dash-diferencia-goles" style="font-size:18px;font-weight:700;color:#1f2937;">+0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- CARD: Resumen entrenamientos -->
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <h3><span class="icon">🏃</span> Entrenamientos del Mes</h3>
+                </div>
+                <div class="dashboard-card-body">
+                    <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 0;">
+                        <div class="stat-card sesiones" style="padding: 15px;">
+                            <div class="numero" id="dash-sesiones" style="font-size: 28px;">-</div>
+                            <div class="label">Sesiones</div>
+                        </div>
+                        <div class="stat-card asistencia" style="padding: 15px;">
+                            <div class="numero" id="dash-asistencia-media" style="font-size: 28px;">-%</div>
+                            <div class="label">Asistencia Media</div>
+                        </div>
+                        <div class="stat-card wellness" style="padding: 15px;">
+                            <div class="numero" id="dash-wellness-medio" style="font-size: 28px;">-</div>
+                            <div class="label">Wellness Medio</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- CARD: Próximos eventos -->
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <h3><span class="icon">📅</span> Próximos Eventos</h3>
+                </div>
+                <div class="dashboard-card-body">
+                    <div class="proximos-eventos" id="dash-proximos-eventos">
+                        <div class="sin-datos">
+                            <div class="icono">📅</div>
+                            <p>Cargando eventos...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- CARD: Alertas de bienestar -->
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <h3><span class="icon">⚠️</span> Alertas de Bienestar</h3>
+                </div>
+                <div class="dashboard-card-body">
+                    <div class="alertas-wellness" id="dash-alertas-wellness">
+                        <div class="sin-datos">
+                            <div class="icono">✅</div>
+                            <p>Sin alertas - Todo el equipo está bien</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>  
         <!-- ==================== MODULO: PLANIFICADOR ==================== -->
-        <div id="modulo-planificador" class="vista-modulo active">
+        <div id="modulo-planificador" class="vista-modulo">
             <div class="sub-tabs planificador-subtabs">
                 <button class="sub-tab active" onclick="cambiarSubTab('planificador', 'crear', this)">Crear Sesion</button>
                 <button class="sub-tab" onclick="cambiarSubTab('planificador', 'mis-sesiones', this)">Mis Sesiones</button>
@@ -4538,7 +5136,11 @@
                 <button class="modal-close" onclick="cerrarModalSeccion()">&times;</button>
             </div>
             <div class="modal-body" style="text-align: center;">
-                <p style="margin-bottom: 20px; color: #6b7280;">¿A que parte de la sesion quieres añadir este ejercicio?</p>
+            <div style="margin-bottom: 20px; padding: 15px; background: #f8fafc; border-radius: 10px;">
+                <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px;">⏱️ Duración (minutos)</label>
+                <input type="number" id="ejercicio-duracion-input" value="15" min="1" max="120" style="width: 100px; padding: 10px; border: 2px solid #7c3aed; border-radius: 8px; font-size: 18px; font-weight: 600; text-align: center;">
+            </div>
+            <p style="margin-bottom: 15px; color: #6b7280; font-size: 14px;">¿A qué parte de la sesión?</p>
                 <div style="display: flex; flex-direction: column; gap: 10px;">
                     <button class="btn-primary" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);" onclick="seleccionarSeccion('calentamiento')">Calentamiento</button>
                     <button class="btn-primary" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);" onclick="seleccionarSeccion('principal')">Parte Principal</button>
@@ -4547,6 +5149,22 @@
             </div>
         </div>
     </div>
+    <!-- ==================== MODAL: OPCIONES PDF SESIÓN ==================== -->
+<div id="modal-pdf-sesion" class="modal-overlay" style="display: none;" onclick="cerrarModalPDFSesion(event)">
+    <div class="modal-content" style="max-width: 400px;" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3>Descargar PDF de Sesión</h3>
+            <button class="modal-close" onclick="cerrarModalPDFSesion()">&times;</button>
+        </div>
+        <div class="modal-body" style="text-align: center;">
+            <p style="margin-bottom: 20px; color: #6b7280;">¿Cómo quieres el PDF?</p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button class="btn-primary purple" onclick="descargarPDFSesion(true)">📄 PDF con títulos de ejercicios</button>
+                <button class="btn-primary" style="background: linear-gradient(135deg, #059669 0%, #047857 100%);" onclick="descargarPDFSesion(false)">📄 PDF sin títulos (limpio)</button>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- ==================== MODAL: FICHA JUGADOR STATS ==================== -->
 <div id="modal-ficha-jugador" class="modal-overlay" style="display: none;" onclick="cerrarModalFichaJugador(event)">
     <div class="modal-content" style="max-width: 800px;" onclick="event.stopPropagation()">
@@ -6063,7 +6681,10 @@ async function generarPDFAnalisis() {
             document.getElementById(`modulo-${modulo}`).classList.add('active');
             
             // Cargar datos según módulo
-            if (modulo === 'matchstats') {
+            if (modulo === 'dashboard') {
+    cargarSelectorTemporadasDashboard();
+    cargarDashboard();
+} else if (modulo === 'matchstats') {
                 cargarPartidos();
             } else if (modulo === 'config') {
                 cargarDatosClub();
@@ -6394,7 +7015,7 @@ async function generarPDFAnalisis() {
             const ejercicioParaSesion = {
                 id: ejercicioSeleccionado.id,
                 titulo: ejercicioSeleccionado.titulo,
-                duracion: ejercicioSeleccionado.duracion || 10,
+                duracion: parseInt(document.getElementById('ejercicio-duracion-input').value) || 15,
                 imagen: ejercicioSeleccionado.imagen || '',
                 objetivo: limpiarHTML(ejercicioSeleccionado.objetivo),
                 entrenador: ejercicioSeleccionado.entrenador || '',
@@ -6632,7 +7253,7 @@ alert('Sesion guardada correctamente');
                             <div class="sesion-card-actions">
                                 <button class="btn-cargar" onclick="cargarSesionEnEditor('${s.id}')">Cargar</button>
 <button class="btn-asistencia" onclick="abrirModalAsistenciaSesion('${s.id}')">Asistencia</button>
-<button class="btn-pdf-sesion" onclick="exportarSesionPDF('${s.id}')">PDF</button>
+<button class="btn-pdf-sesion" onclick="abrirModalPDFSesion('${s.id}')">PDF</button>
 <button class="btn-eliminar-sesion" onclick="eliminarSesion('${s.id}')">Eliminar</button>
                             </div>
                         </div>
@@ -6685,8 +7306,24 @@ alert('Sesion guardada correctamente');
             await supabaseClient.from('training_sessions').delete().eq('id', id);
             cargarMisSesiones();
         }
-        
-async function exportarSesionPDF(id) {
+        let sesionPDFId = null;
+
+function abrirModalPDFSesion(id) {
+    sesionPDFId = id;
+    document.getElementById('modal-pdf-sesion').style.display = 'flex';
+}
+
+function cerrarModalPDFSesion(event) {
+    if (!event || event.target.classList.contains('modal-overlay')) {
+        document.getElementById('modal-pdf-sesion').style.display = 'none';
+    }
+}
+
+function descargarPDFSesion(conTitulos) {
+    cerrarModalPDFSesion();
+    exportarSesionPDF(sesionPDFId, conTitulos);
+}
+async function exportarSesionPDF(id, conTitulos = true) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
@@ -6863,7 +7500,7 @@ if (s.players && s.players.length > 0) {
                         doc.setTextColor(0, 0, 0);
                         doc.setFontSize(9);
                         doc.setFont('helvetica', 'bold');
-                        doc.text(`${i + 1}. ${ej.titulo}`, 12, y + 5);
+                        doc.text(conTitulos ? `${i + 1}. ${ej.titulo}` : `Ejercicio ${i + 1}`, 12, y + 5);
                         doc.setFont('helvetica', 'normal');
                         doc.setTextColor(100, 100, 100);
                         doc.text(`${ej.duracion} min`, 195, y + 5, { align: 'right' });
@@ -10984,6 +11621,494 @@ cambiarSubTab = function(modulo, subtab, btn) {
         cargarAsistenciaMes();
     }
 };
+// ========== DASHBOARD PRINCIPAL ==========
+let chartResultados = null;
+let chartGoles = null;
+
+// Cargar selector de temporadas del dashboard
+async function cargarSelectorTemporadasDashboard() {
+    const select = document.getElementById('dashboard-temporada');
+    if (!select) return;
+    
+    const { data: temporadas } = await supabaseClient
+        .from('seasons')
+        .select('*')
+        .eq('club_id', clubId)
+        .order('start_date', { ascending: false });
+    
+    select.innerHTML = '<option value="">Todas las temporadas</option>';
+    
+    if (temporadas) {
+        temporadas.forEach(t => {
+            const option = document.createElement('option');
+            option.value = t.id;
+            option.textContent = t.name;
+            if (t.id === seasonId) option.selected = true;
+            select.appendChild(option);
+        });
+    }
+}
+
+// Función principal para cargar todo el dashboard
+async function cargarDashboard() {
+    await cargarDatosPartidosDashboard();
+    await cargarDatosEntrenamientosDashboard();
+    await cargarProximosEventos();
+    await cargarAlertasWellness();
+}
+
+// Cargar datos de partidos
+async function cargarDatosPartidosDashboard() {
+    const tempSelect = document.getElementById('dashboard-temporada');
+    const tempId = tempSelect?.value || seasonId;
+    
+    let query = supabaseClient
+        .from('matches')
+        .select('*')
+        .eq('club_id', clubId)
+        .order('match_date', { ascending: false });
+    
+    if (tempId) {
+        query = query.eq('season_id', tempId);
+    }
+    
+    const { data: partidos } = await query;
+    
+    if (!partidos || partidos.length === 0) {
+        mostrarSinDatosPartidos();
+        return;
+    }
+    
+    // Calcular estadísticas
+    const partidosJugados = partidos.filter(p => p.result);
+    const victorias = partidosJugados.filter(p => p.result === 'win').length;
+    const empates = partidosJugados.filter(p => p.result === 'draw').length;
+    const derrotas = partidosJugados.filter(p => p.result === 'loss').length;
+    const golesFavor = partidosJugados.reduce((sum, p) => sum + (p.team_goals || 0), 0);
+    const golesContra = partidosJugados.reduce((sum, p) => sum + (p.opponent_goals || 0), 0);
+    
+    // Actualizar tarjetas
+    document.getElementById('dash-victorias').textContent = victorias;
+    document.getElementById('dash-empates').textContent = empates;
+    document.getElementById('dash-derrotas').textContent = derrotas;
+    document.getElementById('dash-goles').textContent = golesFavor;
+    
+    // Diferencia de goles
+    const diferencia = golesFavor - golesContra;
+    const difEl = document.getElementById('dash-diferencia-goles');
+    difEl.textContent = (diferencia >= 0 ? '+' : '') + diferencia;
+    difEl.style.color = diferencia >= 0 ? '#22c55e' : '#ef4444';
+    
+    // Últimos 10 partidos
+    mostrarUltimosPartidos(partidosJugados.slice(0, 10));
+    
+    // Gráfico de resultados (donut)
+    crearGraficoResultados(victorias, empates, derrotas);
+    
+    // Gráfico de goles
+    crearGraficoGoles(golesFavor, golesContra);
+    
+    // Leyenda
+    document.getElementById('legend-victorias').textContent = `Victorias: ${victorias} (${calcularPorcentaje(victorias, partidosJugados.length)}%)`;
+    document.getElementById('legend-empates').textContent = `Empates: ${empates} (${calcularPorcentaje(empates, partidosJugados.length)}%)`;
+    document.getElementById('legend-derrotas').textContent = `Derrotas: ${derrotas} (${calcularPorcentaje(derrotas, partidosJugados.length)}%)`;
+}
+
+function calcularPorcentaje(valor, total) {
+    if (total === 0) return 0;
+    return Math.round((valor / total) * 100);
+}
+
+function mostrarSinDatosPartidos() {
+    document.getElementById('dash-victorias').textContent = '0';
+    document.getElementById('dash-empates').textContent = '0';
+    document.getElementById('dash-derrotas').textContent = '0';
+    document.getElementById('dash-goles').textContent = '0';
+    document.getElementById('dash-diferencia-goles').textContent = '+0';
+    
+    document.getElementById('dash-ultimos-partidos').innerHTML = `
+        <div class="sin-datos">
+            <div class="icono">⚽</div>
+            <p>No hay partidos registrados</p>
+        </div>
+    `;
+    
+    crearGraficoResultados(0, 0, 0);
+    crearGraficoGoles(0, 0);
+}
+
+function mostrarUltimosPartidos(partidos) {
+    const container = document.getElementById('dash-ultimos-partidos');
+    
+    if (!partidos || partidos.length === 0) {
+        container.innerHTML = `
+            <div class="sin-datos">
+                <div class="icono">⚽</div>
+                <p>No hay partidos jugados</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = partidos.map(p => {
+        const esLocal = p.home_away === 'home';
+        const gF = p.team_goals || 0;
+        const gC = p.opponent_goals || 0;
+        const resultado = esLocal ? `${gF}-${gC}` : `${gC}-${gF}`;
+        const clase = p.result === 'win' ? 'victoria' : p.result === 'draw' ? 'empate' : 'derrota';
+        const fecha = new Date(p.match_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+        
+        return `
+            <div class="partido-badge ${clase}" onclick="verPartido('${p.id}')" title="${p.opponent}">
+                <div class="resultado">${resultado}</div>
+                <div class="rival">${esLocal ? 'vs' : '@'} ${p.opponent.substring(0, 10)}</div>
+                <div class="fecha">${fecha}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function crearGraficoResultados(victorias, empates, derrotas) {
+    const ctx = document.getElementById('chart-resultados');
+    if (!ctx) return;
+    
+    // Destruir gráfico anterior si existe
+    if (chartResultados) {
+        chartResultados.destroy();
+    }
+    
+    const total = victorias + empates + derrotas;
+    
+    if (total === 0) {
+        chartResultados = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Sin partidos'],
+                datasets: [{
+                    data: [1],
+                    backgroundColor: ['#e5e7eb'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+        return;
+    }
+    
+    chartResultados = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Victorias', 'Empates', 'Derrotas'],
+            datasets: [{
+                data: [victorias, empates, derrotas],
+                backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'],
+                borderWidth: 0,
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const value = context.raw;
+                            const percentage = Math.round((value / total) * 100);
+                            return `${context.label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function crearGraficoGoles(favor, contra) {
+    const ctx = document.getElementById('chart-goles');
+    if (!ctx) return;
+    
+    // Destruir gráfico anterior si existe
+    if (chartGoles) {
+        chartGoles.destroy();
+    }
+    
+    chartGoles = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['A favor', 'En contra', 'Diferencia'],
+            datasets: [{
+                data: [favor, contra, favor - contra],
+                backgroundColor: ['#22c55e', '#ef4444', favor >= contra ? '#3b82f6' : '#f97316'],
+                borderRadius: 8,
+                barThickness: 50
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.raw} goles`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: '#f0f0f0'
+                    }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+}
+
+// Cargar datos de entrenamientos del mes actual
+async function cargarDatosEntrenamientosDashboard() {
+    const ahora = new Date();
+    const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1).toISOString().split('T')[0];
+    const finMes = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0).toISOString().split('T')[0];
+    
+    // Sesiones del mes
+    const { data: sesiones } = await supabaseClient
+        .from('training_sessions')
+        .select('id')
+        .eq('club_id', clubId)
+        .gte('session_date', inicioMes)
+        .lte('session_date', finMes);
+    
+    const numSesiones = sesiones?.length || 0;
+    document.getElementById('dash-sesiones').textContent = numSesiones;
+    
+    if (numSesiones === 0) {
+        document.getElementById('dash-asistencia-media').textContent = '-';
+        document.getElementById('dash-wellness-medio').textContent = '-';
+        return;
+    }
+    
+    // Asistencia del mes
+    const sesionIds = sesiones.map(s => s.id);
+    const { data: asistencias } = await supabaseClient
+        .from('attendance')
+        .select('asistio, wellness')
+        .in('sesion_id', sesionIds);
+    
+    if (asistencias && asistencias.length > 0) {
+        const totalRegistros = asistencias.length;
+        const asistieron = asistencias.filter(a => a.asistio).length;
+        const porcentaje = Math.round((asistieron / totalRegistros) * 100);
+        document.getElementById('dash-asistencia-media').textContent = porcentaje + '%';
+        
+        // Wellness medio
+        const wellnessValues = asistencias.filter(a => a.wellness).map(a => a.wellness);
+        if (wellnessValues.length > 0) {
+            const wellnessMedio = (wellnessValues.reduce((a, b) => a + b, 0) / wellnessValues.length).toFixed(1);
+            document.getElementById('dash-wellness-medio').textContent = wellnessMedio;
+        } else {
+            document.getElementById('dash-wellness-medio').textContent = '-';
+        }
+    } else {
+        document.getElementById('dash-asistencia-media').textContent = '-';
+        document.getElementById('dash-wellness-medio').textContent = '-';
+    }
+}
+
+// Cargar próximos eventos (partidos y sesiones)
+async function cargarProximosEventos() {
+    const container = document.getElementById('dash-proximos-eventos');
+    const hoy = new Date().toISOString().split('T')[0];
+    
+    // Próximos partidos
+    const { data: partidos } = await supabaseClient
+        .from('matches')
+        .select('*')
+        .eq('club_id', clubId)
+        .gte('match_date', hoy)
+        .is('result', null)
+        .order('match_date')
+        .limit(3);
+    
+    // Próximas sesiones
+    const { data: sesiones } = await supabaseClient
+        .from('training_sessions')
+        .select('*')
+        .eq('club_id', clubId)
+        .gte('session_date', hoy)
+        .order('session_date')
+        .limit(3);
+    
+    // Combinar y ordenar
+    const eventos = [];
+    
+    (partidos || []).forEach(p => {
+        eventos.push({
+            tipo: 'partido',
+            fecha: p.match_date,
+            titulo: `vs ${p.opponent}`,
+            subtitulo: p.home_away === 'home' ? 'Local' : 'Visitante',
+            hora: p.kick_off_time ? p.kick_off_time.slice(0, 5) : ''
+        });
+    });
+    
+    (sesiones || []).forEach(s => {
+        eventos.push({
+            tipo: 'sesion',
+            fecha: s.session_date,
+            titulo: s.name,
+            subtitulo: s.objective || 'Entrenamiento',
+            hora: s.hora_inicio || ''
+        });
+    });
+    
+    // Ordenar por fecha
+    eventos.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+    
+    // Mostrar solo los 5 primeros
+    const eventosLimitados = eventos.slice(0, 5);
+    
+    if (eventosLimitados.length === 0) {
+        container.innerHTML = `
+            <div class="sin-datos">
+                <div class="icono">📅</div>
+                <p>No hay eventos próximos programados</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = eventosLimitados.map(e => {
+        const fecha = new Date(e.fecha);
+        const dia = fecha.getDate();
+        const mes = fecha.toLocaleDateString('es-ES', { month: 'short' }).toUpperCase();
+        
+        return `
+            <div class="evento-item ${e.tipo}">
+                <div class="evento-fecha">
+                    <div class="dia">${dia}</div>
+                    <div class="mes">${mes}</div>
+                </div>
+                <div class="evento-info">
+                    <div class="titulo">${e.titulo}</div>
+                    <div class="subtitulo">${e.subtitulo}${e.hora ? ' - ' + e.hora : ''}</div>
+                </div>
+                <div class="evento-tipo ${e.tipo}">${e.tipo === 'partido' ? '⚽ Partido' : '🏃 Entreno'}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Cargar alertas de bienestar (wellness bajo o daño muscular alto)
+async function cargarAlertasWellness() {
+    const container = document.getElementById('dash-alertas-wellness');
+    
+    // Obtener la última sesión con asistencia
+    const { data: ultimaSesion } = await supabaseClient
+        .from('training_sessions')
+        .select('id, session_date, name')
+        .eq('club_id', clubId)
+        .order('session_date', { ascending: false })
+        .limit(1)
+        .single();
+    
+    if (!ultimaSesion) {
+        container.innerHTML = `
+            <div class="sin-datos">
+                <div class="icono">✅</div>
+                <p>Sin datos de bienestar recientes</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Obtener asistencia de la última sesión
+    const { data: asistencias } = await supabaseClient
+        .from('attendance')
+        .select(`
+            wellness,
+            estado_muscular,
+            jugador_id,
+            players (name, position)
+        `)
+        .eq('sesion_id', ultimaSesion.id)
+        .eq('asistio', true);
+    
+    if (!asistencias || asistencias.length === 0) {
+        container.innerHTML = `
+            <div class="sin-datos">
+                <div class="icono">✅</div>
+                <p>Sin registros de bienestar en la última sesión</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Filtrar alertas
+    const alertas = [];
+    
+    asistencias.forEach(a => {
+        if (a.wellness && a.wellness <= 5) {
+            alertas.push({
+                jugador: a.players?.name || 'Jugador',
+                tipo: 'Wellness bajo',
+                valor: a.wellness,
+                clase: a.wellness <= 3 ? '' : 'warning'
+            });
+        }
+        if (a.estado_muscular && a.estado_muscular >= 6) {
+            alertas.push({
+                jugador: a.players?.name || 'Jugador',
+                tipo: 'Daño muscular',
+                valor: a.estado_muscular,
+                clase: a.estado_muscular >= 8 ? '' : 'warning'
+            });
+        }
+    });
+    
+    if (alertas.length === 0) {
+        container.innerHTML = `
+            <div class="sin-datos">
+                <div class="icono">✅</div>
+                <p>¡Todo el equipo está en buenas condiciones!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Ordenar: más graves primero
+    alertas.sort((a, b) => {
+        if (a.clase === '' && b.clase === 'warning') return -1;
+        if (a.clase === 'warning' && b.clase === '') return 1;
+        return 0;
+    });
+    
+    container.innerHTML = alertas.slice(0, 5).map(a => `
+        <div class="alerta-item ${a.clase}">
+            <div>
+                <div class="jugador-nombre">${a.jugador}</div>
+                <div class="alerta-detalle">${a.tipo}</div>
+            </div>
+            <div class="valor">${a.valor}</div>
+        </div>
+    `).join('');
+}
+
 </script>
 </body>
 </html>

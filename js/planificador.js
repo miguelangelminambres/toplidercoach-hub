@@ -93,7 +93,7 @@ registrarSubTab('planificador', 'calendario', cargarCalendarioSesiones);
             try {
                const { data: jugadores, error } = await supabaseClient
                     .from('season_players')
-                    .select('id, player_id, shirt_number, players(id, name)')
+                    .select('id, player_id, shirt_number, players(id, name, photo_url)')
                     .eq('season_id', seasonId)
                     .order('shirt_number');
                 
@@ -121,8 +121,14 @@ registrarSubTab('planificador', 'calendario', cargarCalendarioSesiones);
             grid.innerHTML = jugadoresPlantilla.map(sp => {
                 const jugador = sp.players;
                 const seleccionado = jugadoresSeleccionados.some(id => String(id) === String(sp.id));
+                const foto = jugador?.photo_url;
+                const inicial = jugador?.name ? jugador.name.charAt(0).toUpperCase() : '?';
                 return `
                     <div class="jugador-check ${seleccionado ? 'selected' : ''}" data-id="${sp.id}">
+                        <div class="jugador-foto-mini">
+                            ${foto ? `<img src="${foto}" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">` 
+                                   : `<span class="jugador-inicial" style="width:36px;height:36px;border-radius:50%;background:#6b21a8;color:white;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;">${inicial}</span>`}
+                        </div>
                         <span class="dorsal">${sp.shirt_number || '?'}</span>
                         <span class="nombre">${jugador?.name || 'Sin nombre'}</span>
                     </div>

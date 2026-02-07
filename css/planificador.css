@@ -337,10 +337,10 @@
         .jugador-check {
             display: flex;
             align-items: center;
-            gap: 4px;
-            padding: 4px 6px;
+            gap: 6px;
+            padding: 5px 8px 5px 5px;
             background: white;
-            border-radius: 6px;
+            border-radius: 10px;
             border: 2px solid #e5e7eb;
             cursor: pointer;
             transition: all 0.2s;
@@ -359,6 +359,10 @@
             background: #22c55e;
         }
         
+        .jugador-check .jugador-foto-mini {
+            flex-shrink: 0;
+        }
+        
         .jugador-check .dorsal {
             background: #7c3aed;
             color: white;
@@ -374,7 +378,7 @@
         }
         
         .jugador-check .nombre {
-            font-size: 10px;
+            font-size: 11px;
             color: #374151;
             white-space: nowrap;
             overflow: hidden;

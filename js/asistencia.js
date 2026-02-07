@@ -225,8 +225,7 @@ async function guardarAsistenciaSesion() {
         alert('Error al guardar: ' + error.message);
     }
 }
-// Variables globales asistencia
-let asistenciaMesActual = new Date().toISOString().slice(0, 7); // YYYY-MM
+// Variables globales asistencia (declarada en core.js)
 
 // Cargar selector de meses
 async function cargarSelectorMeses() {

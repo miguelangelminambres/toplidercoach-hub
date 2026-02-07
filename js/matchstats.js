@@ -209,13 +209,19 @@ if (hasta) {
                             <div class="partido-card-body">
                                 <div class="partido-equipos">
                                     <div class="equipo">
+                                        <div class="equipo-escudo">${esLocal 
+                                            ? (clubData?.logo_url ? `<img src="${clubData.logo_url}" alt="" style="width:32px;height:32px;object-fit:contain;">` : '🏠') 
+                                            : (p.opponent_logo ? `<img src="${p.opponent_logo}" alt="" style="width:32px;height:32px;object-fit:contain;">` : '🏟️')}</div>
                                         <div class="equipo-nombre">${esLocal ? (clubData?.name || 'Mi Equipo') : p.opponent}</div>
-                                        <div class="equipo-tipo">${esLocal ? 'Local' : 'Visitante'}</div>
+                                        <div class="equipo-tipo">Local</div>
                                     </div>
                                     ${resultadoHTML}
                                     <div class="equipo">
+                                        <div class="equipo-escudo">${esLocal 
+                                            ? (p.opponent_logo ? `<img src="${p.opponent_logo}" alt="" style="width:32px;height:32px;object-fit:contain;">` : '🏟️') 
+                                            : (clubData?.logo_url ? `<img src="${clubData.logo_url}" alt="" style="width:32px;height:32px;object-fit:contain;">` : '🏠')}</div>
                                         <div class="equipo-nombre">${esLocal ? p.opponent : (clubData?.name || 'Mi Equipo')}</div>
-                                        <div class="equipo-tipo">${esLocal ? 'Visitante' : 'Local'}</div>
+                                        <div class="equipo-tipo">Visitante</div>
                                     </div>
                                 </div>
                                 ${badgeHTML}
@@ -282,6 +288,11 @@ if (p.video_url) {
     actualizarPreviewVideo();
 }
                     
+                    // Cargar escudo rival
+                    if (p.opponent_logo) {
+                        cargarEscudoRival(p.opponent_logo);
+                    }
+
                     // Cargar convocados
 if (p.convocados && Array.isArray(p.convocados)) {
     convocadosPartido = p.convocados.map(c => String(c.id));
@@ -660,6 +671,14 @@ function renderizarConvocatoria() {
             
             const suplentesData = convocadosData.filter(c => !titularesPartido.includes(String(c.id)));
             
+            // Subir escudo rival si se seleccionó uno nuevo
+            let opponentLogoUrl = escudoRivalUrl;
+            const escudoInput = document.getElementById('partido-rival-escudo-input');
+            if (escudoInput && escudoInput.files.length > 0) {
+                const uploadedUrl = await subirEscudoRivalPartido();
+                if (uploadedUrl) opponentLogoUrl = uploadedUrl;
+            }
+
             const partidoData = {
                 club_id: clubId,
                 season_id: seasonId,
@@ -676,6 +695,7 @@ function renderizarConvocatoria() {
                 fecha_salida: document.getElementById('partido-fecha-salida').value || null,
                 notas_convocatoria: document.getElementById('partido-notas-convocatoria').value || null,
                 video_url: document.getElementById('partido-video-url').value.trim() || null,
+                opponent_logo: opponentLogoUrl || null,
                 convocados: convocadosData,
                 titulares: titularesData,
                 suplentes: suplentesData

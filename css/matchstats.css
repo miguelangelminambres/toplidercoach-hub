@@ -1,0 +1,789 @@
+        /* ========== ESPECÍFICO MATCHSTATS ========== */
+        .partido-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: all 0.2s;
+        }
+        
+        .partido-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        
+        .partido-card-header {
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .partido-fecha {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 5px;
+        }
+        
+        .partido-competicion {
+            font-size: 12px;
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 3px 10px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .partido-card-body {
+            padding: 20px;
+        }
+        
+        .partido-equipos {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .equipo {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .equipo-nombre {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 14px;
+        }
+        
+        .equipo-tipo {
+            font-size: 11px;
+            color: #9ca3af;
+            margin-top: 3px;
+        }
+        
+        .partido-resultado {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1f2937;
+            padding: 0 15px;
+        }
+        
+        .partido-resultado.pendiente {
+            font-size: 14px;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+        
+        .resultado-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .resultado-badge.victoria { background: #d1fae5; color: #059669; }
+        .resultado-badge.empate { background: #fef3c7; color: #d97706; }
+        .resultado-badge.derrota { background: #fee2e2; color: #dc2626; }
+        .resultado-badge.pendiente { background: #e5e7eb; color: #6b7280; }
+        
+        .partido-card-footer {
+            padding: 15px 20px;
+            background: #f8fafc;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .partido-card-footer button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        
+        .btn-ver { background: #e0f2fe; color: #0369a1; }
+        .btn-stats { background: #fef3c7; color: #d97706; }
+        .btn-pdf { background: #f3e8ff; color: #9333ea; }
+        .btn-eliminar { background: #fee2e2; color: #dc2626; }
+        
+        /* Stats resumen */
+        .stats-resumen {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .stat-card .valor {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+        
+        .stat-card .label {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+        
+        .stat-card.victoria { border-left: 4px solid #10b981; }
+        .stat-card.empate { border-left: 4px solid #f59e0b; }
+        .stat-card.derrota { border-left: 4px solid #ef4444; }
+        
+        /* Tabla stats */
+        .stats-tabla {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .stats-tabla th {
+            background: #f8fafc;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #64748b;
+            font-size: 13px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .stats-tabla td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #1f2937;
+        }
+        
+        .stats-tabla tr:hover {
+            background: #f8fafc;
+        }
+        
+        .jugador-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .jugador-mini-foto {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            overflow: hidden;
+        }
+        
+        .jugador-mini-foto img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+/* ========== CALENDARIO DE PARTIDOS ========== */
+/* Añadir estos estilos en la sección de CSS */
+
+/* Leyenda del calendario */
+.calendario-leyenda {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.leyenda-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.leyenda-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+}
+
+.leyenda-color.victoria {
+    background: #d1fae5;
+    border: 2px solid #10b981;
+}
+
+.leyenda-color.empate {
+    background: #fef3c7;
+    border: 2px solid #f59e0b;
+}
+
+.leyenda-color.derrota {
+    background: #fee2e2;
+    border: 2px solid #ef4444;
+}
+
+.leyenda-color.pendiente {
+    background: #e0f2fe;
+    border: 2px solid #3b82f6;
+}
+
+/* Eventos de partido en calendario */
+.calendario-evento.partido {
+    font-size: 10px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    margin-bottom: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.calendario-evento.partido:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.calendario-evento.partido.victoria {
+    background: #d1fae5;
+    color: #065f46;
+    border-left: 3px solid #10b981;
+}
+
+.calendario-evento.partido.empate {
+    background: #fef3c7;
+    color: #92400e;
+    border-left: 3px solid #f59e0b;
+}
+
+.calendario-evento.partido.derrota {
+    background: #fee2e2;
+    color: #991b1b;
+    border-left: 3px solid #ef4444;
+}
+
+.calendario-evento.partido.pendiente {
+    background: #e0f2fe;
+    color: #1e40af;
+    border-left: 3px solid #3b82f6;
+}
+
+.calendario-evento.partido .rival {
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.calendario-evento.partido .resultado {
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.calendario-evento.partido .hora {
+    font-size: 9px;
+    opacity: 0.8;
+}
+
+/* Resumen mensual */
+.calendario-resumen {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8fafc;
+    border-radius: 12px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+}
+
+.resumen-stat {
+    text-align: center;
+    padding: 15px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.resumen-stat .numero {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.resumen-stat .label {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+.resumen-stat.victorias {
+    border-top: 3px solid #10b981;
+}
+
+.resumen-stat.empates {
+    border-top: 3px solid #f59e0b;
+}
+
+.resumen-stat.derrotas {
+    border-top: 3px solid #ef4444;
+}
+
+.resumen-stat.pendientes {
+    border-top: 3px solid #3b82f6;
+}
+
+.resumen-stat.goles-favor {
+    border-top: 3px solid #059669;
+}
+
+.resumen-stat.goles-contra {
+    border-top: 3px solid #dc2626;
+}
+
+/* Día del calendario con partido */
+.calendario-dia.tiene-partido {
+    background: #fafafa;
+}
+
+.calendario-dia.tiene-partido.hoy {
+    background: #f0f0ff;
+}
+
+/* Mejoras responsive para calendario */
+@media (max-width: 768px) {
+    .calendario-evento.partido {
+        font-size: 9px;
+        padding: 3px 4px;
+    }
+    
+    .calendario-evento.partido .resultado {
+        font-size: 10px;
+    }
+    
+    .calendario-leyenda {
+        gap: 10px;
+    }
+    
+    .leyenda-item {
+        font-size: 11px;
+    }
+    
+    .calendario-resumen {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .calendario-resumen {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+        /* ========== CONVOCATORIA ========== */
+        .convocatoria-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .jugador-check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .jugador-check:hover {
+            background: #f1f5f9;
+        }
+        
+        .jugador-check.selected {
+            background: #ecfdf5;
+            border-color: #10b981;
+        }
+        
+        .jugador-check input {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .jugador-check-info .nombre {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .jugador-check-info .posicion {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .jugador-check .dorsal {
+            background: #1f2937;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 12px;
+            margin-left: auto;
+        }
+/* ========== MODAL PARTIDO AMPLIADO ========== */
+        .modal-large {
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .seccion-modal {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .seccion-modal:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .seccion-titulo {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 15px;
+        }
+        
+        .seccion-titulo-con-contador {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .seccion-titulo-con-contador .seccion-titulo {
+            margin-bottom: 0;
+        }
+        
+        .contador-jugadores {
+            font-size: 12px;
+            color: #6b7280;
+            background: #f3f4f6;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+        
+        .hint-text {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 10px;
+        }
+        
+        .alineacion-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 8px;
+        }
+        
+        .jugador-titular {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid #e5e7eb;
+            transition: all 0.2s;
+        }
+        
+        .jugador-titular:hover {
+            border-color: #3b82f6;
+        }
+        
+        .jugador-titular.es-titular {
+            background: #dbeafe;
+            border-color: #3b82f6;
+        }
+        
+        .jugador-titular .dorsal {
+            background: #1f2937;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 11px;
+        }
+        
+        .jugador-titular.es-titular .dorsal {
+            background: #3b82f6;
+        }
+        
+        .jugador-titular .nombre {
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .modal-footer-partido {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .footer-izq, .footer-der {
+            display: flex;
+            gap: 10px;
+        }
+        
+        @media (max-width: 600px) {
+            .modal-footer-partido {
+                flex-direction: column;
+            }
+            .footer-izq, .footer-der {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        /* ========== STATS JUGADORES PARTIDO ========== */
+        .stats-jugadores-grid .jugador-stats-row {
+            display: grid;
+            grid-template-columns: 2fr repeat(5, 1fr);
+            gap: 10px;
+            align-items: center;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+        
+        .jugador-stats-row .nombre {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .jugador-stats-row input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .stats-labels {
+            display: grid;
+            grid-template-columns: 2fr repeat(5, 1fr);
+            gap: 10px;
+            padding: 0 12px;
+            margin-bottom: 10px;
+        }
+        
+        .stats-labels span {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            text-align: center;
+        }
+        
+        .stats-labels span:first-child {
+            text-align: left;
+        }
+/* ========== VIDEO DEL PARTIDO ========== */
+/* Añadir estos estilos en la sección de CSS */
+
+.video-plataformas-hint {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.plataforma-badge {
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.plataforma-badge.youtube {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.plataforma-badge.drive {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.plataforma-badge.vimeo {
+    background: #e0e7ff;
+    color: #4f46e5;
+}
+
+.video-preview-box {
+    background: #1f2937;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+.video-preview-box iframe {
+    width: 100%;
+    height: 250px;
+    border: none;
+}
+
+.video-preview-box .video-placeholder {
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+.video-preview-box .video-placeholder .icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+.video-preview-box .video-placeholder .plataforma {
+    font-size: 14px;
+    opacity: 0.8;
+    margin-bottom: 15px;
+}
+
+.video-detected-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.video-detected-badge.youtube {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.video-detected-badge.vimeo {
+    background: #e0e7ff;
+    color: #4f46e5;
+}
+
+.video-detected-badge.drive {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.video-detected-badge.otro {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+/* Video en modal de ver partido */
+.video-section-ver {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.video-section-ver h4 {
+    font-size: 14px;
+    color: #374151;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.video-section-ver .video-embed {
+    border-radius: 10px;
+    overflow: hidden;
+    background: #1f2937;
+}
+
+.video-section-ver .video-embed iframe {
+    width: 100%;
+    height: 300px;
+    border: none;
+}
+
+.video-section-ver .video-link-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px;
+    background: #e5e7eb;
+    border-radius: 10px;
+}
+
+.video-section-ver .video-link-box .icon {
+    font-size: 32px;
+}
+
+.video-section-ver .video-link-box .info {
+    flex: 1;
+}
+
+.video-section-ver .video-link-box .info .titulo {
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 3px;
+}
+
+.video-section-ver .video-link-box .info .url {
+    font-size: 12px;
+    color: #6b7280;
+    word-break: break-all;
+}
+
+.video-section-ver .btn-ver-video {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.video-section-ver .btn-ver-video:hover {
+    transform: scale(1.02);
+}

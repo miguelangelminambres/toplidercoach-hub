@@ -1,0 +1,625 @@
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+        
+        /* ========== LOGIN ========== */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+        
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .login-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-logo h1 {
+            font-size: 28px;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+        
+        .login-logo p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        .login-box input {
+            width: 100%;
+            padding: 14px 18px;
+            margin-bottom: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+        }
+        
+        .login-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .login-box button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .login-box button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .login-error {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: none;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        /* ========== HEADER ========== */
+        .app-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        
+        .app-header h1 {
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    color: #f97316 !important;
+    margin: 0 !important;
+}
+.header-brand {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+}
+
+.header-logo {
+    height: 40px !important;
+    width: auto !important;
+}
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .club-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 15px;
+            border-radius: 10px;
+        }
+        
+        .club-badge img {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            object-fit: contain;
+            background: white;
+        }
+        
+        .club-badge .club-initial {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+        
+        .club-badge span {
+            font-weight: 500;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .user-name {
+            font-weight: 500;
+            opacity: 0.9;
+        }
+        
+        .btn-logout {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .btn-logout:hover {
+            background: rgba(255,255,255,0.25);
+        }
+        
+      /* ========== TABS PRINCIPALES ========== */
+.main-tabs {
+    display: flex !important;
+    background: #1e293b !important;
+    border-bottom: 2px solid #334155 !important;
+    padding: 0 20px !important;
+}
+
+.main-tab {
+    padding: 18px 30px !important;
+    border: none !important;
+    background: none !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    color: #ffffff !important;
+    cursor: pointer !important;
+    border-bottom: 3px solid transparent !important;
+    margin-bottom: -2px !important;
+    transition: all 0.2s !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.main-tab:hover {
+    color: #f97316 !important;
+    background: rgba(255,255,255,0.1) !important;
+}
+
+.main-tab.active {
+    color: #667eea !important;
+    border-bottom-color: #667eea !important;
+}
+
+.main-tab.planificador.active {
+    color: #f97316 !important;
+    border-bottom-color: #f97316 !important;
+}
+
+.main-tab.matchstats.active {
+    color: #10b981 !important;
+    border-bottom-color: #10b981 !important;
+}
+
+.main-tab.config.active {
+    color: #f59e0b !important;
+    border-bottom-color: #f59e0b !important;
+}
+
+.main-tab.staff.active {
+    color: #ef4444 !important;
+    border-bottom-color: #ef4444 !important;
+}
+        /* ========== SUB TABS ========== */
+        .sub-tabs {
+            display: flex;
+            background: #f8fafc;
+            padding: 10px 20px;
+            gap: 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .sub-tab {
+            padding: 10px 20px;
+            border: none;
+            background: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        
+        .sub-tab:hover {
+            border-color: #e5e7eb;
+        }
+        
+        .sub-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        /* Colores específicos por módulo */
+        .planificador-subtabs .sub-tab.active {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+        }
+        
+        .matchstats-subtabs .sub-tab.active {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+        
+        .config-subtabs .sub-tab.active {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+        }
+        
+        /* ========== VISTAS ========== */
+        .vista-modulo {
+            display: none;
+        }
+        
+        .vista-modulo.active {
+            display: block;
+        }
+        
+        .vista-contenido {
+            display: none;
+            padding: 25px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .vista-contenido.active {
+            display: block;
+        }
+        
+        /* ========== HEADERS DE SECCIÓN ========== */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .section-header h2 {
+            font-size: 24px;
+            color: #1f2937;
+        }
+        
+        /* ========== BOTONES GENERALES ========== */
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary.green {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+        
+        .btn-primary.green:hover {
+            box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4);
+        }
+        
+        .btn-primary.purple {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+        }
+        
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .btn-danger {
+            background: #fee2e2;
+            color: #dc2626;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        /* ========== CARDS ========== */
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        /* ========== FORMULARIOS ========== */
+        .form-group {
+            margin-bottom: 18px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: border-color 0.2s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        /* ========== GRIDS ========== */
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        /* ========== LOADING & EMPTY ========== */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+        
+        .empty-state .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .empty-state h3 {
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+        
+        /* ========== MODALES ========== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            font-size: 20px;
+            color: #1f2937;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #9ca3af;
+            line-height: 1;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        /* ========== FILTROS ========== */
+        .filtros-bar {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .filtro-grupo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filtro-grupo label {
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 14px;
+        }
+        
+        .filtro-grupo input,
+        .filtro-grupo select {
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .filtro-btn {
+            padding: 8px 16px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .filtro-btn.active {
+            border-color: #667eea;
+            background: #f0f0ff;
+            color: #667eea;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 1200px) {
+            .planificador-layout {
+                grid-template-columns: 1fr 1fr;
+                height: auto;
+            }
+            
+            .planificador-layout .panel:last-child {
+                grid-column: span 2;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-tabs {
+                padding: 0 10px;
+                overflow-x: auto;
+            }
+            
+            .main-tab {
+                padding: 14px 18px;
+                font-size: 14px;
+                white-space: nowrap;
+            }
+            
+            .sub-tabs {
+                overflow-x: auto;
+                padding: 10px;
+            }
+            
+            .planificador-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .planificador-layout .panel:last-child {
+                grid-column: span 1;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .grid-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .config-club-content {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .header-right {
+                flex-wrap: wrap;
+            }
+            
+            .club-badge {
+                display: none;
+            }
+            
+            .stats-resumen {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .jugador-stats-row {
+                grid-template-columns: 1fr repeat(3, 1fr) !important;
+            }
+            
+            .stats-labels {
+                grid-template-columns: 1fr repeat(3, 1fr) !important;
+            }
+        }

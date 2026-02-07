@@ -1,0 +1,473 @@
+        /* ========== ANÁLISIS DE PARTIDOS ========== */
+.analisis-container {
+    padding: 20px !important;
+    max-width: 900px !important;
+    margin: 0 auto !important;
+}
+
+.analisis-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 25px !important;
+    flex-wrap: wrap !important;
+    gap: 15px !important;
+}
+
+.analisis-header h2 {
+    margin: 0 !important;
+    color: #1e293b !important;
+    font-size: 24px !important;
+}
+
+.analisis-selector {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+.analisis-selector label {
+    font-weight: 600 !important;
+    color: #374151 !important;
+}
+
+.analisis-selector select {
+    padding: 10px 15px !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    min-width: 250px !important;
+    cursor: pointer !important;
+}
+
+.analisis-partido-info {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+    color: white !important;
+    padding: 20px !important;
+    border-radius: 12px !important;
+    margin-bottom: 25px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+.analisis-seccion {
+    background: white !important;
+    border-radius: 12px !important;
+    padding: 25px !important;
+    margin-bottom: 20px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+}
+
+.analisis-seccion h3 {
+    margin: 0 0 20px 0 !important;
+    color: #1e293b !important;
+    font-size: 18px !important;
+    padding-bottom: 10px !important;
+    border-bottom: 2px solid #e5e7eb !important;
+}
+
+/* Rival header con escudo */
+.rival-header {
+    display: flex !important;
+    align-items: center !important;
+    gap: 20px !important;
+    padding: 20px !important;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+}
+
+.rival-badge {
+    width: 80px !important;
+    height: 80px !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    background: white !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+}
+
+.rival-badge img {
+    max-width: 70px !important;
+    max-height: 70px !important;
+    object-fit: contain !important;
+}
+
+.logo-placeholder {
+    font-size: 40px !important;
+}
+
+.rival-info h3 {
+    margin: 0 0 10px 0 !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+.btn-subir-logo {
+    padding: 8px 16px !important;
+    background: #f97316 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    font-size: 13px !important;
+}
+
+.btn-subir-logo:hover {
+    background: #ea580c !important;
+}
+
+/* Formaciones */
+.formacion-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    margin-bottom: 20px !important;
+}
+
+.formacion-group label {
+    font-weight: 600 !important;
+    color: #374151 !important;
+    min-width: 120px !important;
+}
+
+.select-formacion {
+    padding: 10px 15px !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+}
+
+.formacion-cambios {
+    background: #f8fafc !important;
+    padding: 15px !important;
+    border-radius: 8px !important;
+    margin-bottom: 20px !important;
+}
+
+.cambios-titulo {
+    font-size: 13px !important;
+    color: #6b7280 !important;
+    margin: 0 0 10px 0 !important;
+}
+
+.cambio-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin-bottom: 8px !important;
+}
+
+.cambio-row span {
+    color: #6b7280 !important;
+    font-size: 13px !important;
+}
+
+.cambio-row input[type="number"] {
+    width: 60px !important;
+    padding: 8px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    text-align: center !important;
+    font-size: 14px !important;
+}
+
+.select-formacion-small {
+    padding: 8px 12px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    font-size: 13px !important;
+    cursor: pointer !important;
+}
+
+/* Campos de análisis */
+.analisis-campos {
+    display: grid !important;
+    gap: 20px !important;
+}
+
+.campo-analisis label {
+    display: block !important;
+    font-weight: 600 !important;
+    color: #374151 !important;
+    margin-bottom: 8px !important;
+}
+
+.campo-analisis textarea {
+    width: 100% !important;
+    padding: 12px !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    resize: vertical !important;
+    font-family: inherit !important;
+}
+
+.campo-analisis textarea:focus {
+    outline: none !important;
+    border-color: #f97316 !important;
+}
+
+#general-conclusions {
+    width: 100% !important;
+    padding: 15px !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    resize: vertical !important;
+    font-family: inherit !important;
+}
+
+/* Historial rival */
+.historial-rival {
+    background: #f0f9ff !important;
+    border: 2px solid #0ea5e9 !important;
+}
+
+/* Botones */
+.analisis-botones {
+    display: flex !important;
+    gap: 15px !important;
+    justify-content: center !important;
+    margin-top: 30px !important;
+}
+
+.btn-guardar-analisis {
+    padding: 15px 40px !important;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 10px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: transform 0.2s, box-shadow 0.2s !important;
+}
+
+.btn-guardar-analisis:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4) !important;
+}
+
+.btn-pdf-analisis {
+    padding: 15px 40px !important;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 10px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: transform 0.2s, box-shadow 0.2s !important;
+}
+
+.btn-pdf-analisis:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .analisis-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+    
+    .analisis-selector {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        width: 100% !important;
+    }
+    
+    .analisis-selector select {
+        width: 100% !important;
+    }
+    
+    .formacion-group {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+    
+    .cambio-row {
+        flex-wrap: wrap !important;
+    }
+    
+    .analisis-botones {
+        flex-direction: column !important;
+    }
+    
+    .btn-guardar-analisis,
+    .btn-pdf-analisis {
+        width: 100% !important;
+    }
+}
+/* ========== CAMPO DE FÚTBOL VISUAL ========== */
+.campo-futbol-container {
+    margin-top: 20px;
+    background: #1a1a2e;
+    border-radius: 12px;
+    padding: 15px;
+}
+
+.campo-futbol {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    height: 500px;
+    margin: 0 auto;
+    background: linear-gradient(to bottom, #2d5a27 0%, #3d7a37 50%, #2d5a27 100%);
+    border: 3px solid rgba(255,255,255,0.8);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.campo-futbol::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: rgba(255,255,255,0.6);
+}
+
+.campo-futbol::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px;
+    height: 80px;
+    border: 2px solid rgba(255,255,255,0.6);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.campo-area-grande-arriba {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 65%;
+    height: 18%;
+    border: 2px solid rgba(255,255,255,0.6);
+    border-top: none;
+}
+
+.campo-area-grande-abajo {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 65%;
+    height: 18%;
+    border: 2px solid rgba(255,255,255,0.6);
+    border-bottom: none;
+}
+
+.campo-area-pequena-arriba {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30%;
+    height: 7%;
+    border: 2px solid rgba(255,255,255,0.6);
+    border-top: none;
+}
+
+.campo-area-pequena-abajo {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30%;
+    height: 7%;
+    border: 2px solid rgba(255,255,255,0.6);
+    border-bottom: none;
+}
+
+.jugador-posicion {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 50px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.jugador-posicion:hover {
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+.jugador-posicion-circulo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #3b82f6;
+    border: 2px solid white;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    font-size: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.jugador-posicion-circulo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.jugador-posicion-circulo.vacio {
+    background: rgba(255,255,255,0.2);
+    border: 2px dashed rgba(255,255,255,0.5);
+    font-size: 18px;
+}
+
+.jugador-posicion-nombre {
+    font-size: 9px;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 60px;
+}
+
+.jugador-posicion-dorsal {
+    position: absolute;
+    top: -5px;
+    right: 0px;
+    background: #f59e0b;
+    color: white;
+    font-size: 8px;
+    font-weight: bold;
+    padding: 1px 4px;
+    border-radius: 8px;
+}
+
+.campo-titulo {
+    color: white;
+    font-size: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.campo-sistema-badge {
+    background: #3b82f6;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+}

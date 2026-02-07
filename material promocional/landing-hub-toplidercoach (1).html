@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HUB TopLiderCoach - La plataforma definitiva para entrenadores de fútbol</title>
+    <meta name="description" content="Gestiona tu equipo como un profesional. PDFs con fotos, campo táctico visual, asistentes IA, estadísticas avanzadas y mucho más. Incluido en tu suscripción TopLiderCoach.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #1e3a5f;
+            --primary-light: #2d5a8a;
+            --accent: #10b981;
+            --accent-hover: #059669;
+            --orange: #f59e0b;
+            --red: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-400: #9ca3af;
+            --gray-600: #4b5563;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--gray-800);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* ========== NAVEGACIÓN ========== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 15px 0;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .nav-logo span {
+            color: var(--accent);
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: var(--gray-600);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+        
+        .nav-cta {
+            background: var(--accent);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.3s, transform 0.3s;
+        }
+        
+        .nav-cta:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+        
+        /* ========== HERO SECTION ========== */
+        .hero {
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            display: flex;
+            align-items: center;
+            padding: 120px 20px 80px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 80%;
+            height: 200%;
+            background: radial-gradient(ellipse, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        
+        .hero-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+        
+        .hero-content {
+            color: white;
+        }
+        
+        .hero-badge {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent);
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+        
+        .hero h1 span {
+            color: var(--accent);
+        }
+        
+        .hero-subtitle {
+            font-size: 20px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .hero-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 35px;
+        }
+        
+        .hero-feature {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .hero-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--accent);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 18px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+        }
+        
+        .hero-cta:hover {
+            background: var(--accent-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 30px rgba(16, 185, 129, 0.5);
+        }
+        
+        .hero-media {
+            position: relative;
+        }
+        
+        .hero-media video {
+            width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+        }
+        
+        .hero-media img {
+            width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+        }
+        
+        /* ========== PROBLEMA SECTION ========== */
+        .problema {
+            padding: 100px 20px;
+            background: var(--gray-50);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .section-header h2 {
+            font-size: 40px;
+            font-weight: 800;
+            color: var(--gray-900);
+            margin-bottom: 15px;
+        }
+        
+        .section-header p {
+            font-size: 18px;
+            color: var(--gray-600);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .problema-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+        
+        .problema-card {
+            padding: 40px;
+            border-radius: 16px;
+        }
+        
+        .problema-card.antes {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 2px solid #fecaca;
+        }
+        
+        .problema-card.despues {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border: 2px solid #a7f3d0;
+        }
+        
+        .problema-card h3 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .problema-card.antes h3 {
+            color: var(--red);
+        }
+        
+        .problema-card.despues h3 {
+            color: var(--accent);
+        }
+        
+        .problema-list {
+            list-style: none;
+        }
+        
+        .problema-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .problema-list li span {
+            font-size: 20px;
+        }
+        
+        /* ========== FUNCIONALIDADES ========== */
+        .funcionalidades {
+            padding: 100px 20px;
+            background: white;
+        }
+        
+        .func-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+        
+        .func-card {
+            background: var(--gray-50);
+            border-radius: 16px;
+            padding: 35px;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .func-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-color: var(--accent);
+        }
+        
+        .func-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--accent) 0%, #34d399 100%);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        
+        .func-card h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--gray-900);
+        }
+        
+        .func-card p {
+            color: var(--gray-600);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        
+        /* ========== COMPARATIVA ========== */
+        .comparativa {
+            padding: 100px 20px;
+            background: var(--primary);
+            color: white;
+        }
+        
+        .comparativa .section-header h2 {
+            color: white;
+        }
+        
+        .comparativa .section-header p {
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .tabla-comparativa {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .tabla-comparativa table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .tabla-comparativa th,
+        .tabla-comparativa td {
+            padding: 20px 25px;
+            text-align: left;
+        }
+        
+        .tabla-comparativa thead {
+            background: var(--gray-900);
+            color: white;
+        }
+        
+        .tabla-comparativa th:first-child {
+            width: 40%;
+        }
+        
+        .tabla-comparativa th.otros {
+            background: var(--gray-600);
+            text-align: center;
+        }
+        
+        .tabla-comparativa th.hub {
+            background: var(--accent);
+            text-align: center;
+        }
+        
+        .tabla-comparativa tbody tr {
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .tabla-comparativa tbody tr:hover {
+            background: var(--gray-50);
+        }
+        
+        .tabla-comparativa td {
+            color: var(--gray-800);
+        }
+        
+        .tabla-comparativa td:nth-child(2),
+        .tabla-comparativa td:nth-child(3) {
+            text-align: center;
+            font-size: 22px;
+        }
+        
+        .tabla-comparativa .feature-name {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .check {
+            color: var(--accent);
+        }
+        
+        .cross {
+            color: var(--red);
+        }
+        
+        /* ========== GALERÍA ========== */
+        .galeria {
+            padding: 100px 20px;
+            background: var(--gray-50);
+        }
+        
+        .galeria-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        
+        .galeria-item {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            aspect-ratio: 16/10;
+            background: var(--gray-200);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .galeria-item:hover {
+            transform: scale(1.03);
+        }
+        
+        .galeria-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .galeria-item.grande {
+            grid-column: span 2;
+            grid-row: span 2;
+        }
+        
+        .galeria-caption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            color: white;
+            padding: 20px 15px 15px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        /* ========== MÓDULOS ========== */
+        .modulos {
+            padding: 100px 20px;
+            background: white;
+        }
+        
+        .modulo-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            margin-bottom: 80px;
+        }
+        
+        .modulo-row:nth-child(even) {
+            direction: rtl;
+        }
+        
+        .modulo-row:nth-child(even) > * {
+            direction: ltr;
+        }
+        
+        .modulo-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .modulo-content h3 {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            color: var(--gray-900);
+        }
+        
+        .modulo-content p {
+            font-size: 17px;
+            color: var(--gray-600);
+            margin-bottom: 25px;
+            line-height: 1.7;
+        }
+        
+        .modulo-features {
+            list-style: none;
+        }
+        
+        .modulo-features li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 15px;
+            color: var(--gray-700);
+        }
+        
+        .modulo-features li span {
+            color: var(--accent);
+            font-size: 20px;
+        }
+        
+        .modulo-image {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        }
+        
+        .modulo-image img {
+            width: 100%;
+            display: block;
+        }
+        
+        /* ========== CTA FINAL ========== */
+        .cta-final {
+            padding: 100px 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            text-align: center;
+            color: white;
+        }
+        
+        .cta-final h2 {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+        
+        .cta-final p {
+            font-size: 20px;
+            opacity: 0.9;
+            margin-bottom: 35px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .cta-final .hero-cta {
+            font-size: 20px;
+            padding: 18px 40px;
+        }
+        
+        .cta-incluido {
+            margin-top: 20px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        /* ========== FOOTER ========== */
+        footer {
+            background: var(--gray-900);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        footer p {
+            opacity: 0.7;
+            font-size: 14px;
+        }
+        
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        
+        /* ========== LIGHTBOX ========== */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .lightbox.active {
+            display: flex;
+        }
+        
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+        }
+        
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .lightbox-close:hover {
+            transform: scale(1.2);
+        }
+        
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 968px) {
+            .hero-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .hero h1 {
+                font-size: 36px;
+            }
+            
+            .hero-features {
+                justify-content: center;
+            }
+            
+            .hero-media {
+                order: -1;
+            }
+            
+            .problema-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .func-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .galeria-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .galeria-item.grande {
+                grid-column: span 2;
+                grid-row: span 1;
+            }
+            
+            .modulo-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .modulo-row:nth-child(even) {
+                direction: ltr;
+            }
+            
+            .tabla-comparativa {
+                overflow-x: auto;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .hero h1 {
+                font-size: 28px;
+            }
+            
+            .section-header h2 {
+                font-size: 28px;
+            }
+            
+            .galeria-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .galeria-item.grande {
+                grid-column: span 1;
+            }
+            
+            .cta-final h2 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- NAVEGACIÓN -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="https://toplidercoach.com" class="nav-logo">
+                ⚽ TopLider<span>Coach</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#funcionalidades">Funcionalidades</a></li>
+                <li><a href="#modulos">Módulos</a></li>
+                <li><a href="#comparativa">Comparativa</a></li>
+                <li><a href="#galeria">Galería</a></li>
+            </ul>
+            <a href="https://toplidercoach.com" class="nav-cta">Acceder al HUB →</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="hero-badge">✨ Incluido en tu suscripción TopLiderCoach</div>
+                <h1>El <span>HUB definitivo</span> para entrenadores de fútbol</h1>
+                <p class="hero-subtitle">
+                    Deja de usar 5 aplicaciones diferentes. Gestiona tu equipo, planifica sesiones, 
+                    analiza partidos y genera documentos profesionales desde un único lugar.
+                </p>
+                <div class="hero-features">
+                    <div class="hero-feature">📊 Dashboard visual</div>
+                    <div class="hero-feature">📋 PDFs con fotos</div>
+                    <div class="hero-feature">🤖 3 Asistentes IA</div>
+                    <div class="hero-feature">⚽ Campo táctico</div>
+                </div>
+                <a href="https://toplidercoach.com" class="hero-cta">
+                    Acceder al HUB →
+                </a>
+            </div>
+            <div class="hero-media">
+                <video autoplay muted loop playsinline>
+                    <source src="https://toplidercoach.com/wp-content/uploads/2025/12/video-hero.mp4" type="video/mp4">
+                    <img src="https://toplidercoach.com/wp-content/uploads/2025/12/dashboard.png" alt="Dashboard TopLiderCoach">
+                </video>
+            </div>
+        </div>
+    </section>
+
+    <!-- PROBLEMA / SOLUCIÓN -->
+    <section class="problema">
+        <div class="container">
+            <div class="section-header">
+                <h2>¿Te suena familiar?</h2>
+                <p>La gestión de un equipo de fútbol puede ser caótica. Nosotros lo simplificamos.</p>
+            </div>
+            <div class="problema-grid">
+                <div class="problema-card antes">
+                    <h3>❌ Sin TopLiderCoach HUB</h3>
+                    <ul class="problema-list">
+                        <li><span>😩</span> Convocatorias en WhatsApp que nadie lee</li>
+                        <li><span>📝</span> Alineaciones escritas a mano en un papel</li>
+                        <li><span>🗂️</span> Estadísticas en Excel que nunca actualizas</li>
+                        <li><span>📱</span> 5 apps diferentes que no se conectan entre sí</li>
+                        <li><span>🤷</span> Sin análisis táctico real de los partidos</li>
+                        <li><span>⏰</span> Horas perdidas organizando en lugar de entrenar</li>
+                    </ul>
+                </div>
+                <div class="problema-card despues">
+                    <h3>✅ Con TopLiderCoach HUB</h3>
+                    <ul class="problema-list">
+                        <li><span>📄</span> PDFs profesionales con fotos de jugadores</li>
+                        <li><span>⚽</span> Campo táctico visual con drag & drop</li>
+                        <li><span>📊</span> Dashboard con todas las estadísticas al instante</li>
+                        <li><span>🔗</span> Todo integrado en un único ecosistema</li>
+                        <li><span>🤖</span> Asistentes IA que te ayudan con táctica y más</li>
+                        <li><span>⚡</span> Más tiempo para lo importante: entrenar</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FUNCIONALIDADES -->
+    <section class="funcionalidades" id="funcionalidades">
+        <div class="container">
+            <div class="section-header">
+                <h2>Todo lo que necesitas, en un solo lugar</h2>
+                <p>Funcionalidades diseñadas por y para entrenadores de fútbol</p>
+            </div>
+            <div class="func-grid">
+                <div class="func-card">
+                    <div class="func-icon">📊</div>
+                    <h3>Dashboard Completo</h3>
+                    <p>Visualiza victorias, derrotas, goles, racha de resultados y rendimiento local vs visitante de un vistazo.</p>
+                </div>
+                <div class="func-card">
+                    <div class="func-icon">📋</div>
+                    <h3>PDFs Profesionales</h3>
+                    <p>Genera convocatorias y alineaciones con fotos de jugadores, escudos de equipos y toda la información del partido.</p>
+                </div>
+                <div class="func-card">
+                    <div class="func-icon">⚽</div>
+                    <h3>Campo Táctico Visual</h3>
+                    <p>Coloca a tus jugadores en el campo según el sistema de juego. Las posiciones se guardan y aparecen en los PDFs.</p>
+                </div>
+                <div class="func-card">
+                    <div class="func-icon">🤖</div>
+                    <h3>3 Asistentes IA</h3>
+                    <p>Johan (táctica), Valeri (preparación física) y Arrigo (mentalidad) te ayudan basándose en TUS datos reales.</p>
+                </div>
+                <div class="func-card">
+                    <div class="func-icon">📅</div>
+                    <h3>Planificador de Sesiones</h3>
+                    <p>Accede a nuestra biblioteca de ejercicios y planifica tus entrenamientos con calendario integrado.</p>
+                </div>
+                <div class="func-card">
+                    <div class="func-icon">📈</div>
+                    <h3>MatchStats Avanzado</h3>
+                    <p>Análisis completo de partidos: formaciones, cambios tácticos, puntos fuertes/débiles y conclusiones.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MÓDULOS DETALLADOS -->
+    <section class="modulos" id="modulos">
+        <div class="container">
+            <div class="section-header">
+                <h2>Conoce cada módulo en detalle</h2>
+                <p>Diseñados para cubrir todas las necesidades de un entrenador moderno</p>
+            </div>
+            
+            <!-- Dashboard -->
+            <div class="modulo-row">
+                <div class="modulo-content">
+                    <h3>📊 Dashboard Principal</h3>
+                    <p>
+                        Nada más entrar, tienes toda la información de tu equipo. Estadísticas visuales, 
+                        racha de resultados, próximos entrenamientos y partidos. Todo de un vistazo.
+                    </p>
+                    <ul class="modulo-features">
+                        <li><span>✓</span> Gráfico circular de resultados (victorias/empates/derrotas)</li>
+                        <li><span>✓</span> Comparativa de goles a favor vs en contra</li>
+                        <li><span>✓</span> Rendimiento local vs visitante con porcentajes</li>
+                        <li><span>✓</span> Top goleadores de la temporada</li>
+                        <li><span>✓</span> Próximos 5 entrenamientos y partidos</li>
+                    </ul>
+                </div>
+                <div class="modulo-image">
+                    <img src="https://toplidercoach.com/wp-content/uploads/2025/12/dashboard.png" alt="Dashboard TopLiderCoach" loading="lazy">
+                </div>
+            </div>
+            
+            <!-- Planificador -->
+            <div class="modulo-row">
+                <div class="modulo-content">
+                    <h3>📅 Planificador de Sesiones</h3>
+                    <p>
+                        Organiza tus entrenamientos de forma profesional. Accede a nuestra biblioteca de ejercicios 
+                        y planifica cada sesión con todos los detalles que necesitas.
+                    </p>
+                    <ul class="modulo-features">
+                        <li><span>✓</span> Biblioteca de ejercicios integrada</li>
+                        <li><span>✓</span> Calendario visual de entrenamientos</li>
+                        <li><span>✓</span> Temas y objetivos por sesión</li>
+                        <li><span>✓</span> Duplica sesiones anteriores</li>
+                        <li><span>✓</span> Exporta a PDF</li>
+                    </ul>
+                </div>
+                <div class="modulo-image">
+                    <img src="https://toplidercoach.com/wp-content/uploads/2025/12/planificador.png" alt="Planificador de Sesiones" loading="lazy">
+                </div>
+            </div>
+            
+            <!-- MatchStats -->
+            <div class="modulo-row">
+                <div class="modulo-content">
+                    <h3>⚽ MatchStats</h3>
+                    <p>
+                        Gestiona todos los partidos de tu equipo. Registra resultados, estadísticas de jugadores, 
+                        y accede a calendarios visuales con los colores de cada resultado.
+                    </p>
+                    <ul class="modulo-features">
+                        <li><span>✓</span> Gestión completa de partidos</li>
+                        <li><span>✓</span> Estadísticas por jugador (goles, asistencias, tarjetas)</li>
+                        <li><span>✓</span> Calendario visual con resultados</li>
+                        <li><span>✓</span> Filtros por fecha y estado</li>
+                        <li><span>✓</span> Escudo del rival en cada partido</li>
+                    </ul>
+                </div>
+                <div class="modulo-image">
+                    <img src="https://toplidercoach.com/wp-content/uploads/2025/12/resumen-partidos.png" alt="MatchStats - Gestión de Partidos" loading="lazy">
+                </div>
+            </div>
+            
+            <!-- PDFs -->
+            <div class="modulo-row">
+                <div class="modulo-content">
+                    <h3>📋 PDFs Profesionales</h3>
+                    <p>
+                        Olvídate de las convocatorias por WhatsApp. Genera documentos profesionales 
+                        con fotos de jugadores, escudos de equipos y toda la información necesaria.
+                    </p>
+                    <ul class="modulo-features">
+                        <li><span>✓</span> Convocatoria con fotos, dorsales y logística</li>
+                        <li><span>✓</span> Alineación con titulares y suplentes diferenciados</li>
+                        <li><span>✓</span> Escudos de ambos equipos</li>
+                        <li><span>✓</span> Análisis de partido exportable</li>
+                        <li><span>✓</span> Diseño profesional listo para imprimir o compartir</li>
+                    </ul>
+                </div>
+                <div class="modulo-image">
+                    <img src="https://toplidercoach.com/wp-content/uploads/2025/12/pdf-convocatoria.png" alt="PDF Convocatoria" loading="lazy">
+                </div>
+            </div>
+            
+            <!-- Campo Táctico -->
+            <div class="modulo-row">
+                <div class="modulo-content">
+                    <h3>🎯 Campo Táctico Visual</h3>
+                    <p>
+                        Selecciona tu sistema de juego y coloca a cada jugador en su posición. 
+                        Las fotos y dorsales aparecen automáticamente. Todo se guarda y se integra en los PDFs.
+                    </p>
+                    <ul class="modulo-features">
+                        <li><span>✓</span> Sistemas predefinidos (1-4-3-3, 1-4-4-2, etc.)</li>
+                        <li><span>✓</span> Asignación de jugadores por posición</li>
+                        <li><span>✓</span> Fotos y dorsales de cada jugador</li>
+                        <li><span>✓</span> Integración automática en PDF de análisis</li>
+                        <li><span>✓</span> Guardado automático en la nube</li>
+                    </ul>
+                </div>
+                <div class="modulo-image">
+                    <img src="https://toplidercoach.com/wp-content/uploads/2025/12/campo-tactico.png" alt="Campo Táctico Visual" loading="lazy">
+                </div>
+            </div>
+            
+            <!-- Análisis -->
+            <div class="modulo-row">
+                <div class="modulo-content">
+                    <h3>📈 Análisis de Partido</h3>
+                    <p>
+                        Haz un estudio táctico completo de cada partido. Documenta lo que funcionó, 
+                        lo que hay que mejorar, y analiza al rival para futuras referencias.
+                    </p>
+                    <ul class="modulo-features">
+                        <li><span>✓</span> Sistema de juego y cambios tácticos</li>
+                        <li><span>✓</span> Puntos fuertes y aspectos a mejorar</li>
+                        <li><span>✓</span> Análisis del rival</li>
+                        <li><span>✓</span> Conclusiones y aprendizajes</li>
+                        <li><span>✓</span> Exportable a PDF profesional</li>
+                    </ul>
+                </div>
+                <div class="modulo-image">
+                    <img src="https://toplidercoach.com/wp-content/uploads/2025/12/analisis.png" alt="Análisis de Partido" loading="lazy">
+                </div>
+            </div>
+            
+            <!-- Asistentes IA -->
+            <div class="modulo-row">
+                <div class="modulo-content">
+                    <h3>🤖 Asistentes IA Especializados</h3>
+                    <p>
+                        Tres asistentes con personalidades únicas que trabajan con TUS datos reales. 
+                        No son chatbots genéricos, son expertos que conocen a tu equipo.
+                    </p>
+                    <ul class="modulo-features">
+                        <li><span>🧠</span> <strong>Johan</strong> - Experto en táctica y análisis de rivales</li>
+                        <li><span>💪</span> <strong>Valeri</strong> - Especialista en preparación física</li>
+                        <li><span>🎯</span> <strong>Arrigo</strong> - Coach de mentalidad y motivación</li>
+                        <li><span>✓</span> Acceso a tus partidos, estadísticas y plantilla</li>
+                        <li><span>✓</span> Respuestas personalizadas basadas en datos reales</li>
+                    </ul>
+                </div>
+                <div class="modulo-image">
+                    <img src="https://toplidercoach.com/wp-content/uploads/2025/12/asistentes-ia.png" alt="Asistentes IA" loading="lazy">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- COMPARATIVA -->
+    <section class="comparativa" id="comparativa">
+        <div class="container">
+            <div class="section-header">
+                <h2>Lo que otros ofrecen vs Lo que tú mereces</h2>
+                <p>Comparativa honesta con otras soluciones del mercado</p>
+            </div>
+            <div class="tabla-comparativa">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Funcionalidad</th>
+                            <th class="otros">Otras Apps</th>
+                            <th class="hub">TopLiderCoach HUB</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="feature-name">📋 PDFs de convocatoria</td>
+                            <td class="cross">❌ Sin fotos</td>
+                            <td class="check">✅ Con fotos y escudos</td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">⚽ Campo táctico visual</td>
+                            <td class="cross">❌ Básico o inexistente</td>
+                            <td class="check">✅ Interactivo con fotos</td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">🤖 Asistentes de IA</td>
+                            <td class="cross">❌ No disponible</td>
+                            <td class="check">✅ 3 especialistas con tus datos</td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">📊 Dashboard estadísticas</td>
+                            <td class="check">⚠️ Limitado</td>
+                            <td class="check">✅ Completo y visual</td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">📅 Planificador sesiones</td>
+                            <td class="check">⚠️ Sin biblioteca</td>
+                            <td class="check">✅ Con biblioteca de ejercicios</td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">🔗 Ecosistema integrado</td>
+                            <td class="cross">❌ Apps separadas</td>
+                            <td class="check">✅ Todo conectado</td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">📈 Análisis de partidos</td>
+                            <td class="check">⚠️ Solo estadísticas</td>
+                            <td class="check">✅ Táctico + campo visual en PDF</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- GALERÍA -->
+    <section class="galeria" id="galeria">
+        <div class="container">
+            <div class="section-header">
+                <h2>El HUB en acción</h2>
+                <p>Capturas reales de la plataforma</p>
+            </div>
+            <div class="galeria-grid">
+                <div class="galeria-item grande" onclick="abrirLightbox(this)">
+                    <img src="https://toplidercoach.com/wp-content/uploads/2025/12/dashboard.png" alt="Dashboard Principal" loading="lazy">
+                    <div class="galeria-caption">📊 Dashboard Principal</div>
+                </div>
+                <div class="galeria-item" onclick="abrirLightbox(this)">
+                    <img src="https://toplidercoach.com/wp-content/uploads/2025/12/pdf-convocatoria.png" alt="PDF Convocatoria" loading="lazy">
+                    <div class="galeria-caption">📋 PDF Convocatoria</div>
+                </div>
+                <div class="galeria-item" onclick="abrirLightbox(this)">
+                    <img src="https://toplidercoach.com/wp-content/uploads/2025/12/pdf-analisis.png" alt="PDF Análisis" loading="lazy">
+                    <div class="galeria-caption">📋 PDF Análisis</div>
+                </div>
+                <div class="galeria-item" onclick="abrirLightbox(this)">
+                    <img src="https://toplidercoach.com/wp-content/uploads/2025/12/campo-tactico.png" alt="Campo Táctico" loading="lazy">
+                    <div class="galeria-caption">⚽ Campo Táctico</div>
+                </div>
+                <div class="galeria-item" onclick="abrirLightbox(this)">
+                    <img src="https://toplidercoach.com/wp-content/uploads/2025/12/asistente-ia.png" alt="Asistente IA" loading="lazy">
+                    <div class="galeria-caption">🤖 Asistente IA</div>
+                </div>
+                <div class="galeria-item" onclick="abrirLightbox(this)">
+                    <img src="https://toplidercoach.com/wp-content/uploads/2025/12/calendario-partidos.png" alt="Calendario Partidos" loading="lazy">
+                    <div class="galeria-caption">📅 Calendario</div>
+                </div>
+                <div class="galeria-item" onclick="abrirLightbox(this)">
+                    <img src="https://toplidercoach.com/wp-content/uploads/2025/12/ficha-jugador.png" alt="Ficha Jugador" loading="lazy">
+                    <div class="galeria-caption">👤 Ficha Jugador</div>
+                </div>
+                <div class="galeria-item" onclick="abrirLightbox(this)">
+                    <img src="https://toplidercoach.com/wp-content/uploads/2025/12/planificador.png" alt="Planificador" loading="lazy">
+                    <div class="galeria-caption">📅 Planificador</div>
+                </div>
+                <div class="galeria-item" onclick="abrirLightbox(this)">
+                    <img src="https://toplidercoach.com/wp-content/uploads/2025/12/analisis.png" alt="Análisis Partido" loading="lazy">
+                    <div class="galeria-caption">📈 Análisis Partido</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA FINAL -->
+    <section class="cta-final">
+        <div class="container">
+            <h2>Empieza a entrenar como un profesional</h2>
+            <p>
+                El HUB TopLiderCoach está incluido en tu suscripción. 
+                Sin costes adicionales, sin límites, sin complicaciones.
+            </p>
+            <a href="https://toplidercoach.com" class="hero-cta">
+                Acceder a TopLiderCoach →
+            </a>
+            <p class="cta-incluido">
+                ✨ Incluido en todos los planes de TopLiderCoach
+            </p>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>
+            © 2025 <a href="https://toplidercoach.com">TopLiderCoach</a>. 
+            Todos los derechos reservados.
+        </p>
+    </footer>
+
+    <!-- LIGHTBOX -->
+    <div class="lightbox" id="lightbox" onclick="cerrarLightbox()">
+        <span class="lightbox-close">&times;</span>
+        <img src="" alt="Imagen ampliada" id="lightbox-img">
+    </div>
+
+    <script>
+        // Smooth scroll para los enlaces de navegación
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Navbar con efecto al hacer scroll
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.style.boxShadow = '0 4px 30px rgba(0,0,0,0.15)';
+            } else {
+                navbar.style.boxShadow = '0 2px 20px rgba(0,0,0,0.1)';
+            }
+        });
+        
+        // Lightbox para galería
+        function abrirLightbox(elemento) {
+            const img = elemento.querySelector('img');
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            lightboxImg.src = img.src;
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function cerrarLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        // Cerrar con Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                cerrarLightbox();
+            }
+        });
+    </script>
+</body>
+</html>

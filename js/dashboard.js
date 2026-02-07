@@ -6,6 +6,12 @@ registrarModulo('dashboard', function() {
     cargarDashboard();
 });
 
+// Dashboard es el módulo visible por defecto, cargar al iniciar la app
+registrarInit(function() {
+    cargarSelectorTemporadasDashboard();
+    cargarDashboard();
+});
+
 async function cargarSelectorTemporadasDashboard() {
     const select = document.getElementById('dashboard-temporada');
     if (!select) return;
@@ -489,4 +495,3 @@ async function cargarAlertasWellness() {
     `).join('');
 }
 
-</script>

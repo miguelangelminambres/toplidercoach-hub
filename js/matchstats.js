@@ -943,7 +943,6 @@ function renderizarConvocatoria() {
             }
         }
         // ========== FICHA JUGADOR ==========
-let fichaJugadorActual = null;
 
 
 async function abrirFichaJugador(playerId) {
@@ -1084,8 +1083,6 @@ function cerrarModalFichaJugador(event) {
     document.getElementById('modal-ficha-jugador').style.display = 'none';
 }
 
-let escudoRivalUrl = null;
-
 function previsualizarEscudoRival(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -1139,6 +1136,8 @@ function cargarEscudoRival(url) {
         container.style.border = 'none';
     } else {
         resetearEscudoRival();
+    }
+}
 
 // Init: formato de partido listener
 document.addEventListener('DOMContentLoaded', function() {

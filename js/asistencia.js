@@ -17,6 +17,11 @@ registrarSubTab('planificador', 'asistencia', function() {
     cargarAsistenciaMes();
 });
 
+// También cargar los meses al iniciar la app (por si el subtab no dispara)
+registrarInit(function() {
+    cargarSelectorMeses();
+});
+
 async function abrirModalAsistenciaSesion(sesionId) {
     sesionAsistenciaActual = sesionId;
     document.getElementById('modal-asistencia-sesion').style.display = 'flex';
@@ -225,19 +230,20 @@ let asistenciaMesActual = new Date().toISOString().slice(0, 7); // YYYY-MM
 
 // Cargar selector de meses
 async function cargarSelectorMeses() {
-    const select = document.getElementById('asistencia-mes');
-    if (!select) return;
+    var select = document.getElementById('asistencia-mes');
+    if (!select) { console.error('Select asistencia-mes no encontrado'); return; }
     
-    select.innerHTML = '<option value="">Selecciona mes...</option>';
-    
-    // Generar últimos 12 meses
-    const hoy = new Date();
-    for (let i = 0; i < 12; i++) {
-        const fecha = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
-        const valor = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
-        const nombreMes = fecha.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-        select.innerHTML += `<option value="${valor}" ${i === 0 ? 'selected' : ''}>${nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)}</option>`;
+    // Construir todas las opciones de una vez
+    var opciones = '<option value="">Selecciona mes...</option>';
+    var hoy = new Date();
+    for (var i = 0; i < 12; i++) {
+        var fecha = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
+        var valor = fecha.getFullYear() + '-' + String(fecha.getMonth() + 1).padStart(2, '0');
+        var nombreMes = fecha.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+        var selected = (i === 0) ? ' selected' : '';
+        opciones += '<option value="' + valor + '"' + selected + '>' + nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1) + '</option>';
     }
+    select.innerHTML = opciones;
     
     asistenciaMesActual = select.value;
 }

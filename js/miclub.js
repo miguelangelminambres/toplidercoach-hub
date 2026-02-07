@@ -3,8 +3,8 @@
 
 registrarModulo('config', cargarDatosClub);
 registrarSubTab('config', 'temporadas', cargarTemporadas);
-registrarSubTab('config', 'plantilla', function() {
-    cargarSelectorTemporadas();
+registrarSubTab('config', 'plantilla', async function() {
+    await cargarSelectorTemporadas();
     cargarPlantilla();
 });
 registrarSubTab('config', 'datos', cargarDatosClub);

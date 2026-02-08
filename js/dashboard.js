@@ -85,8 +85,13 @@ async function cargarDatosPartidosDashboard() {
     difEl.textContent = (diferencia >= 0 ? '+' : '') + diferencia;
     difEl.style.color = diferencia >= 0 ? '#22c55e' : '#ef4444';
     
-    // Últimos 10 partidos
-    mostrarUltimosPartidos(partidosJugados.slice(0, 10));
+    // Últimos y próximos partidos (jugados recientes + pendientes)
+    const jugadosRecientes = partidosJugados.slice(0, 5);
+    const pendientes = partidos.filter(p => !p.result).reverse().slice(0, 5);
+    const todosParaMostrar = [...jugadosRecientes, ...pendientes]
+        .sort((a, b) => new Date(a.match_date) - new Date(b.match_date))
+        .slice(-10);
+    mostrarUltimosPartidos(todosParaMostrar);
     
     // Gráfico de resultados (donut)
     crearGraficoResultados(victorias, empates, derrotas);
@@ -130,25 +135,78 @@ function mostrarUltimosPartidos(partidos) {
         container.innerHTML = `
             <div class="sin-datos">
                 <div class="icono">⚽</div>
-                <p>No hay partidos jugados</p>
+                <p>No hay partidos registrados</p>
             </div>
         `;
         return;
     }
     
+    const miEscudo = clubData?.logo_url 
+        ? `<img src="${clubData.logo_url}" alt="" class="escudo-mini">` 
+        : `<span class="escudo-placeholder">🏠</span>`;
+    const miNombre = clubData?.name || 'Mi Equipo';
+    
     container.innerHTML = partidos.map(p => {
         const esLocal = p.home_away === 'home';
-        const gF = p.team_goals || 0;
-        const gC = p.opponent_goals || 0;
-        const resultado = esLocal ? `${gF}-${gC}` : `${gC}-${gF}`;
-        const clase = p.result === 'win' ? 'victoria' : p.result === 'draw' ? 'empate' : 'derrota';
-        const fecha = new Date(p.match_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+        const jugado = !!p.result;
+        const fecha = new Date(p.match_date);
+        const fechaStr = fecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+        const hora = p.kick_off_time ? p.kick_off_time.slice(0, 5) : '';
+        
+        // Competición + jornada
+        let competicionStr = '';
+        if (p.competition) {
+            competicionStr = p.competition;
+            if (p.round) competicionStr += '. ' + p.round;
+        }
+        
+        // Escudo rival
+        const rivalEscudo = p.opponent_logo 
+            ? `<img src="${p.opponent_logo}" alt="" class="escudo-mini">` 
+            : `<span class="escudo-placeholder">🏟️</span>`;
+        
+        // Equipo izquierda (local) y derecha (visitante)
+        const equipoIzq = esLocal ? miNombre : p.opponent;
+        const escudoIzq = esLocal ? miEscudo : rivalEscudo;
+        const equipoDer = esLocal ? p.opponent : miNombre;
+        const escudoDer = esLocal ? rivalEscudo : miEscudo;
+        
+        // Marcador o hora
+        let centroHTML = '';
+        if (jugado) {
+            const gF = p.team_goals || 0;
+            const gC = p.opponent_goals || 0;
+            const marcador = esLocal ? `${gF}-${gC}` : `${gC}-${gF}`;
+            centroHTML = `<span class="match-score">${marcador}</span>`;
+        } else {
+            centroHTML = `<span class="match-time">${hora || 'TBD'}</span>`;
+        }
+        
+        // Badge resultado
+        let badgeHTML = '';
+        if (jugado) {
+            const claseRes = p.result === 'win' ? 'badge-win' : p.result === 'draw' ? 'badge-draw' : 'badge-loss';
+            badgeHTML = `<span class="match-badge ${claseRes}">Fin</span>`;
+        }
         
         return `
-            <div class="partido-badge ${clase}" onclick="verPartido('${p.id}')" title="${p.opponent}">
-                <div class="resultado">${resultado}</div>
-                <div class="rival">${esLocal ? 'vs' : '@'} ${p.opponent.substring(0, 10)}</div>
-                <div class="fecha">${fecha}</div>
+            <div class="match-row ${jugado ? 'played' : 'upcoming'}" onclick="verPartido('${p.id}')">
+                ${badgeHTML}
+                ${competicionStr ? `<div class="match-competition">${competicionStr}</div>` : ''}
+                <div class="match-teams">
+                    <div class="match-team left">
+                        <span class="team-name">${equipoIzq}</span>
+                        ${escudoIzq}
+                    </div>
+                    <div class="match-center">
+                        ${centroHTML}
+                    </div>
+                    <div class="match-team right">
+                        ${escudoDer}
+                        <span class="team-name">${equipoDer}</span>
+                    </div>
+                </div>
+                <div class="match-date">${fechaStr}</div>
             </div>
         `;
     }).join('');

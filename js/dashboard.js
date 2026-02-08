@@ -93,16 +93,11 @@ async function cargarDatosPartidosDashboard() {
         .slice(-10);
     mostrarUltimosPartidos(todosParaMostrar);
     
-    // Gráfico de resultados (donut)
-    crearGraficoResultados(victorias, empates, derrotas);
+    // Gráfico de resultados por competición (multi-donut)
+    crearGraficosResultadosPorCompeticion(partidosJugados);
     
     // Gráfico de goles
     crearGraficoGoles(golesFavor, golesContra);
-    
-    // Leyenda
-    document.getElementById('legend-victorias').textContent = `Victorias: ${victorias} (${calcularPorcentaje(victorias, partidosJugados.length)}%)`;
-    document.getElementById('legend-empates').textContent = `Empates: ${empates} (${calcularPorcentaje(empates, partidosJugados.length)}%)`;
-    document.getElementById('legend-derrotas').textContent = `Derrotas: ${derrotas} (${calcularPorcentaje(derrotas, partidosJugados.length)}%)`;
 }
 
 function calcularPorcentaje(valor, total) {
@@ -124,7 +119,7 @@ function mostrarSinDatosPartidos() {
         </div>
     `;
     
-    crearGraficoResultados(0, 0, 0);
+    crearGraficosResultadosPorCompeticion([]);
     crearGraficoGoles(0, 0);
 }
 
@@ -212,54 +207,134 @@ function mostrarUltimosPartidos(partidos) {
     }).join('');
 }
 
-function crearGraficoResultados(victorias, empates, derrotas) {
-    const ctx = document.getElementById('chart-resultados');
-    if (!ctx) return;
+// Charts por competición almacenados
+let chartsCompeticion = [];
+
+function crearGraficosResultadosPorCompeticion(partidosJugados) {
+    // Destruir charts anteriores
+    chartsCompeticion.forEach(c => c.destroy());
+    chartsCompeticion = [];
     
-    // Destruir gráfico anterior si existe
-    if (chartResultados) {
-        chartResultados.destroy();
+    // Calcular stats totales
+    const totalV = partidosJugados.filter(p => p.result === 'win').length;
+    const totalE = partidosJugados.filter(p => p.result === 'draw').length;
+    const totalD = partidosJugados.filter(p => p.result === 'loss').length;
+    const totalP = totalV + totalE + totalD;
+    
+    // Crear donut Total
+    const ctxTotal = document.getElementById('chart-resultados-total');
+    if (ctxTotal) {
+        const chart = crearDonut(ctxTotal, totalV, totalE, totalD);
+        if (chart) chartsCompeticion.push(chart);
     }
     
-    const total = victorias + empates + derrotas;
+    const statsTotal = document.getElementById('stats-total');
+    if (statsTotal) {
+        statsTotal.innerHTML = `<span class="donut-stat-line">${totalP} PJ · ${totalV}V · ${totalE}E · ${totalD}D</span>`;
+    }
     
-    if (total === 0) {
-        chartResultados = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Sin partidos'],
-                datasets: [{
-                    data: [1],
-                    backgroundColor: ['#e5e7eb'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                }
-            }
-        });
+    // Agrupar por competición
+    const porCompeticion = {};
+    partidosJugados.forEach(p => {
+        const comp = p.competition || 'Sin clasificar';
+        if (!porCompeticion[comp]) porCompeticion[comp] = [];
+        porCompeticion[comp].push(p);
+    });
+    
+    // Crear donuts por competición
+    const container = document.getElementById('donuts-competiciones');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    const competiciones = Object.keys(porCompeticion).sort();
+    
+    if (competiciones.length === 0) {
+        container.innerHTML = '<p style="color:#9ca3af;font-size:12px;text-align:center;grid-column:1/-1;">No hay datos por competición</p>';
         return;
     }
     
-    chartResultados = new Chart(ctx, {
+    competiciones.forEach(comp => {
+        const partidos = porCompeticion[comp];
+        const v = partidos.filter(p => p.result === 'win').length;
+        const e = partidos.filter(p => p.result === 'draw').length;
+        const d = partidos.filter(p => p.result === 'loss').length;
+        const pj = v + e + d;
+        
+        const canvasId = 'chart-comp-' + comp.replace(/\s+/g, '-').toLowerCase();
+        
+        const wrapper = document.createElement('div');
+        wrapper.className = 'resultado-donut mini';
+        wrapper.innerHTML = `
+            <canvas id="${canvasId}"></canvas>
+            <div class="donut-label">${comp}</div>
+            <div class="donut-stats"><span class="donut-stat-line">${pj}PJ · ${v}V · ${e}E · ${d}D</span></div>
+        `;
+        container.appendChild(wrapper);
+        
+        const ctx = document.getElementById(canvasId);
+        if (ctx) {
+            const chart = crearDonut(ctx, v, e, d);
+            if (chart) chartsCompeticion.push(chart);
+        }
+    });
+}
+
+function crearDonut(ctx, victorias, empates, derrotas) {
+    const total = victorias + empates + derrotas;
+    
+    if (total === 0) {
+        return new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Sin partidos'],
+                datasets: [{ data: [1], backgroundColor: ['#e5e7eb'], borderWidth: 0 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: { legend: { display: false }, tooltip: { enabled: false } }
+            }
+        });
+    }
+    
+    // Plugin para texto central
+    const centerTextPlugin = {
+        id: 'centerText',
+        afterDraw: function(chart) {
+            const { ctx: c, chartArea } = chart;
+            const centerX = (chartArea.left + chartArea.right) / 2;
+            const centerY = (chartArea.top + chartArea.bottom) / 2;
+            const pct = total > 0 ? Math.round((victorias / total) * 100) : 0;
+            
+            c.save();
+            c.textAlign = 'center';
+            c.textBaseline = 'middle';
+            c.font = 'bold ' + (chart.canvas.parentElement.classList.contains('principal') ? '22px' : '16px') + ' system-ui';
+            c.fillStyle = '#22c55e';
+            c.fillText(pct + '%', centerX, centerY - 6);
+            c.font = (chart.canvas.parentElement.classList.contains('principal') ? '11px' : '9px') + ' system-ui';
+            c.fillStyle = '#9ca3af';
+            c.fillText('victorias', centerX, centerY + 12);
+            c.restore();
+        }
+    };
+    
+    return new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: ['Victorias', 'Empates', 'Derrotas'],
             datasets: [{
                 data: [victorias, empates, derrotas],
                 backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'],
-                borderWidth: 0,
-                hoverOffset: 8
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 4
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-            cutout: '65%',
+            maintainAspectRatio: true,
+            cutout: '68%',
             plugins: {
                 legend: { display: false },
                 tooltip: {
@@ -272,7 +347,8 @@ function crearGraficoResultados(victorias, empates, derrotas) {
                     }
                 }
             }
-        }
+        },
+        plugins: [centerTextPlugin]
     });
 }
 

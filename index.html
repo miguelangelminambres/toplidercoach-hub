@@ -129,26 +129,35 @@
             </div>
             
             <!-- CARD: Distribución de resultados -->
-            <div class="dashboard-card">
+            <div class="dashboard-card dashboard-card-wide">
                 <div class="dashboard-card-header">
                     <h3><span class="icon">📈</span> Distribución de Resultados</h3>
                 </div>
                 <div class="dashboard-card-body">
-                    <div class="chart-container donut">
-                        <canvas id="chart-resultados"></canvas>
+                    <div class="resultados-multi">
+                        <!-- Donut grande: Total -->
+                        <div class="resultado-donut principal">
+                            <canvas id="chart-resultados-total"></canvas>
+                            <div class="donut-label">Total</div>
+                            <div class="donut-stats" id="stats-total"></div>
+                        </div>
+                        <!-- Donuts pequeños por competición -->
+                        <div class="resultados-competiciones" id="donuts-competiciones">
+                            <!-- Se generan dinámicamente -->
+                        </div>
                     </div>
-                    <div class="chart-legend">
+                    <div class="chart-legend resultados-legend">
                         <div class="legend-item">
                             <div class="legend-color victoria"></div>
-                            <span id="legend-victorias">Victorias: 0</span>
+                            <span>Victoria</span>
                         </div>
                         <div class="legend-item">
                             <div class="legend-color empate"></div>
-                            <span id="legend-empates">Empates: 0</span>
+                            <span>Empate</span>
                         </div>
                         <div class="legend-item">
                             <div class="legend-color derrota"></div>
-                            <span id="legend-derrotas">Derrotas: 0</span>
+                            <span>Derrota</span>
                         </div>
                     </div>
                 </div>

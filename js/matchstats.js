@@ -11,7 +11,7 @@ registrarSubTab('matchstats', 'estadisticas', function() {
     cargarSelectorTemporadasStats();
     cargarEstadisticas();
 });
-registrarSubTab('matchstats', 'calendario-partidos', cargarCalendarioPartidos);
+// Calendario unificado movido a planificador.js
 registrarSubTab('matchstats', 'partidos', cargarPartidos);
 
 async function cargarCalendarioPartidos() {

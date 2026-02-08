@@ -506,18 +506,28 @@
         </div>
     </div>
 </div>
-            <!-- Sub: Calendario -->
+            <!-- Sub: Calendario Unificado -->
             <div id="planificador-calendario" class="vista-contenido">
                 <div class="calendario-container">
                     <div class="calendario-header">
-                        <h2>Calendario de Sesiones</h2>
+                        <h2>📅 Calendario</h2>
                         <div class="calendario-nav">
-                            <button onclick="mesAnteriorSesiones()">Anterior</button>
-                            <span class="mes-actual" id="mes-actual-sesiones">Diciembre 2025</span>
-                            <button onclick="mesSiguienteSesiones()">Siguiente</button>
+                            <button onclick="mesAnteriorCalendario()">◀</button>
+                            <span class="mes-actual" id="mes-actual-calendario">Febrero 2026</span>
+                            <button onclick="mesSiguienteCalendario()">▶</button>
                         </div>
                     </div>
-                    <div class="calendario-grid" id="calendario-sesiones">
+                    <div class="calendario-leyenda-unificada">
+                        <span class="leyenda-item"><span class="leyenda-dot sesion"></span> Sesión</span>
+                        <span class="leyenda-item"><span class="leyenda-dot victoria"></span> Victoria</span>
+                        <span class="leyenda-item"><span class="leyenda-dot empate"></span> Empate</span>
+                        <span class="leyenda-item"><span class="leyenda-dot derrota"></span> Derrota</span>
+                        <span class="leyenda-item"><span class="leyenda-dot pendiente"></span> Pendiente</span>
+                    </div>
+                    <div class="calendario-grid" id="calendario-unificado">
+                        <!-- Se genera dinámicamente -->
+                    </div>
+                    <div class="calendario-resumen-unificado" id="calendario-resumen">
                         <!-- Se genera dinámicamente -->
                     </div>
                 </div>
@@ -529,7 +539,6 @@
           <div class="sub-tabs matchstats-subtabs">
     <button class="sub-tab active" onclick="cambiarSubTab('matchstats', 'partidos', this)">Partidos</button>
     <button class="sub-tab" onclick="cambiarSubTab('matchstats', 'estadisticas', this)">Estadísticas</button>
-    <button class="sub-tab" onclick="cambiarSubTab('matchstats', 'calendario-partidos', this)">📅 Calendario</button>
     <button class="sub-tab" onclick="cambiarSubTab('matchstats', 'analisis', this)">📊 Análisis</button>
 </div>
             
@@ -600,44 +609,6 @@
                     </div>
                 </div>
             </div>
-        <!-- Sub: Calendario de Partidos -->
-<div id="matchstats-calendario-partidos" class="vista-contenido">
-    <div class="calendario-container">
-        <div class="calendario-header">
-            <h2>📅 Calendario de Partidos</h2>
-            <div class="calendario-nav">
-                <button onclick="mesAnteriorPartidos()">◀ Anterior</button>
-                <span class="mes-actual" id="mes-actual-partidos">Diciembre 2025</span>
-                <button onclick="mesSiguientePartidos()">Siguiente ▶</button>
-            </div>
-        </div>
-        
-        <!-- Leyenda -->
-        <div class="calendario-leyenda">
-            <span class="leyenda-item">
-                <span class="leyenda-color victoria"></span> Victoria
-            </span>
-            <span class="leyenda-item">
-                <span class="leyenda-color empate"></span> Empate
-            </span>
-            <span class="leyenda-item">
-                <span class="leyenda-color derrota"></span> Derrota
-            </span>
-            <span class="leyenda-item">
-                <span class="leyenda-color pendiente"></span> Pendiente
-            </span>
-        </div>
-        
-        <div class="calendario-grid" id="calendario-partidos">
-            <!-- Se genera dinámicamente -->
-        </div>
-        
-        <!-- Resumen del mes -->
-        <div class="calendario-resumen" id="calendario-resumen-partidos">
-            <!-- Se genera dinámicamente -->
-        </div>
-    </div>
-</div>
 <!-- Sub: Análisis de Partidos -->
 <div id="matchstats-analisis" class="vista-contenido">
     <div class="analisis-container">

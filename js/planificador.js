@@ -10,7 +10,7 @@ registrarInit(function() {
 });
 
 registrarSubTab('planificador', 'mis-sesiones', cargarMisSesiones);
-registrarSubTab('planificador', 'calendario', cargarCalendarioSesiones);
+registrarSubTab('planificador', 'calendario', cargarCalendarioUnificado);
 
         async function cargarEjercicios(pagina = 1) {
             paginaEjercicios = pagina;
@@ -899,26 +899,44 @@ if (s.players && s.players.length > 0) {
           
        
         
-        // ========== PLANIFICADOR: CALENDARIO ==========
-      
+        // ========== CALENDARIO UNIFICADO (Sesiones + Partidos) ==========
         
-        async function cargarCalendarioSesiones() {
-            document.getElementById('mes-actual-sesiones').textContent = `${MESES[calendarioMesSesiones]} ${calendarioAnioSesiones}`;
+        let calendarioMes = new Date().getMonth();
+        let calendarioAnio = new Date().getFullYear();
+        
+        async function cargarCalendarioUnificado() {
+            const mesActualEl = document.getElementById('mes-actual-calendario');
+            if (mesActualEl) mesActualEl.textContent = `${MESES[calendarioMes]} ${calendarioAnio}`;
             
-            const primerDia = new Date(calendarioAnioSesiones, calendarioMesSesiones, 1);
-            const ultimoDia = new Date(calendarioAnioSesiones, calendarioMesSesiones + 1, 0);
+            const primerDia = new Date(calendarioAnio, calendarioMes, 1);
+            const ultimoDia = new Date(calendarioAnio, calendarioMes + 1, 0);
+            
+            const inicioMes = `${calendarioAnio}-${String(calendarioMes + 1).padStart(2, '0')}-01`;
+            const finMes = `${calendarioAnio}-${String(calendarioMes + 1).padStart(2, '0')}-${ultimoDia.getDate()}`;
             
             // Cargar sesiones del mes
-            const inicioMes = `${calendarioAnioSesiones}-${String(calendarioMesSesiones + 1).padStart(2, '0')}-01`;
-            const finMes = `${calendarioAnioSesiones}-${String(calendarioMesSesiones + 1).padStart(2, '0')}-${ultimoDia.getDate()}`;
-            
             const { data: sesiones } = await supabaseClient
                 .from('training_sessions')
-                .select('id, name, session_date')
+                .select('id, name, session_date, hora_inicio')
                 .eq('club_id', clubId)
                 .gte('session_date', inicioMes)
-                .lte('session_date', finMes);
+                .lte('session_date', finMes)
+                .order('session_date');
             
+            // Cargar partidos del mes
+            let queryPartidos = supabaseClient
+                .from('matches')
+                .select('*')
+                .eq('club_id', clubId)
+                .gte('match_date', inicioMes)
+                .lte('match_date', finMes)
+                .order('match_date');
+            
+            if (seasonId) queryPartidos = queryPartidos.eq('season_id', seasonId);
+            
+            const { data: partidos } = await queryPartidos;
+            
+            // Agrupar por día
             const sesionesPorDia = {};
             (sesiones || []).forEach(s => {
                 const dia = new Date(s.session_date).getDate();
@@ -926,16 +944,26 @@ if (s.players && s.players.length > 0) {
                 sesionesPorDia[dia].push(s);
             });
             
-            // Generar calendario
-            const grid = document.getElementById('calendario-sesiones');
+            const partidosPorDia = {};
+            (partidos || []).forEach(p => {
+                const dia = new Date(p.match_date).getDate();
+                if (!partidosPorDia[dia]) partidosPorDia[dia] = [];
+                partidosPorDia[dia].push(p);
+            });
+            
+            // Escudo del club
+            const miEscudo = clubData?.logo_url || '';
+            
+            // Generar grid
+            const grid = document.getElementById('calendario-unificado');
             let html = '';
             
             // Headers
-            ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'].forEach(d => {
+            ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].forEach(d => {
                 html += `<div class="calendario-dia-header">${d}</div>`;
             });
             
-            // Días vacíos al inicio
+            // Días vacíos
             let diaInicio = primerDia.getDay() || 7;
             for (let i = 1; i < diaInicio; i++) {
                 html += '<div class="calendario-dia otro-mes"></div>';
@@ -944,17 +972,57 @@ if (s.players && s.players.length > 0) {
             // Días del mes
             const hoy = new Date();
             for (let dia = 1; dia <= ultimoDia.getDate(); dia++) {
-                const esHoy = dia === hoy.getDate() && calendarioMesSesiones === hoy.getMonth() && calendarioAnioSesiones === hoy.getFullYear();
+                const esHoy = dia === hoy.getDate() && calendarioMes === hoy.getMonth() && calendarioAnio === hoy.getFullYear();
+                const tieneSesion = sesionesPorDia[dia] && sesionesPorDia[dia].length > 0;
+                const tienePartido = partidosPorDia[dia] && partidosPorDia[dia].length > 0;
+                const esSabado = new Date(calendarioAnio, calendarioMes, dia).getDay() === 6;
+                const esDomingo = new Date(calendarioAnio, calendarioMes, dia).getDay() === 0;
                 
                 let eventosHTML = '';
-                if (sesionesPorDia[dia]) {
+                
+                // Sesiones del día
+                if (tieneSesion) {
                     sesionesPorDia[dia].forEach(s => {
-                        eventosHTML += `<div class="calendario-evento sesion" onclick="cargarSesionEnEditor('${s.id}')">${s.name}</div>`;
+                        const hora = s.hora_inicio ? s.hora_inicio.slice(0, 5) : '';
+                        eventosHTML += `
+                            <div class="cal-evento cal-sesion" onclick="cargarSesionEnEditor('${s.id}')">
+                                <span class="cal-evento-nombre">${s.name}</span>
+                                ${hora ? `<span class="cal-evento-hora">${hora}</span>` : ''}
+                            </div>`;
+                    });
+                }
+                
+                // Partidos del día
+                if (tienePartido) {
+                    partidosPorDia[dia].forEach(p => {
+                        const esLocal = p.home_away === 'home';
+                        const jugado = !!p.result;
+                        const resultClass = jugado ? (p.result === 'win' ? 'victoria' : (p.result === 'draw' ? 'empate' : 'derrota')) : 'pendiente';
+                        
+                        let info = '';
+                        if (jugado) {
+                            const gF = p.team_goals || 0;
+                            const gC = p.opponent_goals || 0;
+                            info = esLocal ? `${gF}-${gC}` : `${gC}-${gF}`;
+                        } else {
+                            info = p.kick_off_time ? p.kick_off_time.slice(0, 5) : 'TBD';
+                        }
+                        
+                        const escudoRival = p.opponent_logo 
+                            ? `<img src="${p.opponent_logo}" class="cal-escudo">` 
+                            : '';
+                        
+                        eventosHTML += `
+                            <div class="cal-evento cal-partido ${resultClass}" onclick="verPartido('${p.id}')">
+                                ${escudoRival}
+                                <span class="cal-evento-nombre">${p.opponent}</span>
+                                <span class="cal-partido-resultado">${info}</span>
+                            </div>`;
                     });
                 }
                 
                 html += `
-                    <div class="calendario-dia ${esHoy ? 'hoy' : ''}">
+                    <div class="calendario-dia ${esHoy ? 'hoy' : ''} ${esSabado || esDomingo ? 'fin-semana' : ''} ${tienePartido ? 'dia-partido' : ''}">
                         <div class="numero">${dia}</div>
                         ${eventosHTML}
                     </div>
@@ -962,23 +1030,37 @@ if (s.players && s.players.length > 0) {
             }
             
             grid.innerHTML = html;
+            
+            // Resumen del mes
+            const resumenEl = document.getElementById('calendario-resumen');
+            if (resumenEl) {
+                const numSesiones = (sesiones || []).length;
+                const numPartidos = (partidos || []).length;
+                const victorias = (partidos || []).filter(p => p.result === 'win').length;
+                const empates = (partidos || []).filter(p => p.result === 'draw').length;
+                const derrotas = (partidos || []).filter(p => p.result === 'loss').length;
+                const pendientes = (partidos || []).filter(p => !p.result).length;
+                
+                resumenEl.innerHTML = `
+                    <div class="resumen-item"><span class="resumen-num">${numSesiones}</span><span class="resumen-label">Sesiones</span></div>
+                    <div class="resumen-item"><span class="resumen-num">${numPartidos}</span><span class="resumen-label">Partidos</span></div>
+                    <div class="resumen-item victoria"><span class="resumen-num">${victorias}</span><span class="resumen-label">Victorias</span></div>
+                    <div class="resumen-item empate"><span class="resumen-num">${empates}</span><span class="resumen-label">Empates</span></div>
+                    <div class="resumen-item derrota"><span class="resumen-num">${derrotas}</span><span class="resumen-label">Derrotas</span></div>
+                    <div class="resumen-item pendiente"><span class="resumen-num">${pendientes}</span><span class="resumen-label">Pendientes</span></div>
+                `;
+            }
         }
         
-        function mesAnteriorSesiones() {
-            calendarioMesSesiones--;
-            if (calendarioMesSesiones < 0) {
-                calendarioMesSesiones = 11;
-                calendarioAnioSesiones--;
-            }
-            cargarCalendarioSesiones();
+        function mesAnteriorCalendario() {
+            calendarioMes--;
+            if (calendarioMes < 0) { calendarioMes = 11; calendarioAnio--; }
+            cargarCalendarioUnificado();
         }
         
-        function mesSiguienteSesiones() {
-            calendarioMesSesiones++;
-            if (calendarioMesSesiones > 11) {
-                calendarioMesSesiones = 0;
-                calendarioAnioSesiones++;
-            }
-            cargarCalendarioSesiones();
+        function mesSiguienteCalendario() {
+            calendarioMes++;
+            if (calendarioMes > 11) { calendarioMes = 0; calendarioAnio++; }
+            cargarCalendarioUnificado();
         }
    

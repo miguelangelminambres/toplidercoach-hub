@@ -539,10 +539,11 @@
         }
 
         /* ========== CALENDARIO ========== */
-      .calendario-container {
+      /* ========== CALENDARIO UNIFICADO ========== */
+        .calendario-container {
             background: white;
             border-radius: 16px;
-            padding: 15px;
+            padding: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             overflow-x: auto;
         }
@@ -551,94 +552,258 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             flex-wrap: wrap;
             gap: 15px;
+        }
+        
+        .calendario-header h2 {
+            margin: 0;
         }
         
         .calendario-nav {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
         }
         
         .calendario-nav button {
-            padding: 8px 16px;
+            width: 36px;
+            height: 36px;
             border: 2px solid #e5e7eb;
             background: white;
-            border-radius: 8px;
+            border-radius: 50%;
             cursor: pointer;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .calendario-nav button:hover {
+            background: #f3f4f6;
+            border-color: #667eea;
         }
         
         .mes-actual {
             font-size: 18px;
-            font-weight: 600;
+            font-weight: 700;
             color: #1f2937;
             min-width: 180px;
             text-align: center;
         }
         
-    .calendario-grid {
-            display: grid;
-            grid-template-columns: repeat(7, minmax(40px, 1fr));
-            gap: 2px;
-            min-width: 320px;
+        /* Leyenda */
+        .calendario-leyenda-unificada {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
         }
         
-       .calendario-dia-header {
-            text-align: center;
-            font-weight: 600;
+        .calendario-leyenda-unificada .leyenda-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
             color: #6b7280;
-            padding: 5px 2px;
-            font-size: 11px;
         }
         
-       .calendario-dia {
-            min-height: 60px;
+        .leyenda-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .leyenda-dot.sesion { background: #1e3a5f; }
+        .leyenda-dot.victoria { background: #22c55e; }
+        .leyenda-dot.empate { background: #f59e0b; }
+        .leyenda-dot.derrota { background: #ef4444; }
+        .leyenda-dot.pendiente { background: #94a3b8; }
+        
+        /* Grid */
+        .calendario-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0;
+            min-width: 320px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .calendario-dia-header {
+            text-align: center;
+            font-weight: 700;
+            color: #1f2937;
+            padding: 10px 4px;
+            font-size: 12px;
+            background: #1e293b;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .calendario-dia {
+            min-height: 90px;
             border: 1px solid #e5e7eb;
-            border-radius: 6px;
             padding: 4px;
             background: white;
             font-size: 11px;
+            transition: background 0.15s;
+        }
+        
+        .calendario-dia:hover {
+            background: #fafbff;
         }
         
         .calendario-dia.otro-mes {
             background: #f9fafb;
-            opacity: 0.5;
+            opacity: 0.4;
+            min-height: 0;
         }
         
         .calendario-dia.hoy {
-            border-color: #667eea;
-            background: #f0f0ff;
+            background: #eff6ff;
+        }
+        
+        .calendario-dia.hoy .numero {
+            background: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .calendario-dia.fin-semana {
+            background: #fefce8;
+        }
+        
+        .calendario-dia.dia-partido {
+            background: #fef9ee;
         }
         
         .calendario-dia .numero {
-            font-weight: 600;
-            font-size: 14px;
-            color: #1f2937;
-            margin-bottom: 5px;
+            font-weight: 700;
+            font-size: 13px;
+            color: #374151;
+            margin-bottom: 4px;
         }
         
-        .calendario-evento {
-            font-size: 11px;
-            padding: 3px 6px;
+        /* Eventos dentro del día */
+        .cal-evento {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 10px;
+            padding: 3px 5px;
             border-radius: 4px;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
             cursor: pointer;
-            white-space: nowrap;
+            overflow: hidden;
+            transition: opacity 0.15s;
+        }
+        
+        .cal-evento:hover {
+            opacity: 0.8;
+        }
+        
+        .cal-evento-nombre {
+            flex: 1;
             overflow: hidden;
             text-overflow: ellipsis;
+            white-space: nowrap;
+            font-weight: 600;
         }
         
-        .calendario-evento.sesion {
-            background: #f3e8ff;
-            color: #7c3aed;
+        .cal-evento-hora {
+            font-size: 9px;
+            opacity: 0.7;
+            flex-shrink: 0;
         }
         
-        .calendario-evento.partido {
-            background: #d1fae5;
-            color: #059669;
+        /* Sesión */
+        .cal-sesion {
+            background: #1e3a5f;
+            color: white;
+        }
+        
+        /* Partidos */
+        .cal-partido {
+            color: white;
+        }
+        
+        .cal-partido.victoria { background: #22c55e; }
+        .cal-partido.empate { background: #f59e0b; }
+        .cal-partido.derrota { background: #ef4444; }
+        .cal-partido.pendiente { background: #94a3b8; }
+        
+        .cal-escudo {
+            width: 16px;
+            height: 16px;
+            object-fit: contain;
+            flex-shrink: 0;
+            border-radius: 2px;
+        }
+        
+        .cal-partido-resultado {
+            font-weight: 700;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+        
+        /* Resumen del mes */
+        .calendario-resumen-unificado {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .resumen-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 16px;
+            background: #f8fafc;
+            border-radius: 10px;
+            min-width: 70px;
+        }
+        
+        .resumen-item.victoria { background: #dcfce7; }
+        .resumen-item.empate { background: #fef3c7; }
+        .resumen-item.derrota { background: #fee2e2; }
+        .resumen-item.pendiente { background: #f1f5f9; }
+        
+        .resumen-num {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1f2937;
+        }
+        
+        .resumen-label {
+            font-size: 11px;
+            color: #6b7280;
+        }
+        
+        @media (max-width: 768px) {
+            .calendario-dia {
+                min-height: 65px;
+            }
+            .cal-evento {
+                font-size: 9px;
+                padding: 2px 3px;
+            }
+            .cal-escudo {
+                width: 12px;
+                height: 12px;
+            }
         }
         /* ========== MIS SESIONES ========== */
         .sesion-card {

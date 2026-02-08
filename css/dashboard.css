@@ -311,8 +311,9 @@
 /* Multi-donut resultados por competición */
 .resultados-multi {
     display: flex;
-    align-items: flex-start;
-    gap: 30px;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
     padding: 10px 0;
 }
 
@@ -328,8 +329,8 @@
 }
 
 .resultado-donut.principal canvas {
-    width: 180px !important;
-    height: 180px !important;
+    width: 150px !important;
+    height: 150px !important;
 }
 
 .resultado-donut.mini canvas {
@@ -365,9 +366,9 @@
 .resultados-competiciones {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 16px;
     justify-content: center;
-    flex: 1;
+    width: 100%;
 }
 
 .resultados-legend {
@@ -377,19 +378,14 @@
 }
 
 @media (max-width: 768px) {
-    .resultados-multi {
-        flex-direction: column;
-        align-items: center;
-    }
-    
     .resultado-donut.principal canvas {
-        width: 150px !important;
-        height: 150px !important;
+        width: 130px !important;
+        height: 130px !important;
     }
     
     .resultado-donut.mini canvas {
-        width: 90px !important;
-        height: 90px !important;
+        width: 80px !important;
+        height: 80px !important;
     }
 }
 

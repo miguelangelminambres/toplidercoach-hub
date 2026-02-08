@@ -529,11 +529,17 @@ function renderizarConvocatoria() {
                 const j = sp.players;
                 if (!j) return '';
                 const seleccionado = convocadosPartido.includes(String(sp.id));
+                const foto = j.photo_url;
+                const inicial = j.name ? j.name.charAt(0).toUpperCase() : '?';
                 return `
                     <div class="jugador-check ${seleccionado ? 'selected' : ''}" data-sp-id="${sp.id}" onclick="toggleConvocado('${sp.id}')">
+                        <div class="jugador-foto-mini">
+                            ${foto ? `<img src="${foto}" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">` 
+                                   : `<span class="jugador-inicial" style="width:36px;height:36px;border-radius:50%;background:#6b21a8;color:white;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;">${inicial}</span>`}
+                        </div>
                         <div class="jugador-check-info">
                             <div class="nombre">${j.name}</div>
-                            <div class="posicion">${sp.players?.position || ''}</div>
+                            <div class="posicion">${j.position || ''}</div>
                         </div>
                         <div class="dorsal">${sp.shirt_number || '-'}</div>
                     </div>
@@ -590,8 +596,14 @@ function renderizarConvocatoria() {
         const j = sp.players;
         if (!j) return '';
         const esTitular = titularesPartido.includes(String(sp.id));
+        const foto = j.photo_url;
+        const inicial = j.name ? j.name.charAt(0).toUpperCase() : '?';
         return `
             <div class="jugador-titular ${esTitular ? 'es-titular' : ''}" data-sp-id="${sp.id}" onclick="toggleTitular('${sp.id}')">
+                <div class="jugador-foto-mini">
+                    ${foto ? `<img src="${foto}" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">` 
+                           : `<span class="jugador-inicial" style="width:32px;height:32px;border-radius:50%;background:#6b21a8;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;">${inicial}</span>`}
+                </div>
                 <div class="dorsal">${sp.shirt_number || '-'}</div>
                 <div class="nombre">${j.name}</div>
             </div>

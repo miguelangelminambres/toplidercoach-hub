@@ -435,6 +435,11 @@
             color: #6b7280;
         }
         
+        .jugador-check .jugador-foto-mini,
+        .jugador-titular .jugador-foto-mini {
+            flex-shrink: 0;
+        }
+        
         .jugador-check .dorsal {
             background: #1f2937;
             color: white;

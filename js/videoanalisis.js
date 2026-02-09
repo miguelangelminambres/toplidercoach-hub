@@ -925,30 +925,16 @@ function vaSnapshot() {
   // 1. Draw video frame
   c.drawImage(vaVideo, 0, 0, w, h);
 
-  // 2. Re-draw all visible drawings directly on snapshot canvas
+  // 2. Draw all visible drawings directly on this canvas
   if (va.showDrawings) {
-    // Temporarily swap context to draw on snapshot
-    const origCtx = vaCtx;
-    const origCanvas = vaCanvas;
-    const origW = vaCanvas.width;
-    const origH = vaCanvas.height;
-
+    const saveCtx = vaCtx;
     vaCtx = c;
-    vaCanvas = tmp;
-    vaCanvas.width = w;
-    vaCanvas.height = h;
-
     va.drawings.forEach(d => {
       if (Math.abs(d.time - va.currentTime) < DRAW_DISPLAY_SECONDS) {
         vaDrawShape(d);
       }
     });
-
-    // Restore original context
-    vaCtx = origCtx;
-    vaCanvas = origCanvas;
-    vaCanvas.width = origW;
-    vaCanvas.height = origH;
+    vaCtx = saveCtx;
   }
 
   const link = document.createElement("a");

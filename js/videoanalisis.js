@@ -5,20 +5,35 @@
 
 // ─── 1. CONFIG ───────────────────────────────────────────────
 
-const VA_CATEGORIES = [
-  { id: "gol",          label: "Gol",            color: "#16a34a", icon: "⚽", key: "1" },
-  { id: "ocasion",      label: "Ocasión",        color: "#ca8a04", icon: "🎯", key: "2" },
-  { id: "corner",       label: "Córner",         color: "#2563eb", icon: "🚩", key: "3" },
-  { id: "falta",        label: "Falta",          color: "#dc2626", icon: "🟥", key: "4" },
-  { id: "tarjeta",      label: "Tarjeta",        color: "#ea580c", icon: "🟨", key: "5" },
-  { id: "cambio",       label: "Cambio",         color: "#7c3aed", icon: "🔄", key: "6" },
-  { id: "fuera-juego",  label: "Fuera juego",    color: "#0891b2", icon: "🏴", key: "7" },
-  { id: "saque",        label: "Saque",          color: "#475569", icon: "👟", key: "8" },
-  { id: "recuperacion", label: "Recuperación",   color: "#059669", icon: "💪", key: "9" },
-  { id: "perdida",      label: "Pérdida",        color: "#b91c1c", icon: "❌", key: "0" },
-  { id: "pase-clave",   label: "Pase clave",     color: "#9333ea", icon: "🎯", key: "Q" },
-  { id: "otro",         label: "Otro",           color: "#64748b", icon: "📌", key: "W" },
+const VA_DEFAULT_CATEGORIES = [
+  { id: "gol",          label: "Gol",            color: "#16a34a", icon: "⚽", key: "1",
+    descriptors: ["Pie derecho","Pie izquierdo","Cabeza","Penalti","Libre directo","Propia puerta"] },
+  { id: "ocasion",      label: "Ocasión",        color: "#ca8a04", icon: "🎯", key: "2",
+    descriptors: ["Tiro a puerta","Tiro fuera","Poste","Bloqueado","1vs1"] },
+  { id: "corner",       label: "Córner",         color: "#2563eb", icon: "🚩", key: "3",
+    descriptors: ["Corto","Largo","Al primer palo","Al segundo palo","Frontal"] },
+  { id: "falta",        label: "Falta",          color: "#dc2626", icon: "🟥", key: "4",
+    descriptors: ["Ofensiva","Defensiva","Peligrosa","Simulación"] },
+  { id: "tarjeta",      label: "Tarjeta",        color: "#ea580c", icon: "🟨", key: "5",
+    descriptors: ["Amarilla","Roja","2ª Amarilla"] },
+  { id: "cambio",       label: "Cambio",         color: "#7c3aed", icon: "🔄", key: "6",
+    descriptors: ["Táctico","Lesión","Obligado"] },
+  { id: "fuera-juego",  label: "Fuera juego",    color: "#0891b2", icon: "🏴", key: "7",
+    descriptors: [] },
+  { id: "saque",        label: "Saque",          color: "#475569", icon: "👟", key: "8",
+    descriptors: ["Banda","Portería","Centro","Esquina"] },
+  { id: "recuperacion", label: "Recuperación",   color: "#059669", icon: "💪", key: "9",
+    descriptors: ["Interceptación","Entrada","Duelo aéreo","Presión"] },
+  { id: "perdida",      label: "Pérdida",        color: "#b91c1c", icon: "❌", key: "0",
+    descriptors: ["Pase fallido","Regate fallido","Control","Despeje mal"] },
+  { id: "pase-clave",   label: "Pase clave",     color: "#9333ea", icon: "🎯", key: "Q",
+    descriptors: ["Filtrado","Largo","Centro al área","Pared","En profundidad"] },
+  { id: "otro",         label: "Otro",           color: "#64748b", icon: "📌", key: "W",
+    descriptors: [] },
 ];
+
+// Mutable copy the user can customize
+let VA_CATEGORIES = JSON.parse(JSON.stringify(VA_DEFAULT_CATEGORIES));
 
 const VA_FIELD_ZONES = [
   { id: "off-izq",  label: "Ofens. Izq" },
@@ -60,6 +75,8 @@ const DRAW_DISPLAY_SECONDS = 5;
 const va = {
   videoName: "", isPlaying: false, currentTime: 0, duration: 0, playbackRate: 1,
   events: [], selectedCategory: null, selectedZone: null,
+  selectedTeam: "local", selectedDescriptor: null, selectedPlayer: "",
+  showCatEditor: false,
   filterPeriod: "all", filterRange: null,
   drawMode: null, drawColor: "#ef4444", drawLineWidth: 3, drawings: [], undoStack: [], showDrawings: true,
   isDrawing: false, drawStart: null, currentPath: [], textPos: null, areaPoints: null, anglePoints: null,
@@ -118,6 +135,7 @@ function vaLoadFile(file) {
   document.getElementById("va-main").classList.add("active");
   va.events = []; va.drawings = []; va.clips = [];
   va.clipIn = null; va.clipOut = null; va.selectedCategory = null; va.selectedZone = null;
+  va.selectedTeam = "local"; va.selectedDescriptor = null; va.selectedPlayer = "";
   va.undoStack = []; va.areaPoints = null; va.anglePoints = null;
   va.tracks = []; va.trackConnections = []; va.activeTrackId = null; va.trackMode = false;
   va.trackNextColor = 0;
@@ -319,22 +337,52 @@ function vaBuildActionGrid() {
 }
 
 function vaBuildFieldZones() {
-  document.getElementById("va-field-grid").innerHTML = VA_FIELD_ZONES.map(z =>
-    '<button class="va-field-zone" data-zone="' + z.id + '" onclick="vaSelectZone(\'' + z.id + '\')">' +
-    z.label + '</button>'
-  ).join("");
+  // SVG click zones are in HTML, this attaches event listeners
+  document.querySelectorAll(".va-fz").forEach(z => {
+    z.addEventListener("click", () => vaSelectZone(z.dataset.zone));
+  });
+}
+
+function vaSelectTeam(team) {
+  va.selectedTeam = team;
+  document.querySelectorAll(".va-team-btn").forEach(el =>
+    el.classList.toggle("active", el.dataset.team === team)
+  );
 }
 
 function vaSelectCategory(catId) {
   va.selectedCategory = (va.selectedCategory === catId) ? null : catId;
+  va.selectedDescriptor = null; // reset descriptor
   document.querySelectorAll(".va-action-btn").forEach(el =>
     el.classList.toggle("active", el.dataset.cat === va.selectedCategory)
+  );
+  vaRenderDescriptors();
+}
+
+function vaRenderDescriptors() {
+  const container = document.getElementById("va-descriptors");
+  if (!va.selectedCategory) { container.innerHTML = ""; container.style.display = "none"; return; }
+  const cat = VA_CATEGORIES.find(c => c.id === va.selectedCategory);
+  if (!cat || !cat.descriptors || !cat.descriptors.length) { container.innerHTML = ""; container.style.display = "none"; return; }
+
+  container.style.display = "block";
+  container.innerHTML = '<p class="va-label">Descriptor</p><div class="va-desc-list">' +
+    cat.descriptors.map(d =>
+      '<button class="va-desc-btn' + (va.selectedDescriptor === d ? ' active' : '') +
+      '" onclick="vaSelectDescriptor(\'' + d.replace(/'/g, "\\'") + '\')">' + d + '</button>'
+    ).join("") + '</div>';
+}
+
+function vaSelectDescriptor(desc) {
+  va.selectedDescriptor = (va.selectedDescriptor === desc) ? null : desc;
+  document.querySelectorAll(".va-desc-btn").forEach(el =>
+    el.classList.toggle("active", el.textContent === va.selectedDescriptor)
   );
 }
 
 function vaSelectZone(zoneId) {
   va.selectedZone = (va.selectedZone === zoneId) ? null : zoneId;
-  document.querySelectorAll(".va-field-zone").forEach(el =>
+  document.querySelectorAll(".va-fz").forEach(el =>
     el.classList.toggle("active", el.dataset.zone === va.selectedZone)
   );
 }
@@ -344,20 +392,23 @@ function vaAddEvent() {
   const cat = VA_CATEGORIES.find(c => c.id === va.selectedCategory);
   const note = document.getElementById("va-event-note").value.trim();
   const zone = va.selectedZone ? VA_FIELD_ZONES.find(z => z.id === va.selectedZone) : null;
+  const player = document.getElementById("va-event-player").value.trim();
 
   const half = va.duration ? (va.currentTime < va.duration / 2 ? "1" : "2") : "1";
 
   va.events.push({
     id: Date.now(), time: va.currentTime, category: va.selectedCategory,
     label: cat.label, color: cat.color, icon: cat.icon,
+    team: va.selectedTeam, descriptor: va.selectedDescriptor || "",
+    player: player,
     note: note, zone: zone ? zone.label : "", zoneId: va.selectedZone || "",
     period: half,
   });
 
   va.events.sort((a, b) => a.time - b.time);
   document.getElementById("va-event-note").value = "";
+  document.getElementById("va-event-player").value = "";
   vaRenderTable(); vaRenderTimelineMarkers();
-  // Badge
   const badge = document.getElementById("va-event-count");
   badge.style.display = "inline"; badge.textContent = va.events.length;
 }
@@ -369,6 +420,48 @@ function vaDeleteEvent(id) {
   if (va.events.length > 0) { badge.textContent = va.events.length; } else { badge.style.display = "none"; }
 }
 
+// ─── Category editor ─────────────────────────────────────────
+
+function vaToggleCatEditor() {
+  va.showCatEditor = !va.showCatEditor;
+  document.getElementById("va-cat-editor").style.display = va.showCatEditor ? "block" : "none";
+  if (va.showCatEditor) vaRenderCatEditor();
+}
+
+function vaRenderCatEditor() {
+  document.getElementById("va-cat-editor-list").innerHTML = VA_CATEGORIES.map((cat, i) =>
+    '<div class="va-cat-edit-row">' +
+    '<input type="color" value="' + cat.color + '" onchange="vaEditCatColor(' + i + ',this.value)" class="va-cat-color-input">' +
+    '<input type="text" value="' + cat.icon + '" onchange="vaEditCatIcon(' + i + ',this.value)" class="va-cat-icon-input" maxlength="2">' +
+    '<input type="text" value="' + cat.label + '" onchange="vaEditCatLabel(' + i + ',this.value)" class="va-input" style="flex:1;padding:3px 5px">' +
+    '<button class="va-btn-icon" onclick="vaDeleteCategory(' + i + ')" title="Eliminar">✕</button>' +
+    '</div>'
+  ).join("");
+}
+
+function vaEditCatColor(i, v) { VA_CATEGORIES[i].color = v; vaBuildActionGrid(); }
+function vaEditCatIcon(i, v) { VA_CATEGORIES[i].icon = v; vaBuildActionGrid(); }
+function vaEditCatLabel(i, v) { VA_CATEGORIES[i].label = v; VA_CATEGORIES[i].id = v.toLowerCase().replace(/\s+/g,"-"); vaBuildActionGrid(); }
+
+function vaAddCategory() {
+  const label = prompt("Nombre de la nueva acción:");
+  if (!label) return;
+  const color = "#" + Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,"0");
+  VA_CATEGORIES.push({ id: label.toLowerCase().replace(/\s+/g,"-"), label, color, icon: "📌", key: "",
+    descriptors: [] });
+  vaBuildActionGrid(); vaRenderCatEditor();
+}
+
+function vaDeleteCategory(i) {
+  VA_CATEGORIES.splice(i, 1);
+  vaBuildActionGrid(); vaRenderCatEditor();
+}
+
+function vaResetCategories() {
+  VA_CATEGORIES = JSON.parse(JSON.stringify(VA_DEFAULT_CATEGORIES));
+  vaBuildActionGrid(); vaRenderCatEditor();
+}
+
 // ─── 9. PLAY-BY-PLAY TABLE ──────────────────────────────────
 
 function vaRenderTable() {
@@ -376,21 +469,25 @@ function vaRenderTable() {
   const tbody = document.getElementById("va-table-body");
 
   if (list.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="va-table-empty">Etiqueta acciones usando los botones del panel derecho →</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="va-table-empty">Etiqueta acciones usando los botones del panel derecho →</td></tr>';
     return;
   }
 
-  tbody.innerHTML = list.map((ev, i) =>
-    '<tr onclick="vaSeekTo(' + ev.time + ')">' +
-    '<td style="color:var(--va-dim);text-align:center">' + (i + 1) + '</td>' +
-    '<td><span class="cat-badge" style="background:' + ev.color + '">' + ev.icon + ' ' + ev.label + '</span></td>' +
+  tbody.innerHTML = list.map((ev, i) => {
+    const teamIcon = ev.team === "local" ? "🏠" : "✈️";
+    return '<tr onclick="vaSeekTo(' + ev.time + ')">' +
+    '<td style="color:var(--va-dim);text-align:center;width:24px">' + (i + 1) + '</td>' +
+    '<td style="text-align:center;width:22px" title="' + (ev.team === "local" ? "Local" : "Visitante") + '">' + teamIcon + '</td>' +
+    '<td><span class="cat-badge" style="background:' + ev.color + '">' + ev.icon + ' ' + ev.label + '</span>' +
+    (ev.descriptor ? ' <span class="desc-badge">' + ev.descriptor + '</span>' : '') + '</td>' +
     '<td class="time-cell">' + vaFormatTime(ev.time) + '</td>' +
     '<td style="text-align:center">' + ev.period + 'T</td>' +
-    '<td>' + (ev.zone ? '<span class="zone-badge">' + ev.zone + '</span>' : '-') + '</td>' +
+    '<td>' + (ev.player ? '<span class="player-badge">#' + ev.player + '</span>' : '') + '</td>' +
+    '<td>' + (ev.zone ? '<span class="zone-badge">' + ev.zone + '</span>' : '') + '</td>' +
     '<td>' + (ev.note ? '<span class="note-text" title="' + ev.note + '">' + ev.note + '</span>' : '') +
     '<button class="va-btn-icon" onclick="event.stopPropagation();vaDeleteEvent(' + ev.id + ')" style="float:right">🗑️</button></td>' +
-    '</tr>'
-  ).join("");
+    '</tr>';
+  }).join("");
 }
 
 // ─── 10. DRAWING ─────────────────────────────────────────────
@@ -1212,7 +1309,8 @@ function vaToggleTrackVisibility() {
 function vaExportAnalysis() {
   const data = { video: va.videoName, exportDate: new Date().toISOString(),
     events: va.events.map(e => ({ time: vaFormatTime(e.time), seconds: Math.round(e.time*100)/100,
-      category: e.label, period: e.period + "T", zone: e.zone, note: e.note })),
+      category: e.label, team: e.team || "local", descriptor: e.descriptor || "",
+      player: e.player || "", period: e.period + "T", zone: e.zone, note: e.note })),
     clips: va.clips.map(c => ({ label: c.label, in: vaFormatTime(c.inTime), out: vaFormatTime(c.outTime),
       duration: vaFormatTime(c.outTime-c.inTime),
       events: c.events.map(e => ({ time: vaFormatTime(e.time), category: e.label })) })),

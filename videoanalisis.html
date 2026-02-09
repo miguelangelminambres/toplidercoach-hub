@@ -103,16 +103,18 @@
           <table class="va-table">
             <thead>
               <tr>
-                <th style="width:30px;text-align:center">#</th>
+                <th style="width:24px;text-align:center">#</th>
+                <th style="width:22px"></th>
                 <th>Categoría</th>
-                <th style="width:55px">Tiempo</th>
-                <th style="width:35px;text-align:center">Per.</th>
-                <th style="width:90px">Zona</th>
+                <th style="width:48px">Tiempo</th>
+                <th style="width:28px;text-align:center">Per</th>
+                <th style="width:40px">Jug</th>
+                <th style="width:70px">Zona</th>
                 <th>Nota</th>
               </tr>
             </thead>
             <tbody id="va-table-body">
-              <tr><td colspan="6" class="va-table-empty">Etiqueta acciones usando los botones del panel derecho →</td></tr>
+              <tr><td colspan="8" class="va-table-empty">Etiqueta acciones usando los botones del panel derecho →</td></tr>
             </tbody>
           </table>
         </div>
@@ -135,16 +137,82 @@
           <!-- ═══ ETIQUETAR ══════════════════════════════ -->
           <div class="va-section active" id="va-sec-events">
 
-            <p class="va-label">Acción</p>
+            <!-- Team selector -->
+            <p class="va-label">Equipo</p>
+            <div class="va-team-toggle">
+              <button class="va-team-btn active" data-team="local" onclick="vaSelectTeam('local')">🏠 Local</button>
+              <button class="va-team-btn" data-team="visitor" onclick="vaSelectTeam('visitor')">✈️ Visitante</button>
+            </div>
+
+            <!-- Actions -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+              <p class="va-label" style="margin:0">Acción</p>
+              <button class="va-btn-icon" onclick="vaToggleCatEditor()" title="Editar acciones">⚙️</button>
+            </div>
             <div class="va-action-grid" id="va-action-grid"></div>
 
-            <p class="va-label">Zona del campo</p>
-            <div class="va-field-label-row">
-              <span>← Portería rival</span>
-              <span>Portería propia →</span>
+            <!-- Category editor (hidden by default) -->
+            <div id="va-cat-editor" style="display:none;margin-bottom:8px">
+              <div id="va-cat-editor-list"></div>
+              <div style="display:flex;gap:4px;margin-top:4px">
+                <button class="va-btn va-btn-teal va-btn-sm" onclick="vaAddCategory()" style="flex:1">+ Nueva acción</button>
+                <button class="va-btn va-btn-sm" onclick="vaResetCategories()">↩ Reset</button>
+              </div>
             </div>
-            <div class="va-field-grid" id="va-field-grid"></div>
 
+            <!-- Descriptors (dynamic) -->
+            <div id="va-descriptors" style="display:none"></div>
+
+            <!-- Player -->
+            <p class="va-label">Jugador</p>
+            <input type="text" class="va-input" id="va-event-player" placeholder="Nº dorsal o nombre..." style="margin-bottom:6px">
+
+            <!-- Mini field visual -->
+            <p class="va-label">Zona del campo</p>
+            <div class="va-minifield-wrap">
+              <svg class="va-minifield" viewBox="0 0 240 150" xmlns="http://www.w3.org/2000/svg">
+                <!-- Field background -->
+                <rect x="0" y="0" width="240" height="150" rx="4" fill="#1a472a" stroke="#2d6b3f" stroke-width="1.5"/>
+                <!-- Center line and circle -->
+                <line x1="120" y1="0" x2="120" y2="150" stroke="#2d6b3f" stroke-width="1"/>
+                <circle cx="120" cy="75" r="20" fill="none" stroke="#2d6b3f" stroke-width="1"/>
+                <!-- Left penalty area -->
+                <rect x="0" y="30" width="36" height="90" fill="none" stroke="#2d6b3f" stroke-width="1"/>
+                <rect x="0" y="50" width="14" height="50" fill="none" stroke="#2d6b3f" stroke-width="1"/>
+                <!-- Right penalty area -->
+                <rect x="204" y="30" width="36" height="90" fill="none" stroke="#2d6b3f" stroke-width="1"/>
+                <rect x="226" y="50" width="14" height="50" fill="none" stroke="#2d6b3f" stroke-width="1"/>
+                <!-- Click zones (3x3) -->
+                <rect class="va-fz" data-zone="off-izq"  x="0"   y="0"   width="80" height="50" fill="transparent" stroke="none"/>
+                <rect class="va-fz" data-zone="off-cen"  x="80"  y="0"   width="80" height="50" fill="transparent" stroke="none"/>
+                <rect class="va-fz" data-zone="off-der"  x="160" y="0"   width="80" height="50" fill="transparent" stroke="none"/>
+                <rect class="va-fz" data-zone="med-izq"  x="0"   y="50"  width="80" height="50" fill="transparent" stroke="none"/>
+                <rect class="va-fz" data-zone="med-cen"  x="80"  y="50"  width="80" height="50" fill="transparent" stroke="none"/>
+                <rect class="va-fz" data-zone="med-der"  x="160" y="50"  width="80" height="50" fill="transparent" stroke="none"/>
+                <rect class="va-fz" data-zone="def-izq"  x="0"   y="100" width="80" height="50" fill="transparent" stroke="none"/>
+                <rect class="va-fz" data-zone="def-cen"  x="80"  y="100" width="80" height="50" fill="transparent" stroke="none"/>
+                <rect class="va-fz" data-zone="def-der"  x="160" y="100" width="80" height="50" fill="transparent" stroke="none"/>
+                <!-- Zone labels -->
+                <text x="40"  y="28"  text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.5">OFENS</text>
+                <text x="120" y="28"  text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.5">OFENS</text>
+                <text x="200" y="28"  text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.5">OFENS</text>
+                <text x="40"  y="78"  text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.5">MEDIO</text>
+                <text x="120" y="78"  text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.5">MEDIO</text>
+                <text x="200" y="78"  text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.5">MEDIO</text>
+                <text x="40"  y="128" text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.5">DEFENS</text>
+                <text x="120" y="128" text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.5">DEFENS</text>
+                <text x="200" y="128" text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.5">DEFENS</text>
+                <!-- Side labels -->
+                <text x="2" y="78" fill="#4ade80" font-size="7" opacity="0.4" transform="rotate(-90,6,78)">IZQ</text>
+                <text x="234" y="78" fill="#4ade80" font-size="7" opacity="0.4" transform="rotate(90,234,78)">DER</text>
+              </svg>
+              <div class="va-minifield-arrows">
+                <span>← Portería rival</span>
+                <span>Portería propia →</span>
+              </div>
+            </div>
+
+            <!-- Note -->
             <p class="va-label">Nota</p>
             <div class="va-add-row">
               <input type="text" class="va-input" id="va-event-note" placeholder="Nota opcional..."
@@ -152,8 +220,8 @@
               <button class="va-btn va-btn-teal" onclick="vaAddEvent()">+ Añadir</button>
             </div>
 
-            <p style="font-size:9px;color:var(--va-dim);margin-top:6px">
-              💡 Selecciona acción → zona (opcional) → nota (opcional) → Añadir o Enter. Atajos: 1-9, 0, Q, W
+            <p style="font-size:9px;color:var(--va-dim);margin-top:4px">
+              💡 Equipo → Acción → Descriptor → Jugador → Zona → Nota → Añadir. Atajos: 1-9, 0, Q, W + Enter
             </p>
           </div>
 

@@ -83,6 +83,7 @@
 .va-btn:hover { background: var(--va-surface2); color: var(--va-text); }
 .va-btn-teal { background: var(--va-teal); color: #fff; border-color: var(--va-teal); }
 .va-btn-teal:hover { background: var(--va-teal-dark); }
+.va-btn-sm { padding: 3px 7px; font-size: 10px; }
 .va-btn-danger { background: rgba(239,68,68,0.12); color: var(--va-red); border-color: rgba(239,68,68,0.2); }
 .va-btn-sm { padding: 4px 8px; font-size: 10px; }
 .va-btn-icon {
@@ -253,21 +254,47 @@
 .va-action-btn .icon { font-size: 14px; }
 .va-action-btn .key { position: absolute; top: 1px; right: 3px; font-size: 8px; opacity: 0.45; }
 
-/* Field zones */
-.va-field-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 1px; margin-bottom: 8px; border: 1px solid var(--va-border2);
-  border-radius: 5px; overflow: hidden; background: var(--va-border2);
+/* Team toggle */
+.va-team-toggle { display: flex; gap: 0; margin-bottom: 6px; border-radius: 5px; overflow: hidden; border: 1px solid var(--va-border2); }
+.va-team-btn {
+  flex: 1; padding: 5px; background: var(--va-surface); border: none;
+  color: var(--va-muted); cursor: pointer; font-size: 11px;
+  font-weight: 600; font-family: inherit; transition: all 0.12s; text-align: center;
 }
-.va-field-zone {
-  padding: 7px 3px; background: var(--va-surface); border: none;
-  cursor: pointer; text-align: center; font-family: inherit;
-  font-size: 8px; font-weight: 600; color: var(--va-dim); transition: all 0.12s;
-  text-transform: uppercase; letter-spacing: 0.3px;
+.va-team-btn.active { background: var(--va-teal); color: #fff; }
+.va-team-btn:first-child { border-right: 1px solid var(--va-border2); }
+
+/* Descriptors */
+.va-desc-list { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 6px; }
+.va-desc-btn {
+  padding: 3px 8px; background: var(--va-surface); border: 1px solid var(--va-border2);
+  border-radius: 4px; color: var(--va-muted); cursor: pointer;
+  font-size: 10px; font-weight: 500; font-family: inherit; transition: all 0.12s;
 }
-.va-field-zone:hover { background: var(--va-surface2); color: var(--va-text2); }
-.va-field-zone.active { background: var(--va-teal); color: #fff; }
-.va-field-label-row { display: flex; justify-content: space-between; font-size: 8px; color: var(--va-dim); margin-bottom: 3px; padding: 0 2px; }
+.va-desc-btn.active { background: rgba(13,148,136,0.2); border-color: var(--va-teal); color: var(--va-teal-light); }
+.va-desc-btn:hover { color: var(--va-text2); }
+
+/* Mini field */
+.va-minifield-wrap { margin-bottom: 6px; }
+.va-minifield { width: 100%; border-radius: 5px; cursor: pointer; display: block; }
+.va-fz { cursor: pointer; transition: fill 0.12s; }
+.va-fz:hover { fill: rgba(74,222,128,0.12); }
+.va-fz.active { fill: rgba(74,222,128,0.25); stroke: #4ade80; stroke-width: 1.5; }
+.va-minifield-arrows { display: flex; justify-content: space-between; font-size: 8px; color: var(--va-dim); margin-top: 2px; padding: 0 2px; }
+
+/* Player badge in table */
+.va-table .player-badge { font-size: 10px; font-weight: 600; color: var(--va-teal-light); }
+.va-table .desc-badge {
+  font-size: 9px; padding: 1px 4px; background: rgba(255,255,255,0.08);
+  border-radius: 3px; color: var(--va-muted); margin-left: 2px;
+}
+
+/* Category editor */
+.va-cat-edit-row {
+  display: flex; align-items: center; gap: 4px; margin-bottom: 3px;
+}
+.va-cat-color-input { width: 22px; height: 22px; border: none; border-radius: 3px; cursor: pointer; padding: 0; background: none; }
+.va-cat-icon-input { width: 28px; text-align: center; background: var(--va-surface); border: 1px solid var(--va-border2); border-radius: 3px; color: var(--va-text); padding: 3px; font-size: 12px; }
 
 /* Note */
 .va-add-row { display: flex; gap: 4px; margin-bottom: 8px; }

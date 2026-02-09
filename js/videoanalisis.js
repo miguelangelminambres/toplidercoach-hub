@@ -39,10 +39,13 @@ const VA_DRAW_TOOLS = [
   { id: "dashedLine",  label: "Línea disc.",    icon: "┄",  group: "lines" },
   { id: "dashedArrow", label: "Flecha disc.",   icon: "⇢",  group: "lines" },
   { id: "freehand",    label: "Libre",          icon: "〰", group: "lines" },
+  { id: "connection",  label: "Conexión",       icon: "⌁",  group: "links" },
   { id: "circle",      label: "Círculo",        icon: "○",  group: "shapes" },
   { id: "rect",        label: "Rectángulo",     icon: "□",  group: "shapes" },
-  { id: "spotlight",   label: "Foco",           icon: "◎",  group: "shapes" },
-  { id: "playerMark",  label: "Jugador",        icon: "▽",  group: "marks" },
+  { id: "area",        label: "Área",           icon: "⬠",  group: "shapes" },
+  { id: "spotlight",   label: "Foco",           icon: "△",  group: "marks" },
+  { id: "playerCircle",label: "Jugador ○",      icon: "◯",  group: "marks" },
+  { id: "playerMark",  label: "Jugador ▽",      icon: "▽",  group: "marks" },
   { id: "cross",       label: "Cruz",           icon: "✕",  group: "marks" },
   { id: "angle",       label: "Ángulo",         icon: "∠",  group: "marks" },
   { id: "text",        label: "Texto",          icon: "T",  group: "text" },
@@ -59,7 +62,7 @@ const va = {
   events: [], selectedCategory: null, selectedZone: null,
   filterPeriod: "all", filterRange: null,
   drawMode: null, drawColor: "#ef4444", drawLineWidth: 3, drawings: [], undoStack: [], showDrawings: true,
-  isDrawing: false, drawStart: null, currentPath: [], textPos: null,
+  isDrawing: false, drawStart: null, currentPath: [], textPos: null, areaPoints: null, anglePoints: null,
   clipIn: null, clipOut: null, clips: [],
   activePanel: "events",
 };
@@ -350,7 +353,7 @@ function vaRenderTable() {
 // ─── 10. DRAWING ─────────────────────────────────────────────
 
 function vaBuildDrawTools() {
-  const groups = { lines: "Líneas", shapes: "Formas", marks: "Marcas", text: "Texto" };
+  const groups = { lines: "Líneas", links: "Conexiones", shapes: "Formas", marks: "Marcas", text: "Texto" };
   let html = "";
   let currentGroup = "";
   VA_DRAW_TOOLS.forEach(t => {
@@ -383,12 +386,15 @@ function vaBuildLineWidths() {
 function vaSetDrawMode(mode) {
   if (va.drawMode === mode) mode = null;
   va.drawMode = mode;
+  va.areaPoints = null; // reset area polygon
+  va.anglePoints = null;
   vaCanvas.classList.toggle("active", !!mode);
   document.getElementById("va-draw-badge").classList.toggle("active", !!mode);
   document.getElementById("va-draw-mode-label").textContent =
     mode ? VA_DRAW_TOOLS.find(t => t.id === mode).label : "-";
   document.querySelectorAll(".va-draw-tool").forEach(el => el.classList.toggle("active", el.dataset.tool === mode));
   if (!mode) vaCancelText();
+  vaRenderCanvas();
 }
 
 function vaSelectDrawColor(c) {
@@ -404,36 +410,63 @@ function vaSetLineWidth(w) {
 function vaSetupCanvasEvents() {
   vaCanvas.addEventListener("mousedown", (e) => {
     if (!va.drawMode) return; e.preventDefault();
+    const pos = vaGetCanvasPos(e);
+
+    // TEXT: single click placement
     if (va.drawMode === "text") {
-      va.textPos = vaGetCanvasPos(e);
+      va.textPos = pos;
       document.getElementById("va-text-overlay").classList.add("active");
       document.getElementById("va-text-input").focus();
       return;
     }
-    va.isDrawing = true; va.drawStart = vaGetCanvasPos(e);
-    if (va.drawMode === "freehand") va.currentPath = [va.drawStart];
-    if (va.drawMode === "angle") va.anglePoints = [va.drawStart];
+
+    // AREA (polygon): multi-click. Double-click to close.
+    if (va.drawMode === "area") {
+      if (!va.areaPoints) va.areaPoints = [];
+      va.areaPoints.push(pos);
+      vaRenderCanvas(pos);
+      return;
+    }
+
+    // ANGLE: needs 3 points (2 clicks)
+    if (va.drawMode === "angle" && va.anglePoints && va.anglePoints.length === 1) {
+      // Second click - treat as second segment start already set
+    }
+
+    va.isDrawing = true; va.drawStart = pos;
+    if (va.drawMode === "freehand") va.currentPath = [pos];
+    if (va.drawMode === "angle") va.anglePoints = [pos];
   });
 
   vaCanvas.addEventListener("mousemove", (e) => {
-    if (!va.isDrawing || !va.drawMode) return;
+    if (!va.drawMode) return;
     const pos = vaGetCanvasPos(e);
+
+    // Area preview with hover
+    if (va.drawMode === "area" && va.areaPoints && va.areaPoints.length > 0) {
+      vaRenderCanvas(pos);
+      return;
+    }
+
+    if (!va.isDrawing) return;
     if (va.drawMode === "freehand") va.currentPath.push(pos);
     vaRenderCanvas(pos);
   });
 
   vaCanvas.addEventListener("mouseup", (e) => {
+    if (va.drawMode === "area") return; // area uses clicks, not drag
     if (!va.isDrawing || !va.drawMode) return;
     const pos = vaGetCanvasPos(e);
 
     // Angle needs 2 clicks (3 points)
     if (va.drawMode === "angle" && va.anglePoints && va.anglePoints.length === 1) {
       va.anglePoints.push(pos);
-      va.drawStart = pos; // second segment starts here
+      va.drawStart = pos;
       vaRenderCanvas(pos);
-      return; // wait for third click
+      return;
     }
 
+    // SINGLE-CLICK tools (playerCircle, playerMark, cross, spotlight): use end position
     const drawing = {
       id: Date.now(), type: va.drawMode, color: va.drawColor,
       lineWidth: va.drawLineWidth, time: va.currentTime,
@@ -445,20 +478,32 @@ function vaSetupCanvasEvents() {
       drawing.points = [...va.anglePoints, pos];
     }
     if (va.drawMode === "curvedArrow") {
-      // Control point at midpoint offset perpendicular
-      const mx = (va.drawStart.x + pos.x) / 2;
-      const my = (va.drawStart.y + pos.y) / 2;
-      const dx = pos.x - va.drawStart.x;
-      const dy = pos.y - va.drawStart.y;
-      const dist = Math.sqrt(dx*dx + dy*dy);
+      const mx = (va.drawStart.x + pos.x) / 2, my = (va.drawStart.y + pos.y) / 2;
+      const dx = pos.x - va.drawStart.x, dy = pos.y - va.drawStart.y;
       drawing.cp = { x: mx - dy * 0.3, y: my + dx * 0.3 };
     }
 
-    va.undoStack = []; // clear redo on new drawing
+    va.undoStack = [];
     va.drawings.push(drawing);
     va.isDrawing = false; va.drawStart = null; va.currentPath = []; va.anglePoints = null;
     vaRenderCanvas();
     vaUpdateUndoButtons();
+  });
+
+  // AREA: double-click to close polygon
+  vaCanvas.addEventListener("dblclick", (e) => {
+    if (va.drawMode === "area" && va.areaPoints && va.areaPoints.length >= 3) {
+      va.drawings.push({
+        id: Date.now(), type: "area", color: va.drawColor,
+        lineWidth: va.drawLineWidth, time: va.currentTime,
+        areaPoints: [...va.areaPoints],
+        start: va.areaPoints[0], end: va.areaPoints[va.areaPoints.length - 1],
+      });
+      va.areaPoints = null;
+      va.undoStack = [];
+      vaRenderCanvas();
+      vaUpdateUndoButtons();
+    }
   });
 }
 
@@ -517,7 +562,11 @@ function vaRenderCanvas(pos) {
   vaCanvas.width = vaVideo.videoWidth; vaCanvas.height = vaVideo.videoHeight;
   vaCtx.clearRect(0, 0, vaCanvas.width, vaCanvas.height);
   if (!va.showDrawings) return;
+
+  // Saved drawings
   va.drawings.forEach(d => { if (Math.abs(d.time - va.currentTime) < DRAW_DISPLAY_SECONDS) vaDrawShape(d); });
+
+  // Preview: dragging
   if (va.isDrawing && va.drawStart && pos) {
     const preview = { type: va.drawMode, color: va.drawColor, lineWidth: va.drawLineWidth,
       start: va.drawStart, end: pos, path: va.drawMode === "freehand" ? va.currentPath : null };
@@ -530,6 +579,11 @@ function vaRenderCanvas(pos) {
       preview.points = [...va.anglePoints, pos];
     }
     vaDrawShape(preview);
+  }
+
+  // Preview: area polygon in progress
+  if (va.drawMode === "area" && va.areaPoints && va.areaPoints.length > 0 && pos) {
+    vaDrawAreaPreview(va.areaPoints, pos, va.drawColor, va.drawLineWidth);
   }
 }
 
@@ -591,19 +645,90 @@ function vaDrawShape(d) {
     }
 
     case "spotlight": {
-      const sr = Math.sqrt(Math.pow(d.end.x-d.start.x,2) + Math.pow(d.end.y-d.start.y,2));
+      // Cone/triangle spotlight pointing down to a player
+      const dx = d.end.x - d.start.x, dy = d.end.y - d.start.y;
+      const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+      const spread = dist * 0.35;
+
       vaCtx.save();
-      vaCtx.setLineDash([8, 5]);
-      vaCtx.lineWidth = lw + 1;
-      vaCtx.strokeStyle = d.color;
-      vaCtx.beginPath(); vaCtx.arc(d.start.x, d.start.y, sr || 1, 0, Math.PI*2); vaCtx.stroke();
-      // Semi-transparent fill
-      vaCtx.fillStyle = d.color.replace(")", ",0.08)").replace("rgb", "rgba");
-      if (d.color.startsWith("#")) {
-        const r = parseInt(d.color.slice(1,3),16), g = parseInt(d.color.slice(3,5),16), b = parseInt(d.color.slice(5,7),16);
-        vaCtx.fillStyle = "rgba("+r+","+g+","+b+",0.08)";
-      }
+      // Perpendicular direction
+      const px = -dy / dist, py = dx / dist;
+
+      vaCtx.beginPath();
+      vaCtx.moveTo(d.start.x, d.start.y);
+      vaCtx.lineTo(d.end.x + px * spread, d.end.y + py * spread);
+      vaCtx.lineTo(d.end.x - px * spread, d.end.y - py * spread);
+      vaCtx.closePath();
+
+      // Gradient fill
+      const grad = vaCtx.createLinearGradient(d.start.x, d.start.y, d.end.x, d.end.y);
+      const rgb = vaHexToRgb(d.color);
+      grad.addColorStop(0, "rgba(" + rgb + ",0.5)");
+      grad.addColorStop(1, "rgba(" + rgb + ",0.08)");
+      vaCtx.fillStyle = grad;
       vaCtx.fill();
+
+      vaCtx.strokeStyle = d.color;
+      vaCtx.lineWidth = 1.5;
+      vaCtx.setLineDash([6, 4]);
+      vaCtx.stroke();
+      vaCtx.setLineDash([]);
+
+      // Circle at target
+      vaCtx.beginPath();
+      vaCtx.arc(d.end.x, d.end.y, 20, 0, Math.PI * 2);
+      vaCtx.strokeStyle = d.color; vaCtx.lineWidth = 2;
+      vaCtx.stroke();
+      vaCtx.restore(); break;
+    }
+
+    case "playerCircle": {
+      // Circle around a player (like Veo style)
+      const radius = Math.sqrt(Math.pow(d.end.x-d.start.x,2) + Math.pow(d.end.y-d.start.y,2)) || 25;
+      vaCtx.save();
+      // Outer glow
+      vaCtx.beginPath();
+      vaCtx.arc(d.start.x, d.start.y, radius + 3, 0, Math.PI * 2);
+      const rgb2 = vaHexToRgb(d.color);
+      vaCtx.strokeStyle = "rgba(" + rgb2 + ",0.3)";
+      vaCtx.lineWidth = lw + 4;
+      vaCtx.stroke();
+      // Main circle
+      vaCtx.beginPath();
+      vaCtx.arc(d.start.x, d.start.y, radius, 0, Math.PI * 2);
+      vaCtx.strokeStyle = d.color;
+      vaCtx.lineWidth = lw;
+      vaCtx.stroke();
+      vaCtx.restore(); break;
+    }
+
+    case "connection": {
+      // Two circles connected by a line (player-to-player connection)
+      const connR = 20;
+      // Line
+      vaCtx.beginPath(); vaCtx.moveTo(d.start.x, d.start.y); vaCtx.lineTo(d.end.x, d.end.y);
+      vaCtx.strokeStyle = d.color; vaCtx.lineWidth = lw;
+      vaCtx.setLineDash([8, 5]); vaCtx.stroke(); vaCtx.setLineDash([]);
+      // Circle at start
+      vaCtx.beginPath(); vaCtx.arc(d.start.x, d.start.y, connR, 0, Math.PI * 2);
+      vaCtx.strokeStyle = d.color; vaCtx.lineWidth = lw; vaCtx.stroke();
+      // Circle at end
+      vaCtx.beginPath(); vaCtx.arc(d.end.x, d.end.y, connR, 0, Math.PI * 2);
+      vaCtx.stroke(); break;
+    }
+
+    case "area": {
+      const pts = d.areaPoints;
+      if (!pts || pts.length < 3) break;
+      vaCtx.save();
+      vaCtx.beginPath(); vaCtx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) vaCtx.lineTo(pts[i].x, pts[i].y);
+      vaCtx.closePath();
+      const rgbA = vaHexToRgb(d.color);
+      vaCtx.fillStyle = "rgba(" + rgbA + ",0.15)";
+      vaCtx.fill();
+      vaCtx.strokeStyle = d.color; vaCtx.lineWidth = lw;
+      vaCtx.setLineDash([10, 5]); vaCtx.stroke(); vaCtx.setLineDash([]);
       vaCtx.restore(); break;
     }
 
@@ -682,6 +807,33 @@ function vaDrawArrowHead(from, to, lw) {
   vaCtx.lineTo(to.x - headLen * Math.cos(angle - Math.PI/6), to.y - headLen * Math.sin(angle - Math.PI/6));
   vaCtx.lineTo(to.x - headLen * Math.cos(angle + Math.PI/6), to.y - headLen * Math.sin(angle + Math.PI/6));
   vaCtx.closePath(); vaCtx.fill();
+}
+
+function vaDrawAreaPreview(points, hover, color, lw) {
+  vaCtx.save();
+  vaCtx.beginPath(); vaCtx.moveTo(points[0].x, points[0].y);
+  for (let i = 1; i < points.length; i++) vaCtx.lineTo(points[i].x, points[i].y);
+  vaCtx.lineTo(hover.x, hover.y);
+  vaCtx.closePath();
+  const rgb = vaHexToRgb(color);
+  vaCtx.fillStyle = "rgba(" + rgb + ",0.12)";
+  vaCtx.fill();
+  vaCtx.strokeStyle = color; vaCtx.lineWidth = lw;
+  vaCtx.setLineDash([8, 5]); vaCtx.stroke(); vaCtx.setLineDash([]);
+  // Draw vertices
+  points.forEach(p => {
+    vaCtx.beginPath(); vaCtx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+    vaCtx.fillStyle = color; vaCtx.fill();
+  });
+  vaCtx.restore();
+}
+
+function vaHexToRgb(hex) {
+  if (!hex || !hex.startsWith("#")) return "255,255,255";
+  const r = parseInt(hex.slice(1,3), 16);
+  const g = parseInt(hex.slice(3,5), 16);
+  const b = parseInt(hex.slice(5,7), 16);
+  return r + "," + g + "," + b;
 }
 
 // ─── 11. CLIPS ───────────────────────────────────────────────

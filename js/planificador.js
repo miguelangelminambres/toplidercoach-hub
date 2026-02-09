@@ -1,5 +1,6 @@
 // ========== PLANIFICADOR.JS - TopLiderCoach HUB ==========
-// Ejercicios, sesiones, PDF sesión, calendario de sesiones
+// Ejercicios, sesiones, PDF sesión, calendario unificado
+let sesionEditandoId = null;
 
 // Registro en el sistema de navegación
 registrarInit(function() {
@@ -387,6 +388,7 @@ registrarSubTab('planificador', 'calendario', cargarCalendarioUnificado);
         }
         
        function limpiarSesion() {
+            sesionEditandoId = null;
             sesion = { nombre: '', fecha: new Date().toISOString().split('T')[0], calentamiento: [], principal: [], enfriamiento: [] };
             document.getElementById('sesion-nombre').value = '';
             document.getElementById('sesion-fecha').value = sesion.fecha;
@@ -426,36 +428,61 @@ registrarSubTab('planificador', 'calendario', cargarCalendarioUnificado);
             }
             
             try {
-                const { data: sesionCreada, error } = await supabaseClient
-    .from('training_sessions')
-    .insert({
-                        club_id: clubId,
-                        season_id: seasonId,
-                        name: nombre,
-                        session_date: fecha,
-                        session_time: hora || null,
-                        microciclo: microciclo || null,
-                        match_day: md || null,
-                        num_players: jugadores ? parseInt(jugadores) : null,
-                        team_category: equipo || null,
-                        objective: objetivo || null,
-                        materials: material || null,
-                        notes: notas || null,
-                        warm_up: sesion.calentamiento,
-                        main_part: sesion.principal,
-                        cool_down: sesion.enfriamiento,
-                        players: obtenerJugadoresParaGuardar()
-                    })
-.select('id')
-.single();
+                const datosGuardar = {
+                    club_id: clubId,
+                    season_id: seasonId,
+                    name: nombre,
+                    session_date: fecha,
+                    session_time: hora || null,
+                    microciclo: microciclo || null,
+                    match_day: md || null,
+                    num_players: jugadores ? parseInt(jugadores) : null,
+                    team_category: equipo || null,
+                    objective: objetivo || null,
+                    materials: material || null,
+                    notes: notas || null,
+                    warm_up: sesion.calentamiento,
+                    main_part: sesion.principal,
+                    cool_down: sesion.enfriamiento,
+                    players: obtenerJugadoresParaGuardar()
+                };
                 
-              if (error) throw error;
+                let sesionId;
+                
+                if (sesionEditandoId) {
+                    // Actualizar sesión existente
+                    const { error } = await supabaseClient
+                        .from('training_sessions')
+                        .update(datosGuardar)
+                        .eq('id', sesionEditandoId);
+                    
+                    if (error) throw error;
+                    sesionId = sesionEditandoId;
+                } else {
+                    // Crear nueva sesión
+                    const { data: sesionCreada, error } = await supabaseClient
+                        .from('training_sessions')
+                        .insert(datosGuardar)
+                        .select('id')
+                        .single();
+                    
+                    if (error) throw error;
+                    sesionId = sesionCreada?.id;
+                }
 
 // Guardar asistencia de jugadores seleccionados
 const jugadoresParaAsistencia = obtenerJugadoresParaGuardar();
-if (jugadoresParaAsistencia.length > 0 && sesionCreada?.id) {
+if (jugadoresParaAsistencia.length > 0 && sesionId) {
+    // Si es edición, eliminar asistencia anterior
+    if (sesionEditandoId) {
+        await supabaseClient
+            .from('asistencia_sesiones')
+            .delete()
+            .eq('sesion_id', sesionId);
+    }
+    
     const registrosAsistencia = jugadoresParaAsistencia.map(j => ({
-        sesion_id: sesionCreada.id,
+        sesion_id: sesionId,
         jugador_id: j.player_id,
         asistio: true,
         motivo_ausencia: null,
@@ -470,7 +497,7 @@ if (jugadoresParaAsistencia.length > 0 && sesionCreada?.id) {
         .insert(registrosAsistencia);
 }
 
-alert('Sesion guardada correctamente');
+alert(sesionEditandoId ? 'Sesión actualizada correctamente' : 'Sesión guardada correctamente');
                 limpiarSesion();
                 
             } catch (error) {
@@ -568,6 +595,8 @@ alert('Sesion guardada correctamente');
                     .eq('id', id)
                     .single();
                 
+                sesionEditandoId = id;
+                
                 sesion = {
                     nombre: data.name,
                     fecha: data.session_date,
@@ -576,8 +605,23 @@ alert('Sesion guardada correctamente');
                     enfriamiento: data.cool_down || []
                 };
                 
-                document.getElementById('sesion-nombre').value = data.name;
-                document.getElementById('sesion-fecha').value = data.session_date;
+                // Campos principales
+                document.getElementById('sesion-nombre').value = data.name || '';
+                document.getElementById('sesion-fecha').value = data.session_date || '';
+                document.getElementById('sesion-hora').value = data.session_time || '';
+                document.getElementById('sesion-microciclo').value = data.microciclo || '';
+                document.getElementById('sesion-md').value = data.match_day || '';
+                document.getElementById('sesion-jugadores').value = data.num_players || '';
+                document.getElementById('sesion-equipo').value = data.team_category || '';
+                document.getElementById('sesion-objetivo').value = data.objective || '';
+                document.getElementById('sesion-material').value = data.materials || '';
+                document.getElementById('sesion-notas').value = data.notes || '';
+                
+                // Cargar jugadores seleccionados
+                if (data.players && Array.isArray(data.players)) {
+                    jugadoresSeleccionados = data.players.map(j => j.id || j);
+                    renderizarJugadoresSesion();
+                }
                 
                 renderizarSesion();
                 
@@ -585,6 +629,7 @@ alert('Sesion guardada correctamente');
                 document.querySelector('.planificador-subtabs .sub-tab').click();
                 
             } catch (error) {
+                console.error('Error al cargar sesion:', error);
                 alert('Error al cargar sesion');
             }
         }

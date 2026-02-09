@@ -321,6 +321,30 @@
 .va-clip-time { font-size: 10px; font-family: monospace; color: var(--va-dim); }
 .va-clip-events { display: flex; gap: 3px; margin-top: 3px; flex-wrap: wrap; font-size: 12px; }
 
+/* Tracking */
+.va-track-item {
+  padding: 6px 8px; background: var(--va-surface); border-radius: 5px;
+  margin-bottom: 3px; border-left: 3px solid transparent; cursor: pointer;
+  transition: all 0.12s;
+}
+.va-track-item:hover { background: var(--va-surface2); }
+.va-track-item.active { border-left-color: var(--va-teal); background: rgba(13,148,136,0.08); }
+.va-track-header { display: flex; align-items: center; gap: 6px; }
+.va-track-color { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.va-track-name { font-size: 12px; font-weight: 600; flex: 1; }
+.va-track-kf-count { font-size: 9px; color: var(--va-dim); }
+.va-track-keyframes { margin-top: 5px; padding-top: 5px; border-top: 1px solid var(--va-border); }
+.va-track-kf {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 2px 4px; font-size: 10px; font-family: monospace; color: var(--va-muted);
+  cursor: pointer; border-radius: 3px;
+}
+.va-track-kf:hover { background: var(--va-surface2); }
+.va-conn-item {
+  display: flex; align-items: center; gap: 4px; padding: 4px 6px;
+  font-size: 11px; background: var(--va-surface); border-radius: 4px; margin-bottom: 2px;
+}
+
 /* Hints + Empty */
 .va-hints {
   padding: 5px 8px; border-top: 1px solid var(--va-border);

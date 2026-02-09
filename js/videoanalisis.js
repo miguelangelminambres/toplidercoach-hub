@@ -65,6 +65,11 @@ const va = {
   isDrawing: false, drawStart: null, currentPath: [], textPos: null, areaPoints: null, anglePoints: null,
   clipIn: null, clipOut: null, clips: [],
   activePanel: "events",
+  // Tracking
+  tracks: [], trackConnections: [], activeTrackId: null,
+  trackMode: false, showTracks: true,
+  trackColors: ["#ef4444","#3b82f6","#22c55e","#eab308","#f97316","#a855f7","#06b6d4","#ec4899","#84cc16","#f43f5e"],
+  trackNextColor: 0,
 };
 
 let vaVideo, vaCanvas, vaCtx;
@@ -114,6 +119,8 @@ function vaLoadFile(file) {
   va.events = []; va.drawings = []; va.clips = [];
   va.clipIn = null; va.clipOut = null; va.selectedCategory = null; va.selectedZone = null;
   va.undoStack = []; va.areaPoints = null; va.anglePoints = null;
+  va.tracks = []; va.trackConnections = []; va.activeTrackId = null; va.trackMode = false;
+  va.trackNextColor = 0;
   vaRenderTable(); vaRenderClips(); vaRenderTimelineMarkers();
   // Sync canvas position after layout settles
   requestAnimationFrame(() => vaSyncCanvasPosition());
@@ -422,9 +429,11 @@ function vaBuildLineWidths() {
 function vaSetDrawMode(mode) {
   if (va.drawMode === mode) mode = null;
   va.drawMode = mode;
-  va.areaPoints = null; // reset area polygon
+  va.areaPoints = null;
   va.anglePoints = null;
-  vaCanvas.classList.toggle("active", !!mode);
+  // Disable track mode when drawing
+  if (mode && va.trackMode) vaToggleTrackMode(false);
+  vaCanvas.classList.toggle("active", !!mode || va.trackMode);
   document.getElementById("va-draw-badge").classList.toggle("active", !!mode);
   document.getElementById("va-draw-mode-label").textContent =
     mode ? VA_DRAW_TOOLS.find(t => t.id === mode).label : "-";
@@ -445,8 +454,14 @@ function vaSetLineWidth(w) {
 
 function vaSetupCanvasEvents() {
   vaCanvas.addEventListener("mousedown", (e) => {
-    if (!va.drawMode) return; e.preventDefault();
+    if (!va.drawMode && !va.trackMode) return; e.preventDefault();
     const pos = vaGetCanvasPos(e);
+
+    // TRACK MODE: add keyframe
+    if (va.trackMode) {
+      vaAddKeyframe(pos);
+      return;
+    }
 
     // TEXT: single click placement
     if (va.drawMode === "text") {
@@ -475,8 +490,11 @@ function vaSetupCanvasEvents() {
   });
 
   vaCanvas.addEventListener("mousemove", (e) => {
-    if (!va.drawMode) return;
+    if (!va.drawMode && !va.trackMode) return;
     const pos = vaGetCanvasPos(e);
+
+    // Track mode: no drag needed
+    if (va.trackMode) return;
 
     // Area preview with hover
     if (va.drawMode === "area" && va.areaPoints && va.areaPoints.length > 0) {
@@ -490,6 +508,7 @@ function vaSetupCanvasEvents() {
   });
 
   vaCanvas.addEventListener("mouseup", (e) => {
+    if (va.trackMode) return; // tracking uses mousedown only
     if (va.drawMode === "area") return; // area uses clicks, not drag
     if (!va.isDrawing || !va.drawMode) return;
     const pos = vaGetCanvasPos(e);
@@ -623,6 +642,9 @@ function vaRenderCanvas(pos) {
   if (va.drawMode === "area" && va.areaPoints && va.areaPoints.length > 0 && pos) {
     vaDrawAreaPreview(va.areaPoints, pos, va.drawColor, va.drawLineWidth);
   }
+
+  // Render player tracks
+  vaRenderTracks();
 }
 
 function vaDrawShape(d) {
@@ -934,6 +956,255 @@ function vaSwitchPanel(p) {
   va.activePanel = p;
   document.querySelectorAll(".va-tab").forEach(el => el.classList.toggle("active", el.dataset.panel === p));
   document.querySelectorAll(".va-section").forEach(el => el.classList.toggle("active", el.id === "va-sec-" + p));
+  // Disable track mode when leaving tracking panel
+  if (p !== "tracking" && va.trackMode) vaToggleTrackMode(false);
+}
+
+// ─── 13. TRACKING ────────────────────────────────────────────
+
+function vaAddTrack() {
+  const label = prompt("Nombre del jugador:", "Jugador " + (va.tracks.length + 1));
+  if (!label) return;
+  const color = va.trackColors[va.trackNextColor % va.trackColors.length];
+  va.trackNextColor++;
+  const track = { id: Date.now(), label, color, keyframes: [] };
+  va.tracks.push(track);
+  vaSelectTrack(track.id);
+  vaRenderTrackList();
+}
+
+function vaDeleteTrack(id) {
+  va.tracks = va.tracks.filter(t => t.id !== id);
+  va.trackConnections = va.trackConnections.filter(c => c.a !== id && c.b !== id);
+  if (va.activeTrackId === id) va.activeTrackId = null;
+  vaRenderTrackList(); vaRenderConnectionList(); vaRenderCanvas();
+}
+
+function vaSelectTrack(id) {
+  va.activeTrackId = (va.activeTrackId === id) ? null : id;
+  vaRenderTrackList();
+}
+
+function vaToggleTrackMode(force) {
+  va.trackMode = (force !== undefined) ? force : !va.trackMode;
+  // When entering track mode, disable draw mode
+  if (va.trackMode && va.drawMode) vaSetDrawMode(null);
+  vaCanvas.classList.toggle("active", va.trackMode || !!va.drawMode);
+  document.getElementById("va-track-mode-btn").classList.toggle("va-btn-teal", va.trackMode);
+  document.getElementById("va-track-mode-btn").textContent = va.trackMode ? "📍 Modo activo - Clic en jugador" : "📍 Activar posicionamiento";
+  document.getElementById("va-draw-badge").classList.toggle("active", va.trackMode);
+  document.getElementById("va-draw-mode-label").textContent = va.trackMode ? "Tracking" : "-";
+}
+
+function vaAddKeyframe(pos) {
+  if (!va.activeTrackId) return;
+  const track = va.tracks.find(t => t.id === va.activeTrackId);
+  if (!track) return;
+
+  const time = va.currentTime;
+  // Replace keyframe if one already exists at this time (±0.2s)
+  const existing = track.keyframes.findIndex(k => Math.abs(k.time - time) < 0.2);
+  if (existing >= 0) {
+    track.keyframes[existing] = { time, x: pos.x, y: pos.y };
+  } else {
+    track.keyframes.push({ time, x: pos.x, y: pos.y });
+  }
+  track.keyframes.sort((a, b) => a.time - b.time);
+  vaRenderTrackList(); vaRenderCanvas();
+}
+
+function vaDeleteKeyframe(trackId, index) {
+  const track = va.tracks.find(t => t.id === trackId);
+  if (track) {
+    track.keyframes.splice(index, 1);
+    vaRenderTrackList(); vaRenderCanvas();
+  }
+}
+
+function vaInterpolateTrack(track, time) {
+  const kf = track.keyframes;
+  if (!kf.length) return null;
+  if (kf.length === 1) {
+    // Only show if within 5s of the single keyframe
+    return Math.abs(time - kf[0].time) < 5 ? { x: kf[0].x, y: kf[0].y } : null;
+  }
+  // Before first keyframe
+  if (time <= kf[0].time) return { x: kf[0].x, y: kf[0].y };
+  // After last keyframe
+  if (time >= kf[kf.length - 1].time) return { x: kf[kf.length - 1].x, y: kf[kf.length - 1].y };
+
+  // Find surrounding keyframes and interpolate
+  for (let i = 0; i < kf.length - 1; i++) {
+    if (time >= kf[i].time && time <= kf[i + 1].time) {
+      const t = (time - kf[i].time) / (kf[i + 1].time - kf[i].time);
+      // Smooth interpolation (ease in-out)
+      const smooth = t * t * (3 - 2 * t);
+      return {
+        x: kf[i].x + (kf[i + 1].x - kf[i].x) * smooth,
+        y: kf[i].y + (kf[i + 1].y - kf[i].y) * smooth,
+      };
+    }
+  }
+  return null;
+}
+
+// ─── Track Connections ───────────────────────────────────────
+
+function vaAddConnection() {
+  if (va.tracks.length < 2) { alert("Necesitas al menos 2 jugadores para conectar."); return; }
+  const names = va.tracks.map((t, i) => (i + 1) + ". " + t.label).join("\n");
+  const a = parseInt(prompt("Conectar DESDE jugador nº:\n" + names)) - 1;
+  if (isNaN(a) || a < 0 || a >= va.tracks.length) return;
+  const b = parseInt(prompt("Conectar HASTA jugador nº:\n" + names)) - 1;
+  if (isNaN(b) || b < 0 || b >= va.tracks.length || b === a) return;
+
+  // Check duplicate
+  const idA = va.tracks[a].id, idB = va.tracks[b].id;
+  if (va.trackConnections.some(c => (c.a === idA && c.b === idB) || (c.a === idB && c.b === idA))) return;
+
+  va.trackConnections.push({ a: idA, b: idB });
+  vaRenderConnectionList(); vaRenderCanvas();
+}
+
+function vaDeleteConnection(index) {
+  va.trackConnections.splice(index, 1);
+  vaRenderConnectionList(); vaRenderCanvas();
+}
+
+// ─── Track rendering on canvas ───────────────────────────────
+
+function vaRenderTracks() {
+  if (!va.showTracks) return;
+  const time = va.currentTime;
+  const positions = {};
+
+  // Calculate interpolated positions
+  va.tracks.forEach(track => {
+    const pos = vaInterpolateTrack(track, time);
+    if (pos) positions[track.id] = { ...pos, color: track.color, label: track.label };
+  });
+
+  // Draw connections first (behind markers)
+  va.trackConnections.forEach(conn => {
+    const posA = positions[conn.a], posB = positions[conn.b];
+    if (!posA || !posB) return;
+    vaCtx.save();
+    vaCtx.beginPath();
+    vaCtx.moveTo(posA.x, posA.y); vaCtx.lineTo(posB.x, posB.y);
+    vaCtx.strokeStyle = "rgba(255,255,255,0.6)";
+    vaCtx.lineWidth = 2;
+    vaCtx.setLineDash([8, 4]);
+    vaCtx.stroke();
+    vaCtx.setLineDash([]);
+    vaCtx.restore();
+  });
+
+  // Draw player markers
+  va.tracks.forEach(track => {
+    const pos = positions[track.id];
+    if (!pos) return;
+    const isActive = track.id === va.activeTrackId;
+    const r = 22;
+
+    vaCtx.save();
+    // Outer glow
+    vaCtx.beginPath();
+    vaCtx.arc(pos.x, pos.y, r + 4, 0, Math.PI * 2);
+    const rgb = vaHexToRgb(track.color);
+    vaCtx.strokeStyle = "rgba(" + rgb + "," + (isActive ? "0.6" : "0.3") + ")";
+    vaCtx.lineWidth = isActive ? 4 : 2;
+    vaCtx.stroke();
+
+    // Main circle
+    vaCtx.beginPath();
+    vaCtx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
+    vaCtx.fillStyle = "rgba(" + rgb + ",0.2)";
+    vaCtx.fill();
+    vaCtx.strokeStyle = track.color;
+    vaCtx.lineWidth = 2.5;
+    vaCtx.stroke();
+
+    // Label
+    vaCtx.font = "bold 13px sans-serif";
+    vaCtx.textAlign = "center";
+    vaCtx.fillStyle = "#000";
+    vaCtx.fillText(track.label, pos.x + 1, pos.y - r - 7);
+    vaCtx.fillStyle = track.color;
+    vaCtx.fillText(track.label, pos.x, pos.y - r - 8);
+    vaCtx.textAlign = "start";
+
+    // Keyframe dot (if we're exactly on a keyframe)
+    if (track.keyframes.some(k => Math.abs(k.time - time) < 0.3)) {
+      vaCtx.beginPath();
+      vaCtx.arc(pos.x, pos.y, 5, 0, Math.PI * 2);
+      vaCtx.fillStyle = track.color;
+      vaCtx.fill();
+    }
+
+    vaCtx.restore();
+  });
+}
+
+// ─── Track UI ────────────────────────────────────────────────
+
+function vaRenderTrackList() {
+  const list = document.getElementById("va-track-list");
+  const count = document.getElementById("va-track-count");
+  if (count) count.textContent = va.tracks.length;
+
+  if (!va.tracks.length) {
+    list.innerHTML = '<div class="va-empty">Añade jugadores para hacer seguimiento.</div>';
+    return;
+  }
+
+  list.innerHTML = va.tracks.map(track => {
+    const isActive = track.id === va.activeTrackId;
+    const kfAtTime = track.keyframes.findIndex(k => Math.abs(k.time - va.currentTime) < 0.3);
+    return '<div class="va-track-item' + (isActive ? ' active' : '') + '" onclick="vaSelectTrack(' + track.id + ')">' +
+      '<div class="va-track-header">' +
+      '<span class="va-track-color" style="background:' + track.color + '"></span>' +
+      '<span class="va-track-name">' + track.label + '</span>' +
+      '<span class="va-track-kf-count">' + track.keyframes.length + ' kf</span>' +
+      '<button class="va-btn-icon" onclick="event.stopPropagation();vaDeleteTrack(' + track.id + ')">🗑️</button>' +
+      '</div>' +
+      (isActive ? '<div class="va-track-keyframes">' +
+        (track.keyframes.length === 0 ? '<div style="font-size:10px;color:var(--va-dim);padding:4px">Activa posicionamiento y haz clic sobre el jugador</div>' :
+        track.keyframes.map((kf, i) =>
+          '<div class="va-track-kf" onclick="event.stopPropagation();vaSeekTo(' + kf.time + ')">' +
+          '<span>' + vaFormatTime(kf.time) + '</span>' +
+          '<button class="va-btn-icon" onclick="event.stopPropagation();vaDeleteKeyframe(' + track.id + ',' + i + ')">✕</button>' +
+          '</div>'
+        ).join("")) +
+      '</div>' : '') +
+      '</div>';
+  }).join("");
+}
+
+function vaRenderConnectionList() {
+  const list = document.getElementById("va-connection-list");
+  if (!va.trackConnections.length) {
+    list.innerHTML = '<div class="va-empty" style="font-size:10px">Sin conexiones.</div>';
+    return;
+  }
+  list.innerHTML = va.trackConnections.map((conn, i) => {
+    const a = va.tracks.find(t => t.id === conn.a);
+    const b = va.tracks.find(t => t.id === conn.b);
+    if (!a || !b) return "";
+    return '<div class="va-conn-item">' +
+      '<span class="va-track-color" style="background:' + a.color + '"></span>' +
+      '<span>' + a.label + '</span>' +
+      '<span style="color:var(--va-dim)">↔</span>' +
+      '<span class="va-track-color" style="background:' + b.color + '"></span>' +
+      '<span>' + b.label + '</span>' +
+      '<button class="va-btn-icon" onclick="vaDeleteConnection(' + i + ')">✕</button>' +
+      '</div>';
+  }).join("");
+}
+
+function vaToggleTrackVisibility() {
+  va.showTracks = !va.showTracks;
+  document.getElementById("va-toggle-tracks").textContent = va.showTracks ? "👁️ Ocultar tracking" : "🙈 Mostrar tracking";
+  vaRenderCanvas();
 }
 
 // ─── 13. EXPORT ──────────────────────────────────────────────
@@ -944,7 +1215,13 @@ function vaExportAnalysis() {
       category: e.label, period: e.period + "T", zone: e.zone, note: e.note })),
     clips: va.clips.map(c => ({ label: c.label, in: vaFormatTime(c.inTime), out: vaFormatTime(c.outTime),
       duration: vaFormatTime(c.outTime-c.inTime),
-      events: c.events.map(e => ({ time: vaFormatTime(e.time), category: e.label })) })) };
+      events: c.events.map(e => ({ time: vaFormatTime(e.time), category: e.label })) })),
+    tracks: va.tracks.map(t => ({ label: t.label, color: t.color,
+      keyframes: t.keyframes.map(k => ({ time: vaFormatTime(k.time), seconds: Math.round(k.time*100)/100, x: Math.round(k.x), y: Math.round(k.y) })) })),
+    trackConnections: va.trackConnections.map(c => {
+      const a = va.tracks.find(t => t.id === c.a), b = va.tracks.find(t => t.id === c.b);
+      return { from: a ? a.label : "?", to: b ? b.label : "?" };
+    }) };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
   a.download = "analisis-" + (va.videoName || "video") + ".json"; a.click();
@@ -972,6 +1249,14 @@ function vaSnapshot() {
         vaDrawShape(d);
       }
     });
+    vaCtx = saveCtx;
+  }
+
+  // 3. Draw player tracks
+  if (va.showTracks) {
+    const saveCtx = vaCtx;
+    vaCtx = c;
+    vaRenderTracks();
     vaCtx = saveCtx;
   }
 

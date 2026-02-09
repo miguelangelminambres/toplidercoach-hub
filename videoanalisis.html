@@ -126,6 +126,7 @@
             🏷️ Etiquetar <span class="badge" id="va-event-count" style="display:none">0</span>
           </button>
           <button class="va-tab" data-panel="draw" onclick="vaSwitchPanel('draw')">✏️ Dibujar</button>
+          <button class="va-tab" data-panel="tracking" onclick="vaSwitchPanel('tracking')">📍 Tracking</button>
           <button class="va-tab" data-panel="clips" onclick="vaSwitchPanel('clips')">✂️ Clips</button>
         </div>
 
@@ -180,6 +181,37 @@
               📸 Captura con dibujos
             </button>
             <p class="va-draw-hint">💡 Dibujos visibles 5s. Área: clic múltiple, doble-clic cierra. Ctrl+Z deshacer. ESC salir.</p>
+          </div>
+
+          <!-- ═══ TRACKING ═════════════════════════════════ -->
+          <div class="va-section" id="va-sec-tracking">
+            <p class="va-label">Jugadores</p>
+            <div style="display:flex;gap:4px;margin-bottom:8px">
+              <button class="va-btn va-btn-teal" onclick="vaAddTrack()" style="flex:1">+ Nuevo jugador</button>
+            </div>
+
+            <button class="va-btn" id="va-track-mode-btn" onclick="vaToggleTrackMode()" style="width:100%;margin-bottom:8px">
+              📍 Activar posicionamiento
+            </button>
+
+            <div id="va-track-list">
+              <div class="va-empty">Añade jugadores para hacer seguimiento.</div>
+            </div>
+
+            <p class="va-label" style="margin-top:10px">Conexiones (<span id="va-track-count">0</span>)</p>
+            <button class="va-btn" onclick="vaAddConnection()" style="width:100%;margin-bottom:6px">🔗 Conectar jugadores</button>
+            <div id="va-connection-list">
+              <div class="va-empty" style="font-size:10px">Sin conexiones.</div>
+            </div>
+
+            <button class="va-btn" id="va-toggle-tracks" onclick="vaToggleTrackVisibility()" style="width:100%;margin-top:8px">
+              👁️ Ocultar tracking
+            </button>
+
+            <p class="va-draw-hint">
+              💡 <strong>Flujo:</strong> Añade jugador → Activa posicionamiento → Pausa vídeo → Clic en jugador → Avanza → Repite.<br>
+              El sistema interpola automáticamente entre puntos.
+            </p>
           </div>
 
           <!-- ═══ CLIPS ══════════════════════════════════ -->

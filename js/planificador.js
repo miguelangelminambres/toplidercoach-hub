@@ -915,13 +915,15 @@ if (s.players && s.players.length > 0) {
             const finMes = `${calendarioAnio}-${String(calendarioMes + 1).padStart(2, '0')}-${ultimoDia.getDate()}`;
             
             // Cargar sesiones del mes
-            const { data: sesiones } = await supabaseClient
+            const { data: sesiones, error: errorSesiones } = await supabaseClient
                 .from('training_sessions')
-                .select('id, name, session_date, hora_inicio')
+                .select('id, name, session_date, session_time')
                 .eq('club_id', clubId)
                 .gte('session_date', inicioMes)
                 .lte('session_date', finMes)
                 .order('session_date');
+            
+            if (errorSesiones) console.error('Error cargando sesiones:', errorSesiones);
             
             // Cargar partidos del mes
             let queryPartidos = supabaseClient
@@ -983,7 +985,7 @@ if (s.players && s.players.length > 0) {
                 // Sesiones del día
                 if (tieneSesion) {
                     sesionesPorDia[dia].forEach(s => {
-                        const hora = s.hora_inicio ? s.hora_inicio.slice(0, 5) : '';
+                        const hora = s.session_time ? s.session_time.slice(0, 5) : '';
                         eventosHTML += `
                             <div class="cal-evento cal-sesion" onclick="cargarSesionEnEditor('${s.id}')">
                                 <span class="cal-evento-nombre">${s.name}</span>

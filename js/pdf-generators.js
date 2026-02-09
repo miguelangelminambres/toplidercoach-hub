@@ -898,11 +898,10 @@ async function generarPDFHojaPartido() {
         doc.text('NOMBRE', x + 28, yC + 5, { align: 'center' });
         // Iconos de eventos
         doc.setFontSize(7);
-        doc.text('S', x + 55, yC + 5, { align: 'center' });
+        doc.text('M', x + 55, yC + 5, { align: 'center' });
         doc.text('G', x + 64, yC + 5, { align: 'center' });
-        doc.text('A', x + 73, yC + 5, { align: 'center' });
-        doc.text('R', x + 82, yC + 5, { align: 'center' });
-        doc.text('E', x + 91, yC + 5, { align: 'center' });
+        doc.text('TA', x + 73, yC + 5, { align: 'center' });
+        doc.text('TR', x + 82, yC + 5, { align: 'center' });
     }
     
     function dibujarFilas(x, yStart, datos) {
@@ -923,7 +922,6 @@ async function generarPDFHojaPartido() {
             doc.line(x + 59, yF, x + 59, yF + altoFila);
             doc.line(x + 68, yF, x + 68, yF + altoFila);
             doc.line(x + 77, yF, x + 77, yF + altoFila);
-            doc.line(x + 86, yF, x + 86, yF + altoFila);
             
             if (datos && datos[i]) {
                 doc.setTextColor(30, 30, 30);

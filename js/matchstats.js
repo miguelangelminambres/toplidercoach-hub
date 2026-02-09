@@ -333,6 +333,9 @@ if (p.titulares && Array.isArray(p.titulares)) {
     titularesPartido = p.titulares.map(t => String(t.id));
 }
                     
+                    // Forzar reconstrucción del mapa de slots
+                    slotsTitularesMap = [];
+                    slotVacioIdx = null;
                     renderizarConvocatoria();
                 }
             }

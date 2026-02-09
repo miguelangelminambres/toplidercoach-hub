@@ -1216,7 +1216,7 @@
                     <div class="alineacion-controls">
                         <div class="form-group" style="margin-bottom:0;">
                             <label style="font-size:12px;">Formación:</label>
-                            <select id="partido-formacion" onchange="renderizarAlineacion()" class="select-formacion-partido">
+                            <select id="partido-formacion" onchange="slotsTitularesMap=[];slotVacioIdx=null;renderizarAlineacion()" class="select-formacion-partido">
                                 <option value="4-3-3">4-3-3</option>
                                 <option value="4-4-2">4-4-2</option>
                                 <option value="4-2-3-1">4-2-3-1</option>
@@ -1230,27 +1230,21 @@
                         <p class="hint-text" style="margin:0;">Haz clic en los convocados para añadirlos como titulares.</p>
                     </div>
                     <div class="alineacion-layout">
-                        <div class="pitch-container">
-                            <div class="pitch" id="pitch-visual">
-                                <!-- Marcas del campo -->
-                                <div class="pitch-center-circle"></div>
-                                <div class="pitch-center-line"></div>
-                                <div class="pitch-penalty-top"></div>
-                                <div class="pitch-penalty-bottom"></div>
-                                <div class="pitch-goal-top"></div>
-                                <div class="pitch-goal-bottom"></div>
-                                <div class="pitch-formation-label" id="pitch-formation-label">4-3-3</div>
+                        <div class="campo-futbol-container">
+                            <div class="campo-titulo">
+                                <span>⚽ Alineación</span>
+                                <span class="campo-sistema-badge" id="pitch-formation-label">4-3-3</span>
+                            </div>
+                            <div class="campo-futbol" id="pitch-visual">
+                                <div class="campo-area-grande-arriba"></div>
+                                <div class="campo-area-pequena-arriba"></div>
+                                <div class="campo-area-grande-abajo"></div>
+                                <div class="campo-area-pequena-abajo"></div>
                                 <!-- Jugadores se insertan dinámicamente -->
                             </div>
-                        </div>
-                        <div class="suplentes-panel">
-                            <h5 class="suplentes-titulo">Suplentes</h5>
-                            <div id="suplentes-grid" class="suplentes-grid">
-                                <!-- Se genera dinámicamente -->
-                            </div>
-                            <div id="no-convocados-section" style="display:none;">
-                                <h5 class="suplentes-titulo" style="margin-top:16px;">No Convocados</h5>
-                                <div id="no-convocados-grid" class="suplentes-grid"></div>
+                            <div class="suplentes-campo" id="suplentes-campo-container">
+                                <span class="suplentes-campo-titulo">🪑 Suplentes:</span>
+                                <div id="suplentes-grid" class="suplentes-campo-grid"></div>
                             </div>
                         </div>
                     </div>

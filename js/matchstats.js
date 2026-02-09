@@ -4,6 +4,8 @@
 // Variables del módulo
 let fichaJugadorActual = null;
 let escudoRivalUrl = null;
+let slotVacioIdx = null;
+let slotsTitularesMap = [];
 
 // Registro en navegación
 registrarModulo('matchstats', cargarPartidos);
@@ -288,6 +290,8 @@ document.getElementById('video-preview-container').style.display = 'none';
             
             convocadosPartido = [];
             titularesPartido = [];
+            slotsTitularesMap = [];
+            slotVacioIdx = null;
             
             await cargarConvocatoria();
             
@@ -577,16 +581,17 @@ function renderizarConvocatoria() {
         }
         
      function toggleConvocado(spId) {
-    spId = String(spId); // Asegurar que es string
+    spId = String(spId);
     const idx = convocadosPartido.indexOf(spId);
     if (idx > -1) {
         convocadosPartido.splice(idx, 1);
-        // También quitar de titulares si estaba
         const idxTit = titularesPartido.indexOf(spId);
         if (idxTit > -1) titularesPartido.splice(idxTit, 1);
     } else {
         convocadosPartido.push(spId);
     }
+    slotsTitularesMap = [];
+    slotVacioIdx = null;
     renderizarConvocatoria();
 }
         
@@ -688,91 +693,97 @@ function renderizarConvocatoria() {
     if (contadorTitulares) contadorTitulares.textContent = `${titularesPartido.length}/${formato} titulares`;
     
     // Limpiar jugadores del pitch (mantener marcas del campo)
-    pitch.querySelectorAll('.pitch-player').forEach(el => el.remove());
+    pitch.querySelectorAll('.jugador-posicion').forEach(el => el.remove());
     
     const convocados = plantillaPartido.filter(sp => convocadosPartido.includes(String(sp.id)));
     const titulares = convocados.filter(sp => titularesPartido.includes(String(sp.id)));
     const suplentes = convocados.filter(sp => !titularesPartido.includes(String(sp.id)));
     
-    if (convocados.length === 0) {
-        if (suplentesGrid) suplentesGrid.innerHTML = '<p style="color:#9ca3af;font-size:12px;">Selecciona convocados primero</p>';
-        return;
-    }
-    
-    // Asignar titulares a posiciones del campo
-    // Ordenar titulares por categoría para mejor asignación
-    const titOrdenados = [...titulares];
-    const slotsTomados = new Array(posiciones.length).fill(null);
-    
-    // Primero portero
-    const portero = titOrdenados.find(sp => categoriaPosicion(sp.players?.position) === 'POR');
-    if (portero) {
-        const idxPor = posiciones.findIndex(p => p.tipo === 'POR');
-        if (idxPor >= 0) {
-            slotsTomados[idxPor] = portero;
-            titOrdenados.splice(titOrdenados.indexOf(portero), 1);
-        }
-    }
-    
-    // Luego defensas, medios, delanteros
-    ['DEF', 'MED', 'DEL'].forEach(cat => {
-        const jugadoresCat = titOrdenados.filter(sp => categoriaPosicion(sp.players?.position) === cat);
-        const slotsLibres = posiciones.map((p, i) => ({...p, idx: i})).filter(p => p.tipo === cat && !slotsTomados[p.idx]);
+    // Inicializar slotsTitularesMap si está vacío o formación cambió
+    if (slotsTitularesMap.length !== posiciones.length) {
+        slotsTitularesMap = new Array(posiciones.length).fill(null);
         
-        jugadoresCat.forEach(sp => {
-            const slot = slotsLibres.shift();
-            if (slot) {
-                slotsTomados[slot.idx] = sp;
-                titOrdenados.splice(titOrdenados.indexOf(sp), 1);
+        // Asignar titulares a posiciones
+        const titOrdenados = [...titulares];
+        
+        // Primero portero
+        const portero = titOrdenados.find(sp => categoriaPosicion(sp.players?.position) === 'POR');
+        if (portero) {
+            const idxPor = posiciones.findIndex(p => p.tipo === 'POR');
+            if (idxPor >= 0) {
+                slotsTitularesMap[idxPor] = String(portero.id);
+                titOrdenados.splice(titOrdenados.indexOf(portero), 1);
             }
+        }
+        
+        ['DEF', 'MED', 'DEL'].forEach(cat => {
+            const jugadoresCat = titOrdenados.filter(sp => categoriaPosicion(sp.players?.position) === cat);
+            const slotsLibres = posiciones.map((p, i) => ({...p, idx: i})).filter(p => p.tipo === cat && !slotsTitularesMap[p.idx]);
+            
+            jugadoresCat.forEach(sp => {
+                const slot = slotsLibres.shift();
+                if (slot) {
+                    slotsTitularesMap[slot.idx] = String(sp.id);
+                    titOrdenados.splice(titOrdenados.indexOf(sp), 1);
+                }
+            });
         });
-    });
-    
-    // Jugadores sin slot asignado (posición no coincide), colocar en slots libres
-    titOrdenados.forEach(sp => {
-        const idxLibre = slotsTomados.findIndex(s => s === null);
-        if (idxLibre >= 0) slotsTomados[idxLibre] = sp;
-    });
+        
+        // Resto en slots libres
+        titOrdenados.forEach(sp => {
+            const idxLibre = slotsTitularesMap.findIndex(s => s === null);
+            if (idxLibre >= 0) slotsTitularesMap[idxLibre] = String(sp.id);
+        });
+    }
     
     // Renderizar jugadores en el campo
-    slotsTomados.forEach((sp, idx) => {
-        const pos = posiciones[idx];
-        if (!sp) {
-            // Slot vacío
-            const emptyEl = document.createElement('div');
-            emptyEl.className = 'pitch-player pitch-player-empty';
-            emptyEl.style.left = pos.x + '%';
-            emptyEl.style.top = pos.y + '%';
-            emptyEl.innerHTML = '<div class="pp-circle pp-empty">+</div>';
-            pitch.appendChild(emptyEl);
-            return;
-        }
-        
-        const j = sp.players;
-        if (!j) return;
-        const foto = j.photo_url;
-        const nombre = j.name || '?';
-        const dorsal = sp.shirt_number || '';
-        const posColor = colorPosicion(j.position);
+    posiciones.forEach((pos, idx) => {
+        const spId = slotsTitularesMap[idx];
+        const sp = spId ? plantillaPartido.find(s => String(s.id) === spId) : null;
+        const isVacio = slotVacioIdx === idx;
         
         const playerEl = document.createElement('div');
-        playerEl.className = 'pitch-player';
+        playerEl.className = 'jugador-posicion' + (isVacio ? ' slot-vacio-activo' : '');
         playerEl.style.left = pos.x + '%';
         playerEl.style.top = pos.y + '%';
-        playerEl.onclick = function() { toggleTitular(String(sp.id)); };
-        playerEl.innerHTML = `
-            <div class="pp-circle" style="border-color:${posColor};">
-                ${foto ? `<img src="${foto}" class="pp-foto">` : `<span class="pp-dorsal">${dorsal}</span>`}
-            </div>
-            <div class="pp-name">${nombre.split(' ').pop()}</div>
-        `;
+        
+        if (sp && sp.players) {
+            const j = sp.players;
+            const foto = j.photo_url;
+            const dorsal = sp.shirt_number || '';
+            const nombre = j.name ? j.name.split(' ').pop() : '?';
+            
+            playerEl.onclick = function() { quitarTitularDeSlot(idx); };
+            playerEl.innerHTML = `
+                <div class="jugador-posicion-circulo">
+                    ${foto ? `<img src="${foto}">` : `<span style="font-size:14px;font-weight:800;">${dorsal || '?'}</span>`}
+                    ${dorsal ? `<span class="jugador-posicion-dorsal">${dorsal}</span>` : ''}
+                </div>
+                <div class="jugador-posicion-nombre">${nombre}</div>
+            `;
+        } else {
+            // Slot vacío
+            playerEl.onclick = function() { 
+                slotVacioIdx = (slotVacioIdx === idx) ? null : idx;
+                renderizarAlineacion();
+            };
+            playerEl.innerHTML = `
+                <div class="jugador-posicion-circulo vacio${isVacio ? ' vacio-seleccionado' : ''}">
+                    ${isVacio ? '⬇️' : '+'}
+                </div>
+                <div class="jugador-posicion-nombre" style="opacity:0.5;">${pos.tipo}</div>
+            `;
+        }
+        
         pitch.appendChild(playerEl);
     });
     
     // Renderizar suplentes
     if (suplentesGrid) {
-        if (suplentes.length === 0) {
-            suplentesGrid.innerHTML = '<p style="color:#9ca3af;font-size:12px;">Sin suplentes</p>';
+        if (suplentes.length === 0 && convocados.length === 0) {
+            suplentesGrid.innerHTML = '<p style="color:#9ca3af;font-size:12px;">Selecciona convocados primero</p>';
+        } else if (suplentes.length === 0) {
+            suplentesGrid.innerHTML = '<p style="color:#9ca3af;font-size:12px;">Todos son titulares</p>';
         } else {
             suplentesGrid.innerHTML = suplentes.sort((a,b) => (a.shirt_number || 99) - (b.shirt_number || 99)).map(sp => {
                 const j = sp.players;
@@ -781,13 +792,14 @@ function renderizarConvocatoria() {
                 const inicial = j.name ? j.name.charAt(0).toUpperCase() : '?';
                 const posAbrev = posicionAbrev(j.position);
                 const posCol = colorPosicion(j.position);
+                const destacado = slotVacioIdx !== null ? ' sup-destacado' : '';
                 return `
-                    <div class="sup-jugador" onclick="toggleTitular('${sp.id}')">
+                    <div class="sup-jugador${destacado}" onclick="ponerSuplenteEnSlot('${sp.id}')">
                         <div class="sup-foto">
                             ${foto ? `<img src="${foto}">` : `<span class="sup-inicial">${inicial}</span>`}
                         </div>
                         <span class="sup-pos-badge" style="background:${posCol};">${posAbrev}</span>
-                        <span class="sup-nombre">${j.name}</span>
+                        <span class="sup-nombre">${j.name}${sp.shirt_number ? ' #' + sp.shirt_number : ''}</span>
                     </div>
                 `;
             }).join('');
@@ -806,11 +818,9 @@ function renderizarConvocatoria() {
                 const posCol = colorPosicion(j.position);
                 return `
                     <div class="sup-jugador nc">
-                        <div class="sup-foto">
-                            <span class="sup-inicial" style="opacity:0.5;">${j.name ? j.name.charAt(0) : '?'}</span>
-                        </div>
-                        <span class="sup-pos-badge" style="background:${posCol};opacity:0.5;">${posAbrev}</span>
-                        <span class="sup-nombre" style="opacity:0.5;">${j.name}</span>
+                        <div class="sup-foto"><span class="sup-inicial" style="opacity:0.4;">${j.name ? j.name.charAt(0) : '?'}</span></div>
+                        <span class="sup-pos-badge" style="background:${posCol};opacity:0.4;">${posAbrev}</span>
+                        <span class="sup-nombre" style="opacity:0.4;">${j.name}</span>
                     </div>
                 `;
             }).join('');
@@ -819,22 +829,72 @@ function renderizarConvocatoria() {
         }
     }
 }
-    
+
+        // Quitar titular de un slot → pasa a suplentes
+        function quitarTitularDeSlot(slotIdx) {
+            const spId = slotsTitularesMap[slotIdx];
+            if (!spId) return;
+            
+            // Quitar del slot y de titulares
+            slotsTitularesMap[slotIdx] = null;
+            const idx = titularesPartido.indexOf(spId);
+            if (idx > -1) titularesPartido.splice(idx, 1);
+            
+            // Marcar ese slot como vacío activo
+            slotVacioIdx = slotIdx;
+            renderizarAlineacion();
+        }
+        
+        // Poner suplente en el slot vacío
+        function ponerSuplenteEnSlot(spId) {
+            spId = String(spId);
+            
+            if (slotVacioIdx === null) {
+                // Si no hay slot vacío, buscar el primer slot libre
+                const idxLibre = slotsTitularesMap.findIndex(s => s === null);
+                if (idxLibre === -1) {
+                    alert('No hay posiciones vacías. Primero quita un titular del campo.');
+                    return;
+                }
+                slotVacioIdx = idxLibre;
+            }
+            
+            const formato = parseInt(document.getElementById('partido-formato').value) || 11;
+            if (titularesPartido.length >= formato && slotsTitularesMap[slotVacioIdx] !== null) {
+                alert(`Máximo ${formato} titulares para este formato`);
+                return;
+            }
+            
+            // Colocar suplente en el slot vacío
+            slotsTitularesMap[slotVacioIdx] = spId;
+            if (!titularesPartido.includes(spId)) {
+                titularesPartido.push(spId);
+            }
+            
+            slotVacioIdx = null;
+            renderizarAlineacion();
+        }
 
       function toggleTitular(spId) {
-    spId = String(spId); // Asegurar que es string
+    spId = String(spId);
     const formato = parseInt(document.getElementById('partido-formato').value) || 11;
     const idx = titularesPartido.indexOf(spId);
     
     if (idx > -1) {
         titularesPartido.splice(idx, 1);
+        // Quitar del slotMap
+        const slotIdx = slotsTitularesMap.indexOf(spId);
+        if (slotIdx > -1) slotsTitularesMap[slotIdx] = null;
     } else {
         if (titularesPartido.length >= formato) {
             alert(`Máximo ${formato} titulares para este formato`);
             return;
         }
         titularesPartido.push(spId);
+        // Forzar rebuild del slotMap
+        slotsTitularesMap = new Array(0);
     }
+    slotVacioIdx = null;
     renderizarAlineacion();
 }
         function actualizarContadorTitulares() {
@@ -847,14 +907,16 @@ function renderizarConvocatoria() {
             if (formatoSelect) {
                 formatoSelect.addEventListener('change', function() {
                     const nuevoFormato = parseInt(this.value);
-                    // Si hay más titulares que el nuevo formato, recortar
                     if (titularesPartido.length > nuevoFormato) {
                         titularesPartido = titularesPartido.slice(0, nuevoFormato);
                     }
+                    slotsTitularesMap = new Array(0);
+                    slotVacioIdx = null;
                     renderizarAlineacion();
                 });
             }
         });
+
         function cerrarModalPartido(event) {
             if (event && event.target !== event.currentTarget) return;
             document.getElementById('modal-partido').style.display = 'none';

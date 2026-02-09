@@ -898,11 +898,11 @@ async function generarPDFHojaPartido() {
         doc.text('NOMBRE', x + 28, yC + 5, { align: 'center' });
         // Iconos de eventos
         doc.setFontSize(7);
-        doc.text('⬇', x + 55, yC + 5, { align: 'center' });
-        doc.text('⚽', x + 64, yC + 5, { align: 'center' });
-        doc.text('🔶', x + 73, yC + 5, { align: 'center' });
-        doc.text('🟥', x + 82, yC + 5, { align: 'center' });
-        doc.text('⬆', x + 91, yC + 5, { align: 'center' });
+        doc.text('S', x + 55, yC + 5, { align: 'center' });
+        doc.text('G', x + 64, yC + 5, { align: 'center' });
+        doc.text('A', x + 73, yC + 5, { align: 'center' });
+        doc.text('R', x + 82, yC + 5, { align: 'center' });
+        doc.text('E', x + 91, yC + 5, { align: 'center' });
     }
     
     function dibujarFilas(x, yStart, datos) {
@@ -980,8 +980,8 @@ async function generarPDFHojaPartido() {
         doc.setFontSize(6);
         doc.setFont('helvetica', 'bold');
         doc.text('MIN', x + 10, ySub + 4.3, { align: 'center' });
-        doc.text('SALE ⬇', x + 38, ySub + 4.3, { align: 'center' });
-        doc.text('ENTRA ⬆', x + 73, ySub + 4.3, { align: 'center' });
+        doc.text('SALE', x + 38, ySub + 4.3, { align: 'center' });
+        doc.text('ENTRA', x + 73, ySub + 4.3, { align: 'center' });
         
         const ySubFilas = ySub + altoSubCab;
         for (let i = 0; i < numSubs; i++) {
@@ -1017,8 +1017,8 @@ async function generarPDFHojaPartido() {
         doc.setFontSize(6);
         doc.setFont('helvetica', 'bold');
         doc.text('MIN', x + 10, yGol + 4.3, { align: 'center' });
-        doc.text('AUTOR ⚽', x + 38, yGol + 4.3, { align: 'center' });
-        doc.text('ASISTENTE 👟', x + 73, yGol + 4.3, { align: 'center' });
+        doc.text('AUTOR', x + 38, yGol + 4.3, { align: 'center' });
+        doc.text('ASISTENTE', x + 73, yGol + 4.3, { align: 'center' });
         
         const yGolFilas = yGol + altoSubCab;
         for (let i = 0; i < numSubs; i++) {

@@ -74,8 +74,9 @@ const va = {
   showCatEditor: false,
   // Match setup
   localName: "Local", visitorName: "Visitante",
-  localAttacksRight1H: true, // local attacks → in 1st half
-  fieldPeriod: "1", // which period for field orientation
+  localAttacksRight1H: true,
+  fieldPeriod: "1",
+  rosterLocal: [], rosterVisitor: [],
   filterPeriod: "all", filterRange: null,
   drawMode: null, drawColor: "#ef4444", drawLineWidth: 3, drawings: [], undoStack: [], showDrawings: true,
   isDrawing: false, drawStart: null, currentPath: [], textPos: null, areaPoints: null, anglePoints: null,
@@ -105,6 +106,26 @@ function vaInit() {
   vaSetupVideoEvents();
   vaSetupCanvasEvents();
   vaSetupKeyboard();
+
+  // Player select: handle "manual" option
+  document.getElementById("va-event-player").addEventListener("change", function() {
+    if (this.value === "__manual__") {
+      const name = prompt("Nombre o dorsal del jugador:");
+      if (name) {
+        // Add temporary option
+        const opt = document.createElement("option");
+        opt.value = name; opt.textContent = "✏️ " + name;
+        opt.dataset.temp = "1";
+        this.insertBefore(opt, this.lastElementChild);
+        this.value = name;
+      } else {
+        this.value = "";
+      }
+    }
+  });
+
+  // Init roster displays
+  vaRenderRoster("local"); vaRenderRoster("visitor");
 }
 document.addEventListener("DOMContentLoaded", vaInit);
 
@@ -370,6 +391,124 @@ function vaSetLocalDirection(dir) {
   vaUpdateFieldLabels();
 }
 
+// ─── Rosters ─────────────────────────────────────────────────
+
+function vaAddPlayer(team) {
+  const numInput = document.getElementById("va-roster-" + team + "-num");
+  const nameInput = document.getElementById("va-roster-" + team + "-name");
+  const num = numInput.value.trim();
+  const name = nameInput.value.trim();
+  if (!name) return;
+
+  const roster = team === "local" ? va.rosterLocal : va.rosterVisitor;
+  roster.push({ num: num, name: name });
+  roster.sort((a, b) => {
+    const na = parseInt(a.num) || 999, nb = parseInt(b.num) || 999;
+    return na - nb;
+  });
+
+  numInput.value = ""; nameInput.value = "";
+  numInput.focus();
+  vaRenderRoster(team);
+  vaUpdatePlayerSelect();
+}
+
+function vaDeletePlayer(team, index) {
+  const roster = team === "local" ? va.rosterLocal : va.rosterVisitor;
+  roster.splice(index, 1);
+  vaRenderRoster(team);
+  vaUpdatePlayerSelect();
+}
+
+function vaPasteRoster(team) {
+  const text = prompt(
+    "Pega la lista de jugadores (uno por línea).\nFormato: nº nombre  ó  nombre\n\nEjemplos:\n1 Ter Stegen\n3 Piqué\nPedri",
+  );
+  if (!text) return;
+
+  const roster = team === "local" ? va.rosterLocal : va.rosterVisitor;
+  const lines = text.split("\n").map(l => l.trim()).filter(l => l);
+
+  lines.forEach(line => {
+    // Try to extract number + name: "1 Ter Stegen", "23. Pedri", "#7 Griezmann"
+    const match = line.match(/^[#]?(\d+)[.\s-]+(.+)$/);
+    if (match) {
+      roster.push({ num: match[1], name: match[2].trim() });
+    } else {
+      roster.push({ num: "", name: line });
+    }
+  });
+
+  roster.sort((a, b) => {
+    const na = parseInt(a.num) || 999, nb = parseInt(b.num) || 999;
+    return na - nb;
+  });
+
+  vaRenderRoster(team);
+  vaUpdatePlayerSelect();
+}
+
+function vaRenderRoster(team) {
+  const roster = team === "local" ? va.rosterLocal : va.rosterVisitor;
+  const container = document.getElementById("va-roster-" + team);
+
+  if (!roster.length) {
+    container.innerHTML = '<div class="va-empty" style="font-size:10px;padding:4px">Sin jugadores</div>';
+    return;
+  }
+
+  container.innerHTML = roster.map((p, i) =>
+    '<div class="va-roster-player">' +
+    (p.num ? '<span class="va-roster-num">' + p.num + '</span>' : '') +
+    '<span class="va-roster-name">' + p.name + '</span>' +
+    '<button class="va-btn-icon" onclick="vaDeletePlayer(\'' + team + '\',' + i + ')">✕</button>' +
+    '</div>'
+  ).join("");
+}
+
+function vaUpdatePlayerSelect() {
+  const select = document.getElementById("va-event-player");
+  const currentVal = select.value;
+  const roster = va.selectedTeam === "local" ? va.rosterLocal : va.rosterVisitor;
+  const teamName = va.selectedTeam === "local" ? va.localName : va.visitorName;
+
+  let html = '<option value="">— Sin jugador —</option>';
+
+  if (roster.length) {
+    html += '<optgroup label="' + teamName + '">';
+    roster.forEach(p => {
+      const display = (p.num ? p.num + " - " : "") + p.name;
+      const value = (p.num ? p.num + " " : "") + p.name;
+      html += '<option value="' + value.replace(/"/g,"&quot;") + '">' + display + '</option>';
+    });
+    html += '</optgroup>';
+  }
+
+  // Also show other team's roster
+  const otherRoster = va.selectedTeam === "local" ? va.rosterVisitor : va.rosterLocal;
+  const otherName = va.selectedTeam === "local" ? va.visitorName : va.localName;
+  if (otherRoster.length) {
+    html += '<optgroup label="' + otherName + '">';
+    otherRoster.forEach(p => {
+      const display = (p.num ? p.num + " - " : "") + p.name;
+      const value = (p.num ? p.num + " " : "") + p.name;
+      html += '<option value="' + value.replace(/"/g,"&quot;") + '">' + display + '</option>';
+    });
+    html += '</optgroup>';
+  }
+
+  // Manual option always at the end
+  html += '<option value="__manual__">✏️ Escribir manualmente...</option>';
+
+  select.innerHTML = html;
+
+  // Restore previous value if still valid
+  if (currentVal && currentVal !== "__manual__") {
+    const option = Array.from(select.options).find(o => o.value === currentVal);
+    if (option) select.value = currentVal;
+  }
+}
+
 function vaSetFieldPeriod(p) {
   va.fieldPeriod = p;
   document.querySelectorAll(".va-fp-btn").forEach(el =>
@@ -384,6 +523,7 @@ function vaSelectTeam(team) {
     el.classList.toggle("active", el.dataset.team === team)
   );
   vaUpdateFieldLabels();
+  vaUpdatePlayerSelect();
 }
 
 // Compute whether the currently selected team attacks RIGHT
@@ -497,7 +637,10 @@ function vaAddEvent() {
   const cat = VA_CATEGORIES.find(c => c.id === va.selectedCategory);
   const note = document.getElementById("va-event-note").value.trim();
   const zoneLabel = va.selectedZone ? vaGetZoneLabel(va.selectedZone) : "";
-  const player = document.getElementById("va-event-player").value.trim();
+
+  // Player from select
+  const sel = document.getElementById("va-event-player");
+  let player = (sel.value && sel.value !== "__manual__") ? sel.value : "";
 
   const half = va.duration ? (va.currentTime < va.duration / 2 ? "1" : "2") : va.fieldPeriod;
 
@@ -531,6 +674,7 @@ function vaDeleteEvent(id) {
 function vaToggleCatEditor() {
   va.showCatEditor = !va.showCatEditor;
   document.getElementById("va-cat-editor").style.display = va.showCatEditor ? "block" : "none";
+  document.getElementById("va-cat-editor-toggle").innerHTML = va.showCatEditor ? "✕ Cerrar" : "⚙️ Personalizar";
   if (va.showCatEditor) vaRenderCatEditor();
 }
 
@@ -540,6 +684,7 @@ function vaRenderCatEditor() {
     '<input type="color" value="' + cat.color + '" onchange="vaEditCatColor(' + i + ',this.value)" class="va-cat-color-input">' +
     '<input type="text" value="' + cat.icon + '" onchange="vaEditCatIcon(' + i + ',this.value)" class="va-cat-icon-input" maxlength="2">' +
     '<input type="text" value="' + cat.label + '" onchange="vaEditCatLabel(' + i + ',this.value)" class="va-input" style="flex:1;padding:3px 5px">' +
+    '<button class="va-btn-icon" onclick="vaEditCatDescriptors(' + i + ')" title="Editar descriptores">📝</button>' +
     '<button class="va-btn-icon" onclick="vaDeleteCategory(' + i + ')" title="Eliminar">✕</button>' +
     '</div>'
   ).join("");
@@ -548,6 +693,16 @@ function vaRenderCatEditor() {
 function vaEditCatColor(i, v) { VA_CATEGORIES[i].color = v; vaBuildActionGrid(); }
 function vaEditCatIcon(i, v) { VA_CATEGORIES[i].icon = v; vaBuildActionGrid(); }
 function vaEditCatLabel(i, v) { VA_CATEGORIES[i].label = v; VA_CATEGORIES[i].id = v.toLowerCase().replace(/\s+/g,"-"); vaBuildActionGrid(); }
+
+function vaEditCatDescriptors(i) {
+  const cat = VA_CATEGORIES[i];
+  const current = (cat.descriptors || []).join(", ");
+  const input = prompt("Descriptores para " + cat.label + "\n(separados por coma):", current);
+  if (input === null) return;
+  cat.descriptors = input.split(",").map(s => s.trim()).filter(s => s);
+  vaRenderCatEditor();
+  if (va.selectedCategory === cat.id) vaRenderDescriptors();
+}
 
 function vaAddCategory() {
   const label = prompt("Nombre de la nueva acción:");
@@ -1415,6 +1570,11 @@ function vaToggleTrackVisibility() {
 
 function vaExportAnalysis() {
   const data = { video: va.videoName, exportDate: new Date().toISOString(),
+    match: {
+      local: va.localName, visitor: va.visitorName,
+      localAttacksRight1H: va.localAttacksRight1H,
+      rosterLocal: va.rosterLocal, rosterVisitor: va.rosterVisitor,
+    },
     events: va.events.map(e => ({ time: vaFormatTime(e.time), seconds: Math.round(e.time*100)/100,
       category: e.label, team: e.team || "local", teamName: e.teamName || "",
       descriptor: e.descriptor || "",

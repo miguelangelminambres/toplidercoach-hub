@@ -162,9 +162,37 @@
                     <button class="va-dir-btn" data-dir="left" onclick="vaSetLocalDirection('left')">← Izquierda en 1ª parte</button>
                   </div>
                 </div>
-                <p style="font-size:9px;color:var(--va-dim);margin-top:4px">
+                <p style="font-size:9px;color:var(--va-dim);margin-top:4px;margin-bottom:6px">
                   En la 2ª parte se invierte automáticamente.
                 </p>
+
+                <!-- Local roster -->
+                <div class="va-roster-section">
+                  <p class="va-label">🏠 Plantilla Local</p>
+                  <div id="va-roster-local" class="va-roster-list"></div>
+                  <div class="va-roster-add">
+                    <input type="text" class="va-input" id="va-roster-local-num" placeholder="Nº" style="width:36px;text-align:center"
+                      onkeydown="if(event.key==='Enter')vaAddPlayer('local')">
+                    <input type="text" class="va-input" id="va-roster-local-name" placeholder="Nombre del jugador" style="flex:1"
+                      onkeydown="if(event.key==='Enter')vaAddPlayer('local')">
+                    <button class="va-btn va-btn-sm va-btn-teal" onclick="vaAddPlayer('local')">+</button>
+                  </div>
+                  <button class="va-btn va-btn-sm" onclick="vaPasteRoster('local')" style="width:100%;margin-top:3px">📋 Pegar lista</button>
+                </div>
+
+                <!-- Visitor roster -->
+                <div class="va-roster-section">
+                  <p class="va-label">✈️ Plantilla Visitante</p>
+                  <div id="va-roster-visitor" class="va-roster-list"></div>
+                  <div class="va-roster-add">
+                    <input type="text" class="va-input" id="va-roster-visitor-num" placeholder="Nº" style="width:36px;text-align:center"
+                      onkeydown="if(event.key==='Enter')vaAddPlayer('visitor')">
+                    <input type="text" class="va-input" id="va-roster-visitor-name" placeholder="Nombre del jugador" style="flex:1"
+                      onkeydown="if(event.key==='Enter')vaAddPlayer('visitor')">
+                    <button class="va-btn va-btn-sm va-btn-teal" onclick="vaAddPlayer('visitor')">+</button>
+                  </div>
+                  <button class="va-btn va-btn-sm" onclick="vaPasteRoster('visitor')" style="width:100%;margin-top:3px">📋 Pegar lista</button>
+                </div>
               </div>
             </div>
 
@@ -184,7 +212,7 @@
             <!-- Actions -->
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
               <p class="va-label" style="margin:0">Acción</p>
-              <button class="va-btn-icon" onclick="vaToggleCatEditor()" title="Editar acciones">⚙️</button>
+              <button class="va-btn va-btn-sm" onclick="vaToggleCatEditor()" title="Editar acciones" id="va-cat-editor-toggle">⚙️ Personalizar</button>
             </div>
             <div class="va-action-grid" id="va-action-grid"></div>
 
@@ -202,7 +230,9 @@
 
             <!-- Player -->
             <p class="va-label">Jugador</p>
-            <input type="text" class="va-input" id="va-event-player" placeholder="Nº dorsal o nombre..." style="margin-bottom:6px">
+            <select class="va-input va-player-select" id="va-event-player" style="margin-bottom:6px">
+              <option value="">— Sin jugador —</option>
+            </select>
 
             <!-- Mini field visual (dynamic labels) -->
             <p class="va-label">Zona del campo</p>

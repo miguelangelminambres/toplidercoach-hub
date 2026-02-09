@@ -154,129 +154,254 @@
         
         .jugadores-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+            gap: 16px;
         }
         
-        .jugador-card {
-            background: #f9fafb;
-            border-radius: 12px;
-            padding: 15px;
+        /* ========== PLAYER CARDS - PRO STYLE ========== */
+        .pcard {
+            background: #0f172a;
+            border-radius: 14px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.25s, box-shadow 0.25s;
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        
+        .pcard:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.25), 0 0 0 1px var(--pos-color, #3b82f6);
+        }
+        
+        .pcard::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: var(--pos-color, #3b82f6);
+            z-index: 2;
+        }
+        
+        .pcard-top {
             display: flex;
-            gap: 12px;
             align-items: center;
-            border: 2px solid #e5e7eb;
-            transition: all 0.2s;
+            gap: 8px;
+            padding: 10px 12px 0;
+            position: relative;
+            z-index: 2;
         }
         
-        .jugador-card:hover {
-            border-color: #667eea;
-        }
-        
-        .jugador-foto {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .pcard-dorsal {
+            font-family: 'Georgia', serif;
+            font-size: 32px;
+            font-weight: 900;
             color: white;
-            font-size: 18px;
-            font-weight: 700;
-            flex-shrink: 0;
+            line-height: 1;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        .pcard-pos-badge {
+            background: var(--pos-color, #3b82f6);
+            color: white;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 6px;
+            letter-spacing: 0.5px;
+        }
+        
+        .pcard-status {
+            font-size: 10px;
+            position: absolute;
+            top: 10px;
+            right: 12px;
+        }
+        
+        .pcard-st-available { color: #22c55e; }
+        .pcard-st-injured { color: #ef4444; }
+        .pcard-st-suspended { color: #f59e0b; }
+        
+        .pcard-foto {
+            width: 100%;
+            height: 140px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            position: relative;
             overflow: hidden;
         }
         
-        .jugador-foto img {
-            width: 100%;
-            height: 100%;
+        .pcard-foto img {
+            width: 120px;
+            height: 120px;
             object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid var(--pos-color, #3b82f6);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            position: relative;
+            z-index: 1;
         }
         
-        .jugador-info {
-            flex: 1;
-            min-width: 0;
-        }
-        
-        .jugador-info h4 {
-            color: #1f2937;
-            margin-bottom: 2px;
-            font-size: 14px;
-        }
-        
-        .jugador-info p {
-            font-size: 12px;
-            color: #6b7280;
-            margin: 0;
-        }
-        
-        .jugador-dorsal {
-            background: #1f2937;
-            color: white;
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
+        .pcard-nofoto {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            border: 3px solid var(--pos-color, #3b82f6);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
-            font-size: 13px;
+            color: white;
+            font-size: 40px;
+            font-weight: 800;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
         }
         
-        .jugador-status {
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 8px;
-            margin-top: 3px;
-            display: inline-block;
+        .pcard-name-bar {
+            background: var(--pos-color, #3b82f6);
+            padding: 8px 12px 6px;
+            text-align: center;
+            margin-top: -1px;
         }
         
-        .jugador-status.available { background: #d1fae5; color: #059669; }
-        .jugador-status.injured { background: #fee2e2; color: #dc2626; }
-        .jugador-status.suspended { background: #fef3c7; color: #d97706; }
+        .pcard-apellido {
+            font-size: 15px;
+            font-weight: 900;
+            color: white;
+            letter-spacing: 1px;
+            line-height: 1.1;
+            text-transform: uppercase;
+        }
         
-        .jugador-actions {
+        .pcard-nombre-small {
+            font-size: 9px;
+            color: rgba(255,255,255,0.7);
+            letter-spacing: 0.5px;
+            margin-top: 1px;
+        }
+        
+        .pcard-meta {
             display: flex;
-            flex-direction: column;
-            gap: 4px;
+            justify-content: center;
+            gap: 8px;
+            padding: 6px 10px 4px;
+            flex-wrap: wrap;
         }
         
-        .jugador-actions button {
-            padding: 5px 8px;
+        .pcard-meta span {
+            font-size: 9px;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+        
+        .pcard-stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 8px 8px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        
+        .pcard-stat {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .pcard-stat-val {
+            display: block;
+            font-size: 16px;
+            font-weight: 800;
+            color: white;
+            line-height: 1.2;
+        }
+        
+        .pcard-stat-lbl {
+            display: block;
+            font-size: 8px;
+            color: #64748b;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        
+        .pcard-stat-ta .pcard-stat-val { color: #eab308; }
+        
+        .pcard-actions {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            padding: 0 10px 10px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .pcard:hover .pcard-actions {
+            opacity: 1;
+        }
+        
+        .pcard-btn-edit, .pcard-btn-del {
             border: none;
+            padding: 4px 12px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 11px;
+            transition: background 0.15s;
         }
         
-        .jugador-actions .btn-edit { background: #e5e7eb; color: #374151; }
-        .jugador-actions .btn-delete { background: #fee2e2; color: #dc2626; }
+        .pcard-btn-edit {
+            background: rgba(255,255,255,0.1);
+            color: #cbd5e1;
+        }
+        
+        .pcard-btn-edit:hover { background: rgba(255,255,255,0.2); }
+        
+        .pcard-btn-del {
+            background: rgba(239,68,68,0.15);
+            color: #f87171;
+        }
+        
+        .pcard-btn-del:hover { background: rgba(239,68,68,0.3); }
         
         .add-jugador-card {
-            background: #f0f0ff;
-            border: 2px dashed #667eea;
-            border-radius: 12px;
+            background: rgba(15,23,42,0.5);
+            border: 2px dashed #334155;
+            border-radius: 14px;
             padding: 25px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            min-height: 100px;
+            min-height: 320px;
+            transition: all 0.2s;
         }
         
         .add-jugador-card:hover {
-            background: #e8e8ff;
+            border-color: #667eea;
+            background: rgba(102,126,234,0.08);
         }
         
         .add-jugador-card .icon {
-            font-size: 28px;
+            font-size: 32px;
             margin-bottom: 8px;
+            color: #475569;
         }
         
         .add-jugador-card span {
             color: #667eea;
             font-weight: 600;
+            font-size: 13px;
+        }
+        
+        @media (max-width: 600px) {
+            .jugadores-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            .pcard-dorsal { font-size: 24px; }
+            .pcard-foto { height: 110px; }
+            .pcard-foto img, .pcard-nofoto { width: 90px; height: 90px; }
+            .pcard-apellido { font-size: 12px; }
+            .pcard-stat-val { font-size: 13px; }
         }
 

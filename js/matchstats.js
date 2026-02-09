@@ -278,6 +278,7 @@ if (hasta) {
             document.getElementById('partido-estadio').value = '';
             document.getElementById('partido-jornada').value = '';
             document.getElementById('partido-formato').value = '11';
+            document.getElementById('partido-formacion').value = '4-3-3';
             document.getElementById('partido-lugar-encuentro').value = '';
             document.getElementById('partido-hora-salida').value = '';
             document.getElementById('partido-fecha-salida').value = '';
@@ -302,6 +303,7 @@ document.getElementById('video-preview-container').style.display = 'none';
                     document.getElementById('partido-estadio').value = p.stadium || '';
                     document.getElementById('partido-jornada').value = p.round || '';
                     document.getElementById('partido-formato').value = p.formato_juego || '11';
+                    document.getElementById('partido-formacion').value = p.formacion || '4-3-3';
                     document.getElementById('partido-lugar-encuentro').value = p.lugar_encuentro || '';
                     document.getElementById('partido-hora-salida').value = p.hora_salida || '';
                     document.getElementById('partido-fecha-salida').value = p.fecha_salida || '';
@@ -592,47 +594,230 @@ function renderizarConvocatoria() {
             document.getElementById('contador-convocados').textContent = `${convocadosPartido.length} convocados`;
         }
         
-       function renderizarAlineacion() {
-    const grid = document.getElementById('alineacion-grid');
+       // Mapa de formaciones: posiciones [x%, y%] en el campo (0,0 = arriba-izq, 100,100 = abajo-der)
+        const FORMACIONES_MAPA = {
+            '4-3-3': [
+                {x:50,y:90,tipo:'POR'},{x:15,y:72,tipo:'DEF'},{x:38,y:72,tipo:'DEF'},{x:62,y:72,tipo:'DEF'},{x:85,y:72,tipo:'DEF'},
+                {x:25,y:48,tipo:'MED'},{x:50,y:48,tipo:'MED'},{x:75,y:48,tipo:'MED'},
+                {x:15,y:22,tipo:'DEL'},{x:50,y:15,tipo:'DEL'},{x:85,y:22,tipo:'DEL'}
+            ],
+            '4-4-2': [
+                {x:50,y:90,tipo:'POR'},{x:15,y:72,tipo:'DEF'},{x:38,y:72,tipo:'DEF'},{x:62,y:72,tipo:'DEF'},{x:85,y:72,tipo:'DEF'},
+                {x:15,y:48,tipo:'MED'},{x:38,y:48,tipo:'MED'},{x:62,y:48,tipo:'MED'},{x:85,y:48,tipo:'MED'},
+                {x:35,y:20,tipo:'DEL'},{x:65,y:20,tipo:'DEL'}
+            ],
+            '4-2-3-1': [
+                {x:50,y:90,tipo:'POR'},{x:15,y:72,tipo:'DEF'},{x:38,y:72,tipo:'DEF'},{x:62,y:72,tipo:'DEF'},{x:85,y:72,tipo:'DEF'},
+                {x:35,y:55,tipo:'MED'},{x:65,y:55,tipo:'MED'},
+                {x:15,y:35,tipo:'MED'},{x:50,y:35,tipo:'MED'},{x:85,y:35,tipo:'MED'},
+                {x:50,y:15,tipo:'DEL'}
+            ],
+            '4-1-4-1': [
+                {x:50,y:90,tipo:'POR'},{x:15,y:72,tipo:'DEF'},{x:38,y:72,tipo:'DEF'},{x:62,y:72,tipo:'DEF'},{x:85,y:72,tipo:'DEF'},
+                {x:50,y:58,tipo:'MED'},
+                {x:15,y:40,tipo:'MED'},{x:38,y:40,tipo:'MED'},{x:62,y:40,tipo:'MED'},{x:85,y:40,tipo:'MED'},
+                {x:50,y:15,tipo:'DEL'}
+            ],
+            '3-5-2': [
+                {x:50,y:90,tipo:'POR'},{x:25,y:72,tipo:'DEF'},{x:50,y:72,tipo:'DEF'},{x:75,y:72,tipo:'DEF'},
+                {x:10,y:48,tipo:'MED'},{x:30,y:52,tipo:'MED'},{x:50,y:45,tipo:'MED'},{x:70,y:52,tipo:'MED'},{x:90,y:48,tipo:'MED'},
+                {x:35,y:20,tipo:'DEL'},{x:65,y:20,tipo:'DEL'}
+            ],
+            '3-4-3': [
+                {x:50,y:90,tipo:'POR'},{x:25,y:72,tipo:'DEF'},{x:50,y:72,tipo:'DEF'},{x:75,y:72,tipo:'DEF'},
+                {x:15,y:48,tipo:'MED'},{x:38,y:48,tipo:'MED'},{x:62,y:48,tipo:'MED'},{x:85,y:48,tipo:'MED'},
+                {x:20,y:22,tipo:'DEL'},{x:50,y:15,tipo:'DEL'},{x:80,y:22,tipo:'DEL'}
+            ],
+            '5-3-2': [
+                {x:50,y:90,tipo:'POR'},{x:10,y:70,tipo:'DEF'},{x:30,y:74,tipo:'DEF'},{x:50,y:74,tipo:'DEF'},{x:70,y:74,tipo:'DEF'},{x:90,y:70,tipo:'DEF'},
+                {x:25,y:48,tipo:'MED'},{x:50,y:45,tipo:'MED'},{x:75,y:48,tipo:'MED'},
+                {x:35,y:20,tipo:'DEL'},{x:65,y:20,tipo:'DEL'}
+            ],
+            '5-4-1': [
+                {x:50,y:90,tipo:'POR'},{x:10,y:70,tipo:'DEF'},{x:30,y:74,tipo:'DEF'},{x:50,y:74,tipo:'DEF'},{x:70,y:74,tipo:'DEF'},{x:90,y:70,tipo:'DEF'},
+                {x:15,y:45,tipo:'MED'},{x:38,y:45,tipo:'MED'},{x:62,y:45,tipo:'MED'},{x:85,y:45,tipo:'MED'},
+                {x:50,y:18,tipo:'DEL'}
+            ]
+        };
+
+        function categoriaPosicion(pos) {
+            if (!pos) return 'MED';
+            const p = pos.toLowerCase();
+            if (p.includes('portero')) return 'POR';
+            if (p.includes('defensa') || p.includes('lateral')) return 'DEF';
+            if (p.includes('delantero') || p.includes('extremo')) return 'DEL';
+            return 'MED';
+        }
+
+        function posicionAbrev(pos) {
+            if (!pos) return '?';
+            const mapa = {
+                'Portero': 'POR', 'Defensa Central': 'DC', 'Lateral Derecho': 'LD', 'Lateral Izquierdo': 'LI',
+                'Mediocentro Defensivo': 'MCD', 'Mediocentro': 'MC', 'Mediapunta': 'MP',
+                'Extremo Derecho': 'ED', 'Extremo Izquierdo': 'EI', 'Delantero Centro': 'DC9'
+            };
+            return mapa[pos] || pos.substring(0, 3).toUpperCase();
+        }
+
+        function colorPosicion(pos) {
+            const cat = categoriaPosicion(pos);
+            if (cat === 'POR') return '#f59e0b';
+            if (cat === 'DEF') return '#3b82f6';
+            if (cat === 'MED') return '#22c55e';
+            if (cat === 'DEL') return '#ef4444';
+            return '#6b7280';
+        }
+
+        function renderizarAlineacion() {
+    const pitch = document.getElementById('pitch-visual');
+    const suplentesGrid = document.getElementById('suplentes-grid');
+    const noConvGrid = document.getElementById('no-convocados-grid');
+    const noConvSection = document.getElementById('no-convocados-section');
     const contadorTitulares = document.getElementById('contador-titulares');
+    const formacionLabel = document.getElementById('pitch-formation-label');
     const formatoEl = document.getElementById('partido-formato');
+    const formacionEl = document.getElementById('partido-formacion');
     
-    if (!grid) {
-        console.log('Grid de alineación no encontrado');
-        return;
-    }
+    if (!pitch) return;
     
     const formato = formatoEl ? (parseInt(formatoEl.value) || 11) : 11;
+    const formacion = formacionEl ? formacionEl.value : '4-3-3';
+    const posiciones = FORMACIONES_MAPA[formacion] || FORMACIONES_MAPA['4-3-3'];
     
-    // Actualizar contador directamente
-    if (contadorTitulares) {
-        contadorTitulares.textContent = `${titularesPartido.length}/${formato} titulares`;
-    }
+    if (formacionLabel) formacionLabel.textContent = formacion;
+    if (contadorTitulares) contadorTitulares.textContent = `${titularesPartido.length}/${formato} titulares`;
+    
+    // Limpiar jugadores del pitch (mantener marcas del campo)
+    pitch.querySelectorAll('.pitch-player').forEach(el => el.remove());
     
     const convocados = plantillaPartido.filter(sp => convocadosPartido.includes(String(sp.id)));
+    const titulares = convocados.filter(sp => titularesPartido.includes(String(sp.id)));
+    const suplentes = convocados.filter(sp => !titularesPartido.includes(String(sp.id)));
     
     if (convocados.length === 0) {
-        grid.innerHTML = '<p style="color:#9ca3af;font-size:13px;">Primero selecciona los convocados</p>';
+        if (suplentesGrid) suplentesGrid.innerHTML = '<p style="color:#9ca3af;font-size:12px;">Selecciona convocados primero</p>';
         return;
     }
     
-    grid.innerHTML = convocados.map(sp => {
+    // Asignar titulares a posiciones del campo
+    // Ordenar titulares por categoría para mejor asignación
+    const titOrdenados = [...titulares];
+    const slotsTomados = new Array(posiciones.length).fill(null);
+    
+    // Primero portero
+    const portero = titOrdenados.find(sp => categoriaPosicion(sp.players?.position) === 'POR');
+    if (portero) {
+        const idxPor = posiciones.findIndex(p => p.tipo === 'POR');
+        if (idxPor >= 0) {
+            slotsTomados[idxPor] = portero;
+            titOrdenados.splice(titOrdenados.indexOf(portero), 1);
+        }
+    }
+    
+    // Luego defensas, medios, delanteros
+    ['DEF', 'MED', 'DEL'].forEach(cat => {
+        const jugadoresCat = titOrdenados.filter(sp => categoriaPosicion(sp.players?.position) === cat);
+        const slotsLibres = posiciones.map((p, i) => ({...p, idx: i})).filter(p => p.tipo === cat && !slotsTomados[p.idx]);
+        
+        jugadoresCat.forEach(sp => {
+            const slot = slotsLibres.shift();
+            if (slot) {
+                slotsTomados[slot.idx] = sp;
+                titOrdenados.splice(titOrdenados.indexOf(sp), 1);
+            }
+        });
+    });
+    
+    // Jugadores sin slot asignado (posición no coincide), colocar en slots libres
+    titOrdenados.forEach(sp => {
+        const idxLibre = slotsTomados.findIndex(s => s === null);
+        if (idxLibre >= 0) slotsTomados[idxLibre] = sp;
+    });
+    
+    // Renderizar jugadores en el campo
+    slotsTomados.forEach((sp, idx) => {
+        const pos = posiciones[idx];
+        if (!sp) {
+            // Slot vacío
+            const emptyEl = document.createElement('div');
+            emptyEl.className = 'pitch-player pitch-player-empty';
+            emptyEl.style.left = pos.x + '%';
+            emptyEl.style.top = pos.y + '%';
+            emptyEl.innerHTML = '<div class="pp-circle pp-empty">+</div>';
+            pitch.appendChild(emptyEl);
+            return;
+        }
+        
         const j = sp.players;
-        if (!j) return '';
-        const esTitular = titularesPartido.includes(String(sp.id));
+        if (!j) return;
         const foto = j.photo_url;
-        const inicial = j.name ? j.name.charAt(0).toUpperCase() : '?';
-        return `
-            <div class="jugador-titular ${esTitular ? 'es-titular' : ''}" data-sp-id="${sp.id}" onclick="toggleTitular('${sp.id}')">
-                <div class="jugador-foto-mini">
-                    ${foto ? `<img src="${foto}" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">` 
-                           : `<span class="jugador-inicial" style="width:32px;height:32px;border-radius:50%;background:#6b21a8;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;">${inicial}</span>`}
-                </div>
-                <div class="dorsal">${sp.shirt_number || '-'}</div>
-                <div class="nombre">${j.name}</div>
+        const nombre = j.name || '?';
+        const dorsal = sp.shirt_number || '';
+        const posColor = colorPosicion(j.position);
+        
+        const playerEl = document.createElement('div');
+        playerEl.className = 'pitch-player';
+        playerEl.style.left = pos.x + '%';
+        playerEl.style.top = pos.y + '%';
+        playerEl.onclick = function() { toggleTitular(String(sp.id)); };
+        playerEl.innerHTML = `
+            <div class="pp-circle" style="border-color:${posColor};">
+                ${foto ? `<img src="${foto}" class="pp-foto">` : `<span class="pp-dorsal">${dorsal}</span>`}
             </div>
+            <div class="pp-name">${nombre.split(' ').pop()}</div>
         `;
-    }).join('');
+        pitch.appendChild(playerEl);
+    });
+    
+    // Renderizar suplentes
+    if (suplentesGrid) {
+        if (suplentes.length === 0) {
+            suplentesGrid.innerHTML = '<p style="color:#9ca3af;font-size:12px;">Sin suplentes</p>';
+        } else {
+            suplentesGrid.innerHTML = suplentes.sort((a,b) => (a.shirt_number || 99) - (b.shirt_number || 99)).map(sp => {
+                const j = sp.players;
+                if (!j) return '';
+                const foto = j.photo_url;
+                const inicial = j.name ? j.name.charAt(0).toUpperCase() : '?';
+                const posAbrev = posicionAbrev(j.position);
+                const posCol = colorPosicion(j.position);
+                return `
+                    <div class="sup-jugador" onclick="toggleTitular('${sp.id}')">
+                        <div class="sup-foto">
+                            ${foto ? `<img src="${foto}">` : `<span class="sup-inicial">${inicial}</span>`}
+                        </div>
+                        <span class="sup-pos-badge" style="background:${posCol};">${posAbrev}</span>
+                        <span class="sup-nombre">${j.name}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+    
+    // No convocados
+    if (noConvGrid && noConvSection) {
+        const noConvocados = plantillaPartido.filter(sp => !convocadosPartido.includes(String(sp.id)));
+        if (noConvocados.length > 0) {
+            noConvSection.style.display = 'block';
+            noConvGrid.innerHTML = noConvocados.slice(0, 8).map(sp => {
+                const j = sp.players;
+                if (!j) return '';
+                const posAbrev = posicionAbrev(j.position);
+                const posCol = colorPosicion(j.position);
+                return `
+                    <div class="sup-jugador nc">
+                        <div class="sup-foto">
+                            <span class="sup-inicial" style="opacity:0.5;">${j.name ? j.name.charAt(0) : '?'}</span>
+                        </div>
+                        <span class="sup-pos-badge" style="background:${posCol};opacity:0.5;">${posAbrev}</span>
+                        <span class="sup-nombre" style="opacity:0.5;">${j.name}</span>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            noConvSection.style.display = 'none';
+        }
+    }
 }
     
 
@@ -726,6 +911,7 @@ function renderizarConvocatoria() {
                 competition: document.getElementById('partido-competicion').value || null,
                 round: document.getElementById('partido-jornada').value || null,
                 formato_juego: parseInt(document.getElementById('partido-formato').value) || 11,
+                formacion: document.getElementById('partido-formacion').value || '4-3-3',
                 lugar_encuentro: document.getElementById('partido-lugar-encuentro').value || null,
                 hora_salida: document.getElementById('partido-hora-salida').value || null,
                 fecha_salida: document.getElementById('partido-fecha-salida').value || null,

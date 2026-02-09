@@ -928,3 +928,295 @@
 .video-section-ver .btn-ver-video:hover {
     transform: scale(1.02);
 }
+
+
+        /* ========== CAMPO VISUAL ALINEACIÓN ========== */
+        .alineacion-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .select-formacion-partido {
+            padding: 6px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            background: white;
+        }
+        
+        .alineacion-layout {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+        
+        .pitch-container {
+            flex: 1;
+            max-width: 420px;
+            min-width: 280px;
+        }
+        
+        .pitch {
+            position: relative;
+            width: 100%;
+            padding-bottom: 140%;
+            background: linear-gradient(180deg, #2d8a4e 0%, #34a853 15%, #2d8a4e 30%, #34a853 45%, #2d8a4e 60%, #34a853 75%, #2d8a4e 90%, #34a853 100%);
+            border-radius: 12px;
+            border: 3px solid rgba(255,255,255,0.4);
+            overflow: hidden;
+        }
+        
+        /* Marcas del campo */
+        .pitch-center-line {
+            position: absolute;
+            top: 50%;
+            left: 5%;
+            right: 5%;
+            height: 2px;
+            background: rgba(255,255,255,0.35);
+        }
+        
+        .pitch-center-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 18%;
+            height: 12.8%;
+            border: 2px solid rgba(255,255,255,0.35);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .pitch-penalty-top {
+            position: absolute;
+            top: 2%;
+            left: 25%;
+            width: 50%;
+            height: 14%;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: none;
+        }
+        
+        .pitch-penalty-bottom {
+            position: absolute;
+            bottom: 2%;
+            left: 25%;
+            width: 50%;
+            height: 14%;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-bottom: none;
+        }
+        
+        .pitch-goal-top {
+            position: absolute;
+            top: 0;
+            left: 38%;
+            width: 24%;
+            height: 3%;
+            border: 2px solid rgba(255,255,255,0.25);
+            border-top: none;
+        }
+        
+        .pitch-goal-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 38%;
+            width: 24%;
+            height: 3%;
+            border: 2px solid rgba(255,255,255,0.25);
+            border-bottom: none;
+        }
+        
+        .pitch-formation-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: 900;
+            color: rgba(255,255,255,0.12);
+            letter-spacing: 4px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        /* Jugadores en el campo */
+        .pitch-player {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            cursor: pointer;
+            z-index: 2;
+            transition: transform 0.2s;
+        }
+        
+        .pitch-player:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+            z-index: 10;
+        }
+        
+        .pp-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            background: #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 3px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        .pp-foto {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .pp-dorsal {
+            color: white;
+            font-size: 14px;
+            font-weight: 800;
+        }
+        
+        .pp-name {
+            font-size: 9px;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+            max-width: 65px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .pp-empty .pp-circle,
+        .pitch-player-empty .pp-circle {
+            background: rgba(255,255,255,0.15);
+            border: 2px dashed rgba(255,255,255,0.4);
+            box-shadow: none;
+        }
+        
+        .pp-empty {
+            color: rgba(255,255,255,0.4);
+            font-size: 20px;
+            font-weight: 300;
+        }
+        
+        /* Panel suplentes */
+        .suplentes-panel {
+            width: 220px;
+            min-width: 180px;
+            flex-shrink: 0;
+        }
+        
+        .suplentes-titulo {
+            font-size: 13px;
+            font-weight: 700;
+            color: #374151;
+            margin: 0 0 10px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .suplentes-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .sup-jugador {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            background: #f8fafc;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        
+        .sup-jugador:hover {
+            background: #e2e8f0;
+        }
+        
+        .sup-jugador.nc {
+            cursor: default;
+        }
+        
+        .sup-foto {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        
+        .sup-foto img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .sup-inicial {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #6b21a8;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        
+        .sup-pos-badge {
+            font-size: 9px;
+            font-weight: 800;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            flex-shrink: 0;
+            min-width: 30px;
+            text-align: center;
+        }
+        
+        .sup-nombre {
+            font-size: 12px;
+            font-weight: 600;
+            color: #1e293b;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        @media (max-width: 768px) {
+            .alineacion-layout {
+                flex-direction: column;
+            }
+            .pitch-container {
+                max-width: 100%;
+            }
+            .suplentes-panel {
+                width: 100%;
+            }
+            .suplentes-grid {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .sup-jugador {
+                width: calc(50% - 3px);
+            }
+            .pp-circle {
+                width: 34px;
+                height: 34px;
+            }
+        }

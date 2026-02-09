@@ -914,9 +914,43 @@ function vaExportAnalysis() {
 
 function vaSnapshot() {
   if (!vaVideo.videoWidth) return;
+
+  const w = vaVideo.videoWidth;
+  const h = vaVideo.videoHeight;
+
   const tmp = document.createElement("canvas");
-  tmp.width = vaVideo.videoWidth; tmp.height = vaVideo.videoHeight;
-  const c = tmp.getContext("2d"); c.drawImage(vaVideo, 0, 0); c.drawImage(vaCanvas, 0, 0);
+  tmp.width = w; tmp.height = h;
+  const c = tmp.getContext("2d");
+
+  // 1. Draw video frame
+  c.drawImage(vaVideo, 0, 0, w, h);
+
+  // 2. Re-draw all visible drawings directly on snapshot canvas
+  if (va.showDrawings) {
+    // Temporarily swap context to draw on snapshot
+    const origCtx = vaCtx;
+    const origCanvas = vaCanvas;
+    const origW = vaCanvas.width;
+    const origH = vaCanvas.height;
+
+    vaCtx = c;
+    vaCanvas = tmp;
+    vaCanvas.width = w;
+    vaCanvas.height = h;
+
+    va.drawings.forEach(d => {
+      if (Math.abs(d.time - va.currentTime) < DRAW_DISPLAY_SECONDS) {
+        vaDrawShape(d);
+      }
+    });
+
+    // Restore original context
+    vaCtx = origCtx;
+    vaCanvas = origCanvas;
+    vaCanvas.width = origW;
+    vaCanvas.height = origH;
+  }
+
   const link = document.createElement("a");
   link.download = "captura-" + vaFormatTime(va.currentTime).replace(":","-") + ".png";
   link.href = tmp.toDataURL("image/png"); link.click();

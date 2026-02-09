@@ -1,0 +1,348 @@
+/* ═══════════════════════════════════════════════════════════
+   VideoAnálisis - TopLiderCoach
+   Estilos del módulo de análisis de vídeo
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Variables ───────────────────────────────────────────── */
+:root {
+  --va-bg: #0a0e17;
+  --va-bg2: #111827;
+  --va-panel: rgba(15, 23, 42, 0.85);
+  --va-card: rgba(255,255,255,0.03);
+  --va-card-hover: rgba(255,255,255,0.08);
+  --va-btn: rgba(255,255,255,0.06);
+  --va-btn-hover: rgba(255,255,255,0.12);
+  --va-border: rgba(148, 163, 184, 0.1);
+  --va-border-light: rgba(255,255,255,0.1);
+  --va-text: #f1f5f9;
+  --va-text2: #e2e8f0;
+  --va-muted: #94a3b8;
+  --va-dim: #64748b;
+  --va-dark: #475569;
+  --va-accent: #3b82f6;
+  --va-accent-hover: #2563eb;
+  --va-green: #22c55e;
+  --va-red: #ef4444;
+}
+
+/* ─── Reset & Base ────────────────────────────────────────── */
+.va-app * { margin: 0; padding: 0; box-sizing: border-box; }
+
+.va-app {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: linear-gradient(145deg, var(--va-bg) 0%, var(--va-bg2) 50%, #0f172a 100%);
+  color: var(--va-text2);
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────── */
+.va-app ::-webkit-scrollbar { width: 6px; }
+.va-app ::-webkit-scrollbar-track { background: transparent; }
+.va-app ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+.va-app ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+.va-app input[type="range"] { accent-color: var(--va-accent); }
+
+/* ═══════════════════════════════════════════════════════════
+   UPLOAD SCREEN
+   ═══════════════════════════════════════════════════════════ */
+.va-upload-screen {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.va-upload-box {
+  width: 520px;
+  padding: 60px 40px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 2px dashed rgba(59, 130, 246, 0.4);
+  border-radius: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.va-upload-box:hover,
+.va-upload-box.dragover {
+  border-color: rgba(59, 130, 246, 0.8);
+  background: rgba(30, 41, 59, 0.8);
+}
+.va-upload-icon { color: var(--va-accent); margin-bottom: 20px; font-size: 48px; }
+.va-upload-title { color: var(--va-text); font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+.va-upload-sub { color: var(--va-muted); font-size: 14px; line-height: 1.5; margin-bottom: 24px; }
+.va-upload-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 24px; background: var(--va-accent);
+  border-radius: 10px; color: #fff; font-weight: 600; font-size: 14px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MAIN APP LAYOUT
+   ═══════════════════════════════════════════════════════════ */
+.va-main { display: none; height: 100vh; flex-direction: column; }
+.va-main.active { display: flex; }
+
+/* ─── Header ──────────────────────────────────────────────── */
+.va-header {
+  padding: 10px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--va-border);
+  background: var(--va-panel);
+}
+.va-logo { display: flex; align-items: center; gap: 12px; }
+.va-logo-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+}
+.va-logo h1 { font-size: 16px; font-weight: 700; color: var(--va-text); }
+.va-logo p { font-size: 11px; color: var(--va-dim); margin-top: 1px; }
+.va-header-actions { display: flex; gap: 8px; }
+
+/* ─── Buttons ─────────────────────────────────────────────── */
+.va-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 6px 14px; background: var(--va-btn);
+  border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;
+  color: var(--va-muted); cursor: pointer; font-size: 12px;
+  font-weight: 500; font-family: inherit; transition: all 0.15s;
+}
+.va-btn:hover { background: var(--va-btn-hover); color: var(--va-text); }
+.va-btn-primary { background: var(--va-accent); color: #fff; border-color: var(--va-accent); }
+.va-btn-primary:hover { background: var(--va-accent-hover); }
+.va-btn-danger { background: rgba(239,68,68,0.15); color: var(--va-red); border-color: rgba(239,68,68,0.2); }
+.va-btn-sm { padding: 5px 10px; font-size: 11px; }
+.va-btn-icon {
+  width: 28px; height: 28px; padding: 0; background: none; border: none;
+  border-radius: 6px; color: var(--va-dim); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.va-btn-icon:hover { color: var(--va-text); background: var(--va-btn); }
+
+/* ─── Main content ────────────────────────────────────────── */
+.va-content { display: flex; flex: 1; overflow: hidden; }
+
+/* ═══════════════════════════════════════════════════════════
+   VIDEO AREA
+   ═══════════════════════════════════════════════════════════ */
+.va-video-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+.va-video-container {
+  position: relative; flex: 1; background: #000;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+#va-video { width: 100%; height: 100%; object-fit: contain; }
+#va-canvas {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none;
+}
+#va-canvas.active { pointer-events: auto; cursor: crosshair; }
+
+.va-draw-badge {
+  display: none; position: absolute; top: 12px; left: 12px;
+  background: rgba(59, 130, 246, 0.9); padding: 4px 12px;
+  border-radius: 20px; font-size: 12px; font-weight: 600;
+  align-items: center; gap: 6px; z-index: 10;
+}
+.va-draw-badge.active { display: flex; }
+.va-draw-badge .close { cursor: pointer; opacity: 0.8; margin-left: 4px; }
+
+/* ─── Text input overlay ──────────────────────────────────── */
+.va-text-overlay {
+  display: none; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.85); padding: 16px;
+  border-radius: 10px; gap: 8px; z-index: 20;
+}
+.va-text-overlay.active { display: flex; }
+
+/* ═══════════════════════════════════════════════════════════
+   TIMELINE
+   ═══════════════════════════════════════════════════════════ */
+.va-timeline-area { padding: 0 16px; background: var(--va-panel); }
+
+.va-timeline {
+  height: 40px; background: rgba(30, 41, 59, 0.8); border-radius: 6px;
+  position: relative; cursor: pointer; margin: 8px 0 4px; overflow: hidden;
+}
+.va-timeline-progress {
+  position: absolute; top: 0; left: 0; bottom: 0;
+  background: linear-gradient(90deg, rgba(59,130,246,0.3), rgba(59,130,246,0.15));
+  transition: width 0.1s linear; pointer-events: none;
+}
+.va-timeline-playhead {
+  position: absolute; top: 0; bottom: 0; width: 2px;
+  background: var(--va-accent); z-index: 10;
+  transition: left 0.1s linear; pointer-events: none;
+}
+.va-timeline-playhead::before {
+  content: ''; position: absolute; top: -2px; left: -5px;
+  width: 12px; height: 12px; background: var(--va-accent);
+  border-radius: 50%; border: 2px solid #fff;
+}
+.va-timeline-marker {
+  position: absolute; top: 4px; transform: translateX(-50%);
+  font-size: 16px; cursor: pointer; z-index: 5;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+}
+.va-timeline-clip-range {
+  position: absolute; top: 0; bottom: 0;
+  background: rgba(34, 197, 94, 0.15); z-index: 1; pointer-events: none;
+}
+.va-timeline-clip-mark {
+  position: absolute; top: 0; bottom: 0; width: 2px; z-index: 3; pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CONTROLS BAR
+   ═══════════════════════════════════════════════════════════ */
+.va-controls {
+  padding: 8px 16px 12px; display: flex; align-items: center; gap: 8px;
+  background: var(--va-panel); border-top: 1px solid rgba(148,163,184,0.08);
+}
+.va-ctrl {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--va-btn); border: none; border-radius: 8px;
+  color: var(--va-text2); cursor: pointer; transition: all 0.15s; font-size: 16px;
+}
+.va-ctrl:hover { background: var(--va-btn-hover); }
+.va-ctrl-play {
+  width: 44px; height: 44px; background: var(--va-accent);
+  border-radius: 50%; font-size: 18px;
+}
+.va-ctrl-play:hover { background: var(--va-accent-hover); }
+.va-ctrl-speed {
+  padding: 0 10px; width: auto; font-family: monospace;
+  font-size: 12px; font-weight: 700;
+}
+.va-time {
+  flex: 1; text-align: center; font-family: monospace;
+  font-size: 15px; font-weight: 600; color: var(--va-text);
+}
+.va-time .sep { color: var(--va-dark); margin: 0 4px; }
+.va-volume { display: flex; align-items: center; gap: 6px; }
+.va-volume input[type="range"] { width: 70px; }
+
+/* ═══════════════════════════════════════════════════════════
+   RIGHT PANEL
+   ═══════════════════════════════════════════════════════════ */
+.va-panel {
+  width: 320px; border-left: 1px solid var(--va-border);
+  background: rgba(15, 23, 42, 0.6);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.va-tabs { display: flex; border-bottom: 1px solid var(--va-border); }
+.va-tab {
+  flex: 1; padding: 10px 8px; background: transparent; border: none;
+  border-bottom: 2px solid transparent; color: var(--va-dim);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  gap: 6px; font-size: 12px; font-weight: 600; font-family: inherit; transition: all 0.2s;
+}
+.va-tab.active {
+  background: rgba(59, 130, 246, 0.15);
+  border-bottom-color: var(--va-accent); color: var(--va-accent);
+}
+.va-tab .badge {
+  background: var(--va-accent); color: #fff;
+  border-radius: 10px; padding: 1px 6px; font-size: 10px;
+}
+.va-panel-body { flex: 1; overflow: auto; padding: 12px; }
+.va-section { display: none; }
+.va-section.active { display: block; }
+
+.va-label {
+  margin: 0 0 8px; font-size: 11px; color: var(--va-dim);
+  font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+}
+
+/* ─── Event tags ──────────────────────────────────────────── */
+.va-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 12px; }
+.va-tag {
+  padding: 5px 10px; background: rgba(255,255,255,0.05);
+  border: 1px solid transparent; border-radius: 6px;
+  color: var(--va-muted); cursor: pointer; font-size: 11px;
+  font-weight: 500; font-family: inherit; transition: all 0.15s;
+  display: flex; align-items: center; gap: 4px;
+}
+.va-tag:hover { background: rgba(255,255,255,0.1); }
+.va-tag.active { color: #fff; }
+.va-tag .icon { font-size: 13px; }
+
+.va-add-row { display: none; gap: 6px; margin-bottom: 16px; }
+.va-add-row.active { display: flex; }
+
+.va-input {
+  flex: 1; background: rgba(255,255,255,0.05);
+  border: 1px solid var(--va-border-light); border-radius: 8px;
+  padding: 6px 10px; color: var(--va-text2); font-size: 12px;
+  font-family: inherit; outline: none;
+}
+.va-input:focus { border-color: var(--va-accent); }
+
+.va-filter {
+  background: rgba(255,255,255,0.05); border: 1px solid var(--va-border-light);
+  border-radius: 6px; color: var(--va-muted); padding: 4px 8px;
+  font-size: 11px; font-family: inherit; outline: none; margin-bottom: 8px;
+}
+
+/* ─── Event list ──────────────────────────────────────────── */
+.va-event-list { display: flex; flex-direction: column; gap: 4px; }
+.va-event-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; background: var(--va-card); border-radius: 8px;
+  cursor: pointer; transition: background 0.15s;
+}
+.va-event-item:hover { background: var(--va-card-hover); }
+.va-event-item .icon { font-size: 16px; }
+.va-event-item .info { flex: 1; min-width: 0; }
+.va-event-item .name { font-size: 12px; font-weight: 600; }
+.va-event-item .note { font-size: 10px; color: var(--va-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.va-event-item .time { font-size: 11px; font-family: monospace; color: var(--va-dim); }
+
+.va-empty { color: var(--va-dark); font-size: 12px; text-align: center; padding: 20px; }
+
+/* ─── Draw tools ──────────────────────────────────────────── */
+.va-draw-tools { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 16px; }
+.va-draw-tool {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 12px; background: rgba(255,255,255,0.05);
+  border: 1px solid var(--va-border-light); border-radius: 8px;
+  color: var(--va-muted); cursor: pointer; font-size: 12px;
+  font-weight: 500; font-family: inherit; transition: all 0.15s;
+}
+.va-draw-tool.active {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: var(--va-accent); color: var(--va-accent);
+}
+.va-colors { display: flex; gap: 6px; margin-bottom: 16px; }
+.va-color {
+  width: 28px; height: 28px; border-radius: 6px; cursor: pointer;
+  border: 2px solid rgba(255,255,255,0.2); transition: all 0.15s;
+}
+.va-color.active { border: 3px solid #fff; }
+.va-draw-actions { display: flex; gap: 6px; margin-bottom: 16px; }
+.va-draw-hint { margin-top: 16px; font-size: 11px; color: var(--va-dark); line-height: 1.5; }
+
+/* ─── Clips ───────────────────────────────────────────────── */
+.va-clip-markers { display: flex; gap: 6px; margin-bottom: 12px; }
+.va-clip-markers .va-btn { flex: 1; }
+.va-clip-item {
+  padding: 10px; background: var(--va-card); border-radius: 8px;
+  margin-bottom: 6px; border-left: 3px solid var(--va-accent);
+}
+.va-clip-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.va-clip-name { font-size: 13px; font-weight: 600; }
+.va-clip-time { font-size: 11px; font-family: monospace; color: var(--va-dim); }
+.va-clip-events { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; font-size: 13px; }
+
+/* ─── Keyboard hints ──────────────────────────────────────── */
+.va-hints {
+  padding: 8px 12px; border-top: 1px solid rgba(148,163,184,0.08);
+  font-size: 10px; color: var(--va-dark); display: flex; flex-wrap: wrap; gap: 8px;
+}
+.va-hints kbd {
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 3px; padding: 1px 4px; font-size: 9px; font-family: monospace;
+}

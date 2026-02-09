@@ -137,11 +137,48 @@
           <!-- ═══ ETIQUETAR ══════════════════════════════ -->
           <div class="va-section active" id="va-sec-events">
 
+            <!-- Match setup (collapsible) -->
+            <div class="va-match-setup" id="va-match-setup">
+              <div class="va-setup-toggle" onclick="vaToggleSetup()">
+                <span>⚙️ Config. partido</span>
+                <span id="va-setup-summary" class="va-setup-summary">Local → Visitante</span>
+                <span id="va-setup-arrow" class="va-setup-arrow">▼</span>
+              </div>
+              <div id="va-setup-body" style="display:none" class="va-setup-body">
+                <div class="va-setup-row">
+                  <label>🏠 Local:</label>
+                  <input type="text" class="va-input" id="va-local-name" placeholder="Equipo local" value="Local"
+                    oninput="vaUpdateMatchSetup()">
+                </div>
+                <div class="va-setup-row">
+                  <label>✈️ Visitante:</label>
+                  <input type="text" class="va-input" id="va-visitor-name" placeholder="Equipo visitante" value="Visitante"
+                    oninput="vaUpdateMatchSetup()">
+                </div>
+                <div class="va-setup-row">
+                  <label>🏠 Local ataca →</label>
+                  <div class="va-direction-toggle">
+                    <button class="va-dir-btn active" data-dir="right" onclick="vaSetLocalDirection('right')">→ Derecha en 1ª parte</button>
+                    <button class="va-dir-btn" data-dir="left" onclick="vaSetLocalDirection('left')">← Izquierda en 1ª parte</button>
+                  </div>
+                </div>
+                <p style="font-size:9px;color:var(--va-dim);margin-top:4px">
+                  En la 2ª parte se invierte automáticamente.
+                </p>
+              </div>
+            </div>
+
             <!-- Team selector -->
             <p class="va-label">Equipo</p>
             <div class="va-team-toggle">
-              <button class="va-team-btn active" data-team="local" onclick="vaSelectTeam('local')">🏠 Local</button>
-              <button class="va-team-btn" data-team="visitor" onclick="vaSelectTeam('visitor')">✈️ Visitante</button>
+              <button class="va-team-btn active" data-team="local" onclick="vaSelectTeam('local')">🏠 <span id="va-team-local-label">Local</span></button>
+              <button class="va-team-btn" data-team="visitor" onclick="vaSelectTeam('visitor')">✈️ <span id="va-team-visitor-label">Visitante</span></button>
+            </div>
+
+            <!-- Period for field orientation -->
+            <div class="va-field-period">
+              <button class="va-fp-btn active" data-fp="1" onclick="vaSetFieldPeriod('1')">1ª Parte</button>
+              <button class="va-fp-btn" data-fp="2" onclick="vaSetFieldPeriod('2')">2ª Parte</button>
             </div>
 
             <!-- Actions -->
@@ -167,7 +204,7 @@
             <p class="va-label">Jugador</p>
             <input type="text" class="va-input" id="va-event-player" placeholder="Nº dorsal o nombre..." style="margin-bottom:6px">
 
-            <!-- Mini field visual -->
+            <!-- Mini field visual (dynamic labels) -->
             <p class="va-label">Zona del campo</p>
             <div class="va-minifield-wrap">
               <svg class="va-minifield" viewBox="0 0 240 150" xmlns="http://www.w3.org/2000/svg">
@@ -182,33 +219,33 @@
                 <!-- Right penalty area -->
                 <rect x="204" y="30" width="36" height="90" fill="none" stroke="#2d6b3f" stroke-width="1"/>
                 <rect x="226" y="50" width="14" height="50" fill="none" stroke="#2d6b3f" stroke-width="1"/>
-                <!-- Click zones (3x3) -->
-                <rect class="va-fz" data-zone="off-izq"  x="0"   y="0"   width="80" height="50" fill="transparent" stroke="none"/>
-                <rect class="va-fz" data-zone="off-cen"  x="80"  y="0"   width="80" height="50" fill="transparent" stroke="none"/>
-                <rect class="va-fz" data-zone="off-der"  x="160" y="0"   width="80" height="50" fill="transparent" stroke="none"/>
-                <rect class="va-fz" data-zone="med-izq"  x="0"   y="50"  width="80" height="50" fill="transparent" stroke="none"/>
-                <rect class="va-fz" data-zone="med-cen"  x="80"  y="50"  width="80" height="50" fill="transparent" stroke="none"/>
-                <rect class="va-fz" data-zone="med-der"  x="160" y="50"  width="80" height="50" fill="transparent" stroke="none"/>
-                <rect class="va-fz" data-zone="def-izq"  x="0"   y="100" width="80" height="50" fill="transparent" stroke="none"/>
-                <rect class="va-fz" data-zone="def-cen"  x="80"  y="100" width="80" height="50" fill="transparent" stroke="none"/>
-                <rect class="va-fz" data-zone="def-der"  x="160" y="100" width="80" height="50" fill="transparent" stroke="none"/>
-                <!-- Zone labels -->
-                <text x="40"  y="28"  text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.5">OFENS</text>
-                <text x="120" y="28"  text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.5">OFENS</text>
-                <text x="200" y="28"  text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.5">OFENS</text>
-                <text x="40"  y="78"  text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.5">MEDIO</text>
-                <text x="120" y="78"  text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.5">MEDIO</text>
-                <text x="200" y="78"  text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.5">MEDIO</text>
-                <text x="40"  y="128" text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.5">DEFENS</text>
-                <text x="120" y="128" text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.5">DEFENS</text>
-                <text x="200" y="128" text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.5">DEFENS</text>
-                <!-- Side labels -->
-                <text x="2" y="78" fill="#4ade80" font-size="7" opacity="0.4" transform="rotate(-90,6,78)">IZQ</text>
-                <text x="234" y="78" fill="#4ade80" font-size="7" opacity="0.4" transform="rotate(90,234,78)">DER</text>
+                <!-- Click zones 3x3 (physical positions) -->
+                <rect class="va-fz" data-zone="z-0-0" x="0"   y="0"   width="80" height="50" fill="transparent"/>
+                <rect class="va-fz" data-zone="z-1-0" x="80"  y="0"   width="80" height="50" fill="transparent"/>
+                <rect class="va-fz" data-zone="z-2-0" x="160" y="0"   width="80" height="50" fill="transparent"/>
+                <rect class="va-fz" data-zone="z-0-1" x="0"   y="50"  width="80" height="50" fill="transparent"/>
+                <rect class="va-fz" data-zone="z-1-1" x="80"  y="50"  width="80" height="50" fill="transparent"/>
+                <rect class="va-fz" data-zone="z-2-1" x="160" y="50"  width="80" height="50" fill="transparent"/>
+                <rect class="va-fz" data-zone="z-0-2" x="0"   y="100" width="80" height="50" fill="transparent"/>
+                <rect class="va-fz" data-zone="z-1-2" x="80"  y="100" width="80" height="50" fill="transparent"/>
+                <rect class="va-fz" data-zone="z-2-2" x="160" y="100" width="80" height="50" fill="transparent"/>
+                <!-- Dynamic zone labels (updated by JS) -->
+                <text id="va-fzl-0-0" x="40"  y="28"  text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.6"></text>
+                <text id="va-fzl-1-0" x="120" y="28"  text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.6"></text>
+                <text id="va-fzl-2-0" x="200" y="28"  text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.6"></text>
+                <text id="va-fzl-0-1" x="40"  y="78"  text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.6"></text>
+                <text id="va-fzl-1-1" x="120" y="78"  text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.6"></text>
+                <text id="va-fzl-2-1" x="200" y="78"  text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.6"></text>
+                <text id="va-fzl-0-2" x="40"  y="128" text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.6"></text>
+                <text id="va-fzl-1-2" x="120" y="128" text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.6"></text>
+                <text id="va-fzl-2-2" x="200" y="128" text-anchor="middle" fill="#4ade80" font-size="8" opacity="0.6"></text>
+                <!-- Goal labels (dynamic) -->
+                <text id="va-goal-left"  x="6"   y="10" fill="#ef4444" font-size="7" opacity="0.7"></text>
+                <text id="va-goal-right" x="234" y="10" fill="#ef4444" font-size="7" opacity="0.7" text-anchor="end"></text>
               </svg>
               <div class="va-minifield-arrows">
-                <span>← Portería rival</span>
-                <span>Portería propia →</span>
+                <span id="va-field-arrow-left">← Portería propia</span>
+                <span id="va-field-arrow-right">Portería rival →</span>
               </div>
             </div>
 

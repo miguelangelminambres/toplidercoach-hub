@@ -254,6 +254,34 @@
 .va-action-btn .icon { font-size: 14px; }
 .va-action-btn .key { position: absolute; top: 1px; right: 3px; font-size: 8px; opacity: 0.45; }
 
+/* Match setup */
+.va-match-setup { margin-bottom: 6px; border: 1px solid var(--va-border2); border-radius: 5px; overflow: hidden; }
+.va-setup-toggle {
+  display: flex; align-items: center; gap: 6px; padding: 5px 8px;
+  background: var(--va-surface); cursor: pointer; font-size: 11px; color: var(--va-muted);
+}
+.va-setup-toggle:hover { background: var(--va-surface2); }
+.va-setup-summary { flex: 1; text-align: right; font-size: 10px; color: var(--va-dim); }
+.va-setup-arrow { font-size: 8px; color: var(--va-dim); }
+.va-setup-body { padding: 6px 8px; background: var(--va-bg2); border-top: 1px solid var(--va-border2); }
+.va-setup-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.va-setup-row label { font-size: 10px; color: var(--va-muted); white-space: nowrap; min-width: 90px; }
+.va-setup-row .va-input { padding: 3px 6px; font-size: 11px; }
+.va-direction-toggle { display: flex; gap: 0; flex: 1; border-radius: 4px; overflow: hidden; border: 1px solid var(--va-border2); }
+.va-dir-btn {
+  flex: 1; padding: 3px 4px; background: var(--va-surface); border: none;
+  color: var(--va-dim); cursor: pointer; font-size: 9px; font-family: inherit; transition: all 0.12s;
+}
+.va-dir-btn.active { background: var(--va-teal); color: #fff; }
+
+/* Field period toggle */
+.va-field-period { display: flex; gap: 0; margin-bottom: 4px; border-radius: 4px; overflow: hidden; border: 1px solid var(--va-border2); }
+.va-fp-btn {
+  flex: 1; padding: 3px; background: var(--va-surface); border: none;
+  color: var(--va-muted); cursor: pointer; font-size: 10px; font-weight: 600; font-family: inherit; transition: all 0.12s;
+}
+.va-fp-btn.active { background: rgba(13,148,136,0.25); color: var(--va-teal-light); }
+
 /* Team toggle */
 .va-team-toggle { display: flex; gap: 0; margin-bottom: 6px; border-radius: 5px; overflow: hidden; border: 1px solid var(--va-border2); }
 .va-team-btn {

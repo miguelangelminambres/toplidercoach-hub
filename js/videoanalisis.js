@@ -35,16 +35,11 @@ const VA_DEFAULT_CATEGORIES = [
 // Mutable copy the user can customize
 let VA_CATEGORIES = JSON.parse(JSON.stringify(VA_DEFAULT_CATEGORIES));
 
+// Physical zone IDs (position on SVG). Labels are computed dynamically.
 const VA_FIELD_ZONES = [
-  { id: "off-izq",  label: "Ofens. Izq" },
-  { id: "off-cen",  label: "Ofens. Centro" },
-  { id: "off-der",  label: "Ofens. Der" },
-  { id: "med-izq",  label: "Medio Izq" },
-  { id: "med-cen",  label: "Medio Centro" },
-  { id: "med-der",  label: "Medio Der" },
-  { id: "def-izq",  label: "Defens. Izq" },
-  { id: "def-cen",  label: "Defens. Centro" },
-  { id: "def-der",  label: "Defens. Der" },
+  { id: "z-0-0" }, { id: "z-1-0" }, { id: "z-2-0" },
+  { id: "z-0-1" }, { id: "z-1-1" }, { id: "z-2-1" },
+  { id: "z-0-2" }, { id: "z-1-2" }, { id: "z-2-2" },
 ];
 
 const VA_DRAW_TOOLS = [
@@ -77,6 +72,10 @@ const va = {
   events: [], selectedCategory: null, selectedZone: null,
   selectedTeam: "local", selectedDescriptor: null, selectedPlayer: "",
   showCatEditor: false,
+  // Match setup
+  localName: "Local", visitorName: "Visitante",
+  localAttacksRight1H: true, // local attacks → in 1st half
+  fieldPeriod: "1", // which period for field orientation
   filterPeriod: "all", filterRange: null,
   drawMode: null, drawColor: "#ef4444", drawLineWidth: 3, drawings: [], undoStack: [], showDrawings: true,
   isDrawing: false, drawStart: null, currentPath: [], textPos: null, areaPoints: null, anglePoints: null,
@@ -136,6 +135,7 @@ function vaLoadFile(file) {
   va.events = []; va.drawings = []; va.clips = [];
   va.clipIn = null; va.clipOut = null; va.selectedCategory = null; va.selectedZone = null;
   va.selectedTeam = "local"; va.selectedDescriptor = null; va.selectedPlayer = "";
+  va.fieldPeriod = "1";
   va.undoStack = []; va.areaPoints = null; va.anglePoints = null;
   va.tracks = []; va.trackConnections = []; va.activeTrackId = null; va.trackMode = false;
   va.trackNextColor = 0;
@@ -337,10 +337,45 @@ function vaBuildActionGrid() {
 }
 
 function vaBuildFieldZones() {
-  // SVG click zones are in HTML, this attaches event listeners
   document.querySelectorAll(".va-fz").forEach(z => {
     z.addEventListener("click", () => vaSelectZone(z.dataset.zone));
   });
+  vaUpdateFieldLabels();
+}
+
+// ─── Match setup ─────────────────────────────────────────────
+
+function vaToggleSetup() {
+  const body = document.getElementById("va-setup-body");
+  const arrow = document.getElementById("va-setup-arrow");
+  const visible = body.style.display !== "none";
+  body.style.display = visible ? "none" : "block";
+  arrow.textContent = visible ? "▼" : "▲";
+}
+
+function vaUpdateMatchSetup() {
+  va.localName = document.getElementById("va-local-name").value.trim() || "Local";
+  va.visitorName = document.getElementById("va-visitor-name").value.trim() || "Visitante";
+  document.getElementById("va-team-local-label").textContent = va.localName;
+  document.getElementById("va-team-visitor-label").textContent = va.visitorName;
+  document.getElementById("va-setup-summary").textContent = va.localName + " vs " + va.visitorName;
+  vaUpdateFieldLabels();
+}
+
+function vaSetLocalDirection(dir) {
+  va.localAttacksRight1H = (dir === "right");
+  document.querySelectorAll(".va-dir-btn").forEach(el =>
+    el.classList.toggle("active", el.dataset.dir === dir)
+  );
+  vaUpdateFieldLabels();
+}
+
+function vaSetFieldPeriod(p) {
+  va.fieldPeriod = p;
+  document.querySelectorAll(".va-fp-btn").forEach(el =>
+    el.classList.toggle("active", el.dataset.fp === p)
+  );
+  vaUpdateFieldLabels();
 }
 
 function vaSelectTeam(team) {
@@ -348,6 +383,76 @@ function vaSelectTeam(team) {
   document.querySelectorAll(".va-team-btn").forEach(el =>
     el.classList.toggle("active", el.dataset.team === team)
   );
+  vaUpdateFieldLabels();
+}
+
+// Compute whether the currently selected team attacks RIGHT
+function vaCurrentTeamAttacksRight() {
+  const isLocal = va.selectedTeam === "local";
+  const is1H = va.fieldPeriod === "1";
+  // Local attacks right in 1H → visitor attacks left in 1H
+  // In 2H, everything flips
+  if (isLocal) return is1H ? va.localAttacksRight1H : !va.localAttacksRight1H;
+  return is1H ? !va.localAttacksRight1H : va.localAttacksRight1H;
+}
+
+function vaUpdateFieldLabels() {
+  const attacksRight = vaCurrentTeamAttacksRight();
+
+  // Columns: depth (DEF → MED → OFENS)
+  // If attacking right: col0=DEF, col1=MED, col2=OFENS
+  // If attacking left:  col0=OFENS, col1=MED, col2=DEF
+  const colLabels = attacksRight
+    ? ["DEF", "MED", "OFENS"]
+    : ["OFENS", "MED", "DEF"];
+
+  // Rows: lateral position from the player's perspective facing the goal they attack
+  // If attacking right: row0=IZQ (top of screen = left side), row2=DER
+  // If attacking left:  row0=DER (top of screen = right side from their pov), row2=IZQ
+  const rowLabels = attacksRight
+    ? ["IZQ", "CENT", "DER"]
+    : ["DER", "CENT", "IZQ"];
+
+  // Update SVG text labels
+  for (let col = 0; col < 3; col++) {
+    for (let row = 0; row < 3; row++) {
+      const el = document.getElementById("va-fzl-" + col + "-" + row);
+      if (el) el.textContent = colLabels[col] + " " + rowLabels[row];
+    }
+  }
+
+  // Goal labels
+  const teamName = va.selectedTeam === "local" ? va.localName : va.visitorName;
+  const oppName = va.selectedTeam === "local" ? va.visitorName : va.localName;
+
+  if (attacksRight) {
+    document.getElementById("va-goal-left").textContent = "🥅 Propia";
+    document.getElementById("va-goal-right").textContent = "🥅 Rival";
+    document.getElementById("va-field-arrow-left").textContent = "← " + teamName + " defiende";
+    document.getElementById("va-field-arrow-right").textContent = teamName + " ataca →";
+  } else {
+    document.getElementById("va-goal-left").textContent = "🥅 Rival";
+    document.getElementById("va-goal-right").textContent = "🥅 Propia";
+    document.getElementById("va-field-arrow-left").textContent = "← " + teamName + " ataca";
+    document.getElementById("va-field-arrow-right").textContent = teamName + " defiende →";
+  }
+}
+
+// Get semantic zone label for the current physical zone
+function vaGetZoneLabel(zoneId) {
+  if (!zoneId) return "";
+  const parts = zoneId.split("-"); // z-col-row
+  const col = parseInt(parts[1]), row = parseInt(parts[2]);
+  const attacksRight = vaCurrentTeamAttacksRight();
+
+  const colNames = attacksRight
+    ? ["Def.", "Medio", "Ofens."]
+    : ["Ofens.", "Medio", "Def."];
+  const rowNames = attacksRight
+    ? ["Izq", "Centro", "Der"]
+    : ["Der", "Centro", "Izq"];
+
+  return colNames[col] + " " + rowNames[row];
 }
 
 function vaSelectCategory(catId) {
@@ -391,17 +496,18 @@ function vaAddEvent() {
   if (!va.selectedCategory) return;
   const cat = VA_CATEGORIES.find(c => c.id === va.selectedCategory);
   const note = document.getElementById("va-event-note").value.trim();
-  const zone = va.selectedZone ? VA_FIELD_ZONES.find(z => z.id === va.selectedZone) : null;
+  const zoneLabel = va.selectedZone ? vaGetZoneLabel(va.selectedZone) : "";
   const player = document.getElementById("va-event-player").value.trim();
 
-  const half = va.duration ? (va.currentTime < va.duration / 2 ? "1" : "2") : "1";
+  const half = va.duration ? (va.currentTime < va.duration / 2 ? "1" : "2") : va.fieldPeriod;
 
   va.events.push({
     id: Date.now(), time: va.currentTime, category: va.selectedCategory,
     label: cat.label, color: cat.color, icon: cat.icon,
-    team: va.selectedTeam, descriptor: va.selectedDescriptor || "",
+    team: va.selectedTeam, teamName: va.selectedTeam === "local" ? va.localName : va.visitorName,
+    descriptor: va.selectedDescriptor || "",
     player: player,
-    note: note, zone: zone ? zone.label : "", zoneId: va.selectedZone || "",
+    note: note, zone: zoneLabel, zoneId: va.selectedZone || "",
     period: half,
   });
 
@@ -474,10 +580,11 @@ function vaRenderTable() {
   }
 
   tbody.innerHTML = list.map((ev, i) => {
+    const teamLabel = ev.teamName || (ev.team === "local" ? "Local" : "Visitante");
     const teamIcon = ev.team === "local" ? "🏠" : "✈️";
     return '<tr onclick="vaSeekTo(' + ev.time + ')">' +
     '<td style="color:var(--va-dim);text-align:center;width:24px">' + (i + 1) + '</td>' +
-    '<td style="text-align:center;width:22px" title="' + (ev.team === "local" ? "Local" : "Visitante") + '">' + teamIcon + '</td>' +
+    '<td style="text-align:center;width:22px" title="' + teamLabel + '">' + teamIcon + '</td>' +
     '<td><span class="cat-badge" style="background:' + ev.color + '">' + ev.icon + ' ' + ev.label + '</span>' +
     (ev.descriptor ? ' <span class="desc-badge">' + ev.descriptor + '</span>' : '') + '</td>' +
     '<td class="time-cell">' + vaFormatTime(ev.time) + '</td>' +
@@ -1309,7 +1416,8 @@ function vaToggleTrackVisibility() {
 function vaExportAnalysis() {
   const data = { video: va.videoName, exportDate: new Date().toISOString(),
     events: va.events.map(e => ({ time: vaFormatTime(e.time), seconds: Math.round(e.time*100)/100,
-      category: e.label, team: e.team || "local", descriptor: e.descriptor || "",
+      category: e.label, team: e.team || "local", teamName: e.teamName || "",
+      descriptor: e.descriptor || "",
       player: e.player || "", period: e.period + "T", zone: e.zone, note: e.note })),
     clips: va.clips.map(c => ({ label: c.label, in: vaFormatTime(c.inTime), out: vaFormatTime(c.outTime),
       duration: vaFormatTime(c.outTime-c.inTime),

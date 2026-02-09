@@ -164,18 +164,22 @@
             <p class="va-label">Color</p>
             <div class="va-colors" id="va-color-picker"></div>
 
+            <p class="va-label">Grosor</p>
+            <div class="va-line-widths" id="va-line-widths"></div>
+
             <div class="va-draw-actions">
-              <button class="va-btn" onclick="vaUndoDrawing()" style="flex:1">↩️ Deshacer</button>
+              <button class="va-btn" id="va-undo-btn" onclick="vaUndo()" style="flex:1;opacity:0.4" disabled>↩️ Deshacer</button>
+              <button class="va-btn" id="va-redo-btn" onclick="vaRedo()" style="flex:1;opacity:0.4" disabled>↪️ Rehacer</button>
               <button class="va-btn" onclick="vaClearDrawings()" style="flex:1">🗑️ Borrar</button>
             </div>
 
-            <button class="va-btn" id="va-toggle-draw" onclick="vaToggleDrawVisibility()" style="width:100%;margin-bottom:8px">
-              👁️ Ocultar dibujos
+            <button class="va-btn" id="va-toggle-draw" onclick="vaToggleDrawVisibility()" style="width:100%;margin-bottom:6px">
+              👁️ Ocultar
             </button>
             <button class="va-btn va-btn-teal" onclick="vaSnapshot()" style="width:100%">
               📸 Captura con dibujos
             </button>
-            <p class="va-draw-hint">💡 Los dibujos aparecen 5s. ESC para salir del modo dibujo.</p>
+            <p class="va-draw-hint">💡 Dibujos visibles 5s. Ctrl+Z deshacer. ESC salir.</p>
           </div>
 
           <!-- ═══ CLIPS ══════════════════════════════════ -->
@@ -201,6 +205,7 @@
           <span><kbd>,.</kbd> Frame</span>
           <span><kbd>1-9</kbd> Acción</span>
           <span><kbd>Enter</kbd> Añadir</span>
+          <span><kbd>Ctrl+Z</kbd> Deshacer</span>
           <span><kbd>Esc</kbd> Salir</span>
         </div>
       </div>

@@ -268,7 +268,7 @@ registrarSubTab('planificador', 'calendario', cargarCalendarioUnificado);
                                     <p>${ej.organizacion}</p>
                                 </div>
                             ` : ''}
-                            ${ej.url ? `<a href="${ej.url}" target="_blank" class="btn-ver-completo">Ver ejercicio completo</a>` : ''}
+                            ${ej.url ? `<a href="${ej.url}" target="_blank" class="btn-ver-completo" title="Necesitas estar logeado en la página principal, no solo en el planificador">🎬 Ver video ejercicio</a>` : ''}
                             <button class="btn-primary purple" style="width:100%;margin-top:10px;" onclick="abrirModalSeccion()">Anadir a Sesion</button>
                         `;
                     } else {

@@ -179,59 +179,83 @@ if (hasta) {
                 }
                 
                 lista.innerHTML = data.map(p => {
-                    const fecha = new Date(p.match_date).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+                    const fechaObj = new Date(p.match_date);
+                    const diaSemana = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'][fechaObj.getDay()];
+                    const diaNum = fechaObj.getDate();
+                    const mesCorto = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'][fechaObj.getMonth()];
+                    const anio = fechaObj.getFullYear();
                     const hora = p.kick_off_time ? p.kick_off_time.slice(0, 5) : '';
                     const esLocal = p.home_away === 'home';
                     
-                    let resultadoHTML = '';
-                    let badgeHTML = '';
+                    const miNombre = clubData?.name || 'Mi Equipo';
+                    const miEscudo = clubData?.logo_url ? `<img src="${clubData.logo_url}" class="mc-escudo">` : '<div class="mc-escudo-placeholder">🏠</div>';
+                    const rivalEscudo = p.opponent_logo ? `<img src="${p.opponent_logo}" class="mc-escudo">` : '<div class="mc-escudo-placeholder">🏟️</div>';
+                    
+                    const equipoLocal = esLocal ? miNombre : p.opponent;
+                    const equipoVisitante = esLocal ? p.opponent : miNombre;
+                    const escudoLocal = esLocal ? miEscudo : rivalEscudo;
+                    const escudoVisitante = esLocal ? rivalEscudo : miEscudo;
+                    
+                    let resultClass = 'pendiente';
+                    let marcadorHTML = '';
+                    let badgeText = '';
                     
                     if (p.result) {
                         const gF = p.team_goals || 0;
                         const gC = p.opponent_goals || 0;
-                        const marcador = esLocal ? `${gF} - ${gC}` : `${gC} - ${gF}`;
-                        resultadoHTML = `<span class="partido-resultado">${marcador}</span>`;
-                        
-                        const badgeClass = p.result === 'win' ? 'victoria' : p.result === 'draw' ? 'empate' : 'derrota';
-                        const badgeText = p.result === 'win' ? 'Victoria' : p.result === 'draw' ? 'Empate' : 'Derrota';
-                        badgeHTML = `<span class="resultado-badge ${badgeClass}">${badgeText}</span>`;
+                        const gLocal = esLocal ? gF : gC;
+                        const gVisitante = esLocal ? gC : gF;
+                        resultClass = p.result === 'win' ? 'victoria' : p.result === 'draw' ? 'empate' : 'derrota';
+                        badgeText = p.result === 'win' ? 'VICTORIA' : p.result === 'draw' ? 'EMPATE' : 'DERROTA';
+                        marcadorHTML = `<div class="mc-score"><span class="mc-score-num">${gLocal}</span><span class="mc-score-sep">-</span><span class="mc-score-num">${gVisitante}</span></div>`;
                     } else {
-                        resultadoHTML = `<span class="partido-resultado pendiente">${hora || 'Por jugar'}</span>`;
-                        badgeHTML = `<span class="resultado-badge pendiente">Pendiente</span>`;
+                        badgeText = hora || 'POR JUGAR';
+                        marcadorHTML = `<div class="mc-score mc-score-pending"><span class="mc-score-time">${hora || 'TBD'}</span></div>`;
                     }
                     
+                    const competicion = p.competition || '';
+                    const jornada = p.round || '';
+                    const estadio = p.stadium || '';
+                    
+                    let metaHTML = '';
+                    if (jornada) metaHTML += `<span class="mc-meta-item">📋 ${jornada}</span>`;
+                    if (estadio) metaHTML += `<span class="mc-meta-item">🏟 ${estadio}</span>`;
+                    
                     return `
-                        <div class="partido-card">
-                            <div class="partido-card-header">
-                                <div class="partido-fecha">${fecha} ${hora ? '- ' + hora : ''}</div>
-                                ${p.competition ? `<span class="partido-competicion">${p.competition}</span>` : ''}
-                            </div>
-                            <div class="partido-card-body">
-                                <div class="partido-equipos">
-                                    <div class="equipo">
-                                        <div class="equipo-escudo">${esLocal 
-                                            ? (clubData?.logo_url ? `<img src="${clubData.logo_url}" alt="" style="width:32px;height:32px;object-fit:contain;">` : '🏠') 
-                                            : (p.opponent_logo ? `<img src="${p.opponent_logo}" alt="" style="width:32px;height:32px;object-fit:contain;">` : '🏟️')}</div>
-                                        <div class="equipo-nombre">${esLocal ? (clubData?.name || 'Mi Equipo') : p.opponent}</div>
-                                        <div class="equipo-tipo">Local</div>
+                        <div class="mc-card ${resultClass}">
+                            <div class="mc-result-strip"></div>
+                            <div class="mc-content">
+                                <div class="mc-header">
+                                    <div class="mc-date-info">
+                                        <span class="mc-date">${diaSemana} ${diaNum} ${mesCorto} ${anio}</span>
+                                        ${hora && p.result ? `<span class="mc-time">${hora}h</span>` : ''}
                                     </div>
-                                    ${resultadoHTML}
-                                    <div class="equipo">
-                                        <div class="equipo-escudo">${esLocal 
-                                            ? (p.opponent_logo ? `<img src="${p.opponent_logo}" alt="" style="width:32px;height:32px;object-fit:contain;">` : '🏟️') 
-                                            : (clubData?.logo_url ? `<img src="${clubData.logo_url}" alt="" style="width:32px;height:32px;object-fit:contain;">` : '🏠')}</div>
-                                        <div class="equipo-nombre">${esLocal ? p.opponent : (clubData?.name || 'Mi Equipo')}</div>
-                                        <div class="equipo-tipo">Visitante</div>
+                                    <div class="mc-badges">
+                                        ${competicion ? `<span class="mc-comp-badge">${competicion}</span>` : ''}
+                                        <span class="mc-result-badge mc-badge-${resultClass}">${badgeText}</span>
                                     </div>
                                 </div>
-                                ${badgeHTML}
+                                <div class="mc-matchup">
+                                    <div class="mc-team">
+                                        ${escudoLocal}
+                                        <span class="mc-team-name">${equipoLocal}</span>
+                                        <span class="mc-team-side">Local</span>
+                                    </div>
+                                    ${marcadorHTML}
+                                    <div class="mc-team">
+                                        ${escudoVisitante}
+                                        <span class="mc-team-name">${equipoVisitante}</span>
+                                        <span class="mc-team-side">Visitante</span>
+                                    </div>
+                                </div>
+                                ${metaHTML ? `<div class="mc-meta">${metaHTML}</div>` : ''}
+                                <div class="mc-actions">
+                                    <button class="mc-btn mc-btn-ver" onclick="verPartido('${p.id}')">👁️ Ver</button>
+                                    <button class="mc-btn mc-btn-editar" onclick="editarPartido('${p.id}')">✏️ Editar</button>
+                                    <button class="mc-btn mc-btn-stats" onclick="abrirModalResultado('${p.id}')">📊 Stats</button>
+                                    <button class="mc-btn mc-btn-eliminar" onclick="eliminarPartido('${p.id}')">🗑️</button>
+                                </div>
                             </div>
-                           <div class="partido-card-footer">
-    <button class="btn-ver" onclick="verPartido('${p.id}')">Ver</button>
-    <button class="btn-stats" onclick="editarPartido('${p.id}')">Editar</button>
-    <button class="btn-pdf" onclick="abrirModalResultado('${p.id}')">Stats</button>
-    <button class="btn-eliminar" onclick="eliminarPartido('${p.id}')">X</button>
-</div>
                         </div>
                     `;
                 }).join('');

@@ -1,116 +1,252 @@
-        /* ========== ESPECÍFICO MATCHSTATS ========== */
-        .partido-card {
+        /* ========== MATCHSTATS - FICHAS PRO ========== */
+        .mc-card {
             background: white;
-            border-radius: 16px;
+            border-radius: 14px;
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            transition: all 0.2s;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            display: flex;
+            border: 1px solid #e5e7eb;
+            transition: box-shadow 0.2s, transform 0.2s;
         }
         
-        .partido-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        .mc-card:hover {
+            box-shadow: 0 8px 28px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
         }
         
-        .partido-card-header {
-            padding: 15px 20px;
-            background: #f8fafc;
-            border-bottom: 1px solid #e2e8f0;
+        /* Franja lateral de resultado */
+        .mc-result-strip {
+            width: 6px;
+            min-width: 6px;
+            flex-shrink: 0;
         }
         
-        .partido-fecha {
-            font-size: 13px;
-            color: #64748b;
-            margin-bottom: 5px;
+        .mc-card.victoria .mc-result-strip { background: linear-gradient(180deg, #22c55e, #16a34a); }
+        .mc-card.empate .mc-result-strip { background: linear-gradient(180deg, #f59e0b, #d97706); }
+        .mc-card.derrota .mc-result-strip { background: linear-gradient(180deg, #ef4444, #dc2626); }
+        .mc-card.pendiente .mc-result-strip { background: linear-gradient(180deg, #94a3b8, #64748b); }
+        
+        .mc-content {
+            flex: 1;
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
         
-        .partido-competicion {
+        /* Header: fecha + badges */
+        .mc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .mc-date-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .mc-date {
             font-size: 12px;
-            background: #e0f2fe;
-            color: #0369a1;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        
+        .mc-time {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+        
+        .mc-badges {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .mc-comp-badge {
+            font-size: 10px;
+            font-weight: 700;
             padding: 3px 10px;
             border-radius: 20px;
-            display: inline-block;
+            background: #1e293b;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
-        .partido-card-body {
-            padding: 20px;
+        .mc-result-badge {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 3px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
         }
         
-        .partido-equipos {
+        .mc-badge-victoria { background: #dcfce7; color: #15803d; }
+        .mc-badge-empate { background: #fef3c7; color: #b45309; }
+        .mc-badge-derrota { background: #fee2e2; color: #dc2626; }
+        .mc-badge-pendiente { background: #f1f5f9; color: #64748b; }
+        
+        /* Matchup central */
+        .mc-matchup {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 15px;
+            gap: 8px;
+            padding: 8px 0;
         }
         
-        .equipo {
-            text-align: center;
-            flex: 1;
-        }
-        
-        .equipo-nombre {
-            font-weight: 600;
-            color: #1f2937;
-            font-size: 14px;
-        }
-        
-        .equipo-tipo {
-            font-size: 11px;
-            color: #9ca3af;
-            margin-top: 3px;
-        }
-        
-        .partido-resultado {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1f2937;
-            padding: 0 15px;
-        }
-        
-        .partido-resultado.pendiente {
-            font-size: 14px;
-            color: #9ca3af;
-            font-weight: 500;
-        }
-        
-        .resultado-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-top: 10px;
-        }
-        
-        .resultado-badge.victoria { background: #d1fae5; color: #059669; }
-        .resultado-badge.empate { background: #fef3c7; color: #d97706; }
-        .resultado-badge.derrota { background: #fee2e2; color: #dc2626; }
-        .resultado-badge.pendiente { background: #e5e7eb; color: #6b7280; }
-        
-        .partido-card-footer {
-            padding: 15px 20px;
-            background: #f8fafc;
+        .mc-team {
             display: flex;
-            gap: 10px;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            flex: 1;
+            min-width: 0;
         }
         
-        .partido-card-footer button {
+        .mc-escudo {
+            width: 44px;
+            height: 44px;
+            object-fit: contain;
+        }
+        
+        .mc-escudo-placeholder {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+        
+        .mc-team-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+            text-align: center;
+            line-height: 1.2;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .mc-team-side {
+            font-size: 10px;
+            color: #94a3b8;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Score */
+        .mc-score {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+            padding: 0 6px;
+        }
+        
+        .mc-score-num {
+            font-size: 32px;
+            font-weight: 900;
+            color: #1e293b;
+            line-height: 1;
+            min-width: 28px;
+            text-align: center;
+        }
+        
+        .mc-score-sep {
+            font-size: 20px;
+            font-weight: 400;
+            color: #cbd5e1;
+            margin: 0 2px;
+        }
+        
+        .mc-score-pending {
+            background: #f8fafc;
+            padding: 8px 16px;
+            border-radius: 10px;
+        }
+        
+        .mc-score-time {
+            font-size: 18px;
+            font-weight: 700;
+            color: #64748b;
+        }
+        
+        .mc-card.victoria .mc-score-num { color: #15803d; }
+        .mc-card.derrota .mc-score-num { color: #dc2626; }
+        .mc-card.empate .mc-score-num { color: #b45309; }
+        
+        /* Meta info */
+        .mc-meta {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        
+        .mc-meta-item {
+            font-size: 11px;
+            color: #64748b;
+        }
+        
+        /* Actions */
+        .mc-actions {
+            display: flex;
+            gap: 6px;
+            padding-top: 10px;
+            border-top: 1px solid #f1f5f9;
+        }
+        
+        .mc-btn {
             flex: 1;
-            padding: 10px;
+            padding: 8px 4px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
-            font-size: 13px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.15s;
         }
         
-        .btn-ver { background: #e0f2fe; color: #0369a1; }
-        .btn-stats { background: #fef3c7; color: #d97706; }
-        .btn-pdf { background: #f3e8ff; color: #9333ea; }
-        .btn-eliminar { background: #fee2e2; color: #dc2626; }
+        .mc-btn:hover { transform: translateY(-1px); opacity: 0.85; }
         
-        /* Stats resumen */
+        .mc-btn-ver { background: #dbeafe; color: #1d4ed8; }
+        .mc-btn-editar { background: #fef3c7; color: #b45309; }
+        .mc-btn-stats { background: #ede9fe; color: #7c3aed; }
+        .mc-btn-eliminar { background: #fee2e2; color: #dc2626; max-width: 42px; }
+        
+        @media (max-width: 480px) {
+            .mc-content {
+                padding: 12px 14px;
+            }
+            .mc-escudo {
+                width: 34px;
+                height: 34px;
+            }
+            .mc-score-num {
+                font-size: 24px;
+            }
+            .mc-btn {
+                font-size: 11px;
+                padding: 6px 3px;
+            }
+        }
+        
+/* Stats resumen */
         .stats-resumen {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));

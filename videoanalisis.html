@@ -7,12 +7,9 @@
   <link rel="stylesheet" href="css/videoanalisis.css">
 </head>
 <body>
-
 <div class="va-app">
 
-  <!-- ═══════════════════════════════════════════════════════
-       PANTALLA DE CARGA DE VÍDEO
-       ═══════════════════════════════════════════════════════ -->
+  <!-- ═══ UPLOAD ══════════════════════════════════════════ -->
   <div id="va-upload-screen" class="va-upload-screen">
     <div id="va-upload-box" class="va-upload-box">
       <div class="va-upload-icon">🎬</div>
@@ -23,12 +20,10 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════════
-       APP PRINCIPAL
-       ═══════════════════════════════════════════════════════ -->
+  <!-- ═══ MAIN APP ════════════════════════════════════════ -->
   <div id="va-main" class="va-main">
 
-    <!-- ─── Header ──────────────────────────────────────── -->
+    <!-- Header -->
     <div class="va-header">
       <div class="va-logo">
         <div class="va-logo-icon">🎬</div>
@@ -38,40 +33,62 @@
         </div>
       </div>
       <div class="va-header-actions">
-        <button class="va-btn" onclick="vaSnapshot()" title="Captura con dibujos">📸 Captura</button>
-        <button class="va-btn" onclick="vaExportAnalysis()" title="Exportar análisis">💾 Exportar</button>
-        <button class="va-btn va-btn-danger" onclick="vaNewVideo()">Nuevo vídeo</button>
+        <button class="va-btn" onclick="vaSnapshot()">📸 Captura</button>
+        <button class="va-btn" onclick="vaExportAnalysis()">💾 Exportar</button>
+        <button class="va-btn va-btn-danger" onclick="vaNewVideo()">✕ Nuevo</button>
       </div>
     </div>
 
     <div class="va-content">
 
-      <!-- ═══════════════════════════════════════════════════
-           ZONA DE VÍDEO
-           ═══════════════════════════════════════════════════ -->
-      <div class="va-video-area">
+      <!-- ═══ LEFT: Video + Timeline + Table ═════════════ -->
+      <div class="va-left">
 
-        <!-- Vídeo + Canvas de dibujo -->
+        <!-- Video -->
         <div class="va-video-container">
           <video id="va-video"></video>
           <canvas id="va-canvas"></canvas>
-
-          <!-- Badge modo dibujo -->
           <div class="va-draw-badge" id="va-draw-badge">
-            ✏️ Modo dibujo: <span id="va-draw-mode-label">-</span>
+            ✏️ <span id="va-draw-mode-label">-</span>
             <span class="close" onclick="vaSetDrawMode(null)">✕</span>
           </div>
-
-          <!-- Overlay de texto -->
           <div class="va-text-overlay" id="va-text-overlay">
-            <input type="text" id="va-text-input" class="va-input" placeholder="Escribe texto..." style="width:180px"
+            <input type="text" id="va-text-input" class="va-input" placeholder="Texto..." style="width:160px"
               onkeydown="if(event.key==='Enter')vaAddTextDrawing()">
-            <button class="va-btn va-btn-primary va-btn-sm" onclick="vaAddTextDrawing()">OK</button>
+            <button class="va-btn va-btn-teal va-btn-sm" onclick="vaAddTextDrawing()">OK</button>
             <button class="va-btn va-btn-sm" onclick="vaCancelText()">✕</button>
           </div>
         </div>
 
-        <!-- ─── Timeline ────────────────────────────────── -->
+        <!-- Controls -->
+        <div class="va-controls">
+          <button class="va-ctrl" onclick="vaStepFrame(-1)" title="Frame anterior (,)">⏪</button>
+          <button class="va-ctrl va-ctrl-play" id="va-play-btn" onclick="vaTogglePlay()">▶</button>
+          <button class="va-ctrl" onclick="vaStepFrame(1)" title="Frame siguiente (.)">⏩</button>
+          <button class="va-ctrl va-ctrl-speed" id="va-speed-btn" onclick="vaChangeSpeed()">1x</button>
+          <div class="va-time">
+            <span id="va-current-time">00:00</span>
+            <span class="sep">/</span>
+            <span id="va-total-time">00:00</span>
+          </div>
+          <div class="va-volume">🔊 <input type="range" min="0" max="1" step="0.05" value="0.7" oninput="vaChangeVolume(this.value)"></div>
+        </div>
+
+        <!-- Period bar -->
+        <div class="va-period-bar">
+          <button class="va-period-btn active" data-period="all" onclick="vaSetPeriod('all')">Todo</button>
+          <button class="va-period-btn" data-period="1" onclick="vaSetPeriod('1')">1ª Parte</button>
+          <button class="va-period-btn" data-period="2" onclick="vaSetPeriod('2')">2ª Parte</button>
+          <div class="va-period-sep"></div>
+          <button class="va-period-range" data-range="0-15" onclick="vaSetRange('0-15')">0-15</button>
+          <button class="va-period-range" data-range="15-30" onclick="vaSetRange('15-30')">16-30</button>
+          <button class="va-period-range" data-range="30-45" onclick="vaSetRange('30-45')">31-45+</button>
+          <button class="va-period-range" data-range="45-60" onclick="vaSetRange('45-60')">46-60</button>
+          <button class="va-period-range" data-range="60-75" onclick="vaSetRange('60-75')">61-75</button>
+          <button class="va-period-range" data-range="75-99" onclick="vaSetRange('75-99')">76-90+</button>
+        </div>
+
+        <!-- Timeline -->
         <div class="va-timeline-area">
           <div class="va-timeline" id="va-timeline" onclick="vaTimelineClick(event)">
             <div class="va-timeline-progress" id="va-tl-progress"></div>
@@ -81,36 +98,32 @@
           </div>
         </div>
 
-        <!-- ─── Controles ───────────────────────────────── -->
-        <div class="va-controls">
-          <button class="va-ctrl" onclick="vaStepFrame(-1)" title="Fotograma anterior (,)">⏪</button>
-          <button class="va-ctrl va-ctrl-play" id="va-play-btn" onclick="vaTogglePlay()" title="Play/Pause (Espacio)">▶</button>
-          <button class="va-ctrl" onclick="vaStepFrame(1)" title="Siguiente fotograma (.)">⏩</button>
-          <button class="va-ctrl va-ctrl-speed" id="va-speed-btn" onclick="vaChangeSpeed()" title="Cambiar velocidad">1x</button>
-
-          <div class="va-time">
-            <span id="va-current-time">00:00</span>
-            <span class="sep">/</span>
-            <span id="va-total-time">00:00</span>
-          </div>
-
-          <div class="va-volume">
-            🔊
-            <input type="range" min="0" max="1" step="0.05" value="0.7"
-              oninput="vaChangeVolume(this.value)">
-          </div>
+        <!-- Play-by-Play Table -->
+        <div class="va-table-area">
+          <table class="va-table">
+            <thead>
+              <tr>
+                <th style="width:30px;text-align:center">#</th>
+                <th>Categoría</th>
+                <th style="width:55px">Tiempo</th>
+                <th style="width:35px;text-align:center">Per.</th>
+                <th style="width:90px">Zona</th>
+                <th>Nota</th>
+              </tr>
+            </thead>
+            <tbody id="va-table-body">
+              <tr><td colspan="6" class="va-table-empty">Etiqueta acciones usando los botones del panel derecho →</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <!-- ═══════════════════════════════════════════════════
-           PANEL DERECHO
-           ═══════════════════════════════════════════════════ -->
+      <!-- ═══ RIGHT PANEL ════════════════════════════════ -->
       <div class="va-panel">
 
-        <!-- Tabs -->
         <div class="va-tabs">
           <button class="va-tab active" data-panel="events" onclick="vaSwitchPanel('events')">
-            🏷️ Eventos <span class="badge" id="va-event-count" style="display:none">0</span>
+            🏷️ Etiquetar <span class="badge" id="va-event-count" style="display:none">0</span>
           </button>
           <button class="va-tab" data-panel="draw" onclick="vaSwitchPanel('draw')">✏️ Dibujar</button>
           <button class="va-tab" data-panel="clips" onclick="vaSwitchPanel('clips')">✂️ Clips</button>
@@ -118,95 +131,82 @@
 
         <div class="va-panel-body">
 
-          <!-- ═══ EVENTOS ════════════════════════════════ -->
+          <!-- ═══ ETIQUETAR ══════════════════════════════ -->
           <div class="va-section active" id="va-sec-events">
 
-            <p class="va-label">ETIQUETAR EN <span id="va-tag-time">00:00</span></p>
+            <p class="va-label">Acción</p>
+            <div class="va-action-grid" id="va-action-grid"></div>
 
-            <!-- Categorías -->
-            <div class="va-tags" id="va-event-tags"></div>
+            <p class="va-label">Zona del campo</p>
+            <div class="va-field-label-row">
+              <span>← Portería rival</span>
+              <span>Portería propia →</span>
+            </div>
+            <div class="va-field-grid" id="va-field-grid"></div>
 
-            <!-- Añadir evento -->
-            <div class="va-add-row" id="va-add-row">
+            <p class="va-label">Nota</p>
+            <div class="va-add-row">
               <input type="text" class="va-input" id="va-event-note" placeholder="Nota opcional..."
                 onkeydown="if(event.key==='Enter')vaAddEvent()">
-              <button class="va-btn va-btn-primary va-btn-sm" onclick="vaAddEvent()">+</button>
+              <button class="va-btn va-btn-teal" onclick="vaAddEvent()">+ Añadir</button>
             </div>
 
-            <!-- Filtro -->
-            <select class="va-filter" id="va-event-filter" onchange="vaSetEventFilter(this.value)">
-              <option value="all">Todos (0)</option>
-            </select>
-
-            <!-- Lista de eventos -->
-            <div class="va-event-list" id="va-event-list">
-              <div class="va-empty">Sin eventos todavía. Selecciona una categoría y pulsa + para etiquetar.</div>
-            </div>
+            <p style="font-size:9px;color:var(--va-dim);margin-top:6px">
+              💡 Selecciona acción → zona (opcional) → nota (opcional) → Añadir o Enter. Atajos: 1-9, 0, Q, W
+            </p>
           </div>
 
           <!-- ═══ DIBUJAR ════════════════════════════════ -->
           <div class="va-section" id="va-sec-draw">
-
-            <p class="va-label">HERRAMIENTAS</p>
+            <p class="va-label">Herramientas</p>
             <div class="va-draw-tools" id="va-draw-tools"></div>
 
-            <p class="va-label">COLOR</p>
+            <p class="va-label">Color</p>
             <div class="va-colors" id="va-color-picker"></div>
 
             <div class="va-draw-actions">
               <button class="va-btn" onclick="vaUndoDrawing()" style="flex:1">↩️ Deshacer</button>
-              <button class="va-btn" onclick="vaClearDrawings()" style="flex:1">🗑️ Borrar todo</button>
+              <button class="va-btn" onclick="vaClearDrawings()" style="flex:1">🗑️ Borrar</button>
             </div>
 
-            <button class="va-btn" id="va-toggle-draw" onclick="vaToggleDrawVisibility()" style="width:100%;margin-bottom:12px">
+            <button class="va-btn" id="va-toggle-draw" onclick="vaToggleDrawVisibility()" style="width:100%;margin-bottom:8px">
               👁️ Ocultar dibujos
             </button>
-
-            <button class="va-btn va-btn-primary" onclick="vaSnapshot()" style="width:100%">
-              📸 Guardar captura con dibujos
+            <button class="va-btn va-btn-teal" onclick="vaSnapshot()" style="width:100%">
+              📸 Captura con dibujos
             </button>
-
-            <p class="va-draw-hint">💡 Los dibujos se muestran durante 5 segundos desde el momento en que se crean. Pulsa ESC para salir del modo dibujo.</p>
+            <p class="va-draw-hint">💡 Los dibujos aparecen 5s. ESC para salir del modo dibujo.</p>
           </div>
 
           <!-- ═══ CLIPS ══════════════════════════════════ -->
           <div class="va-section" id="va-sec-clips">
-
-            <p class="va-label">MARCAR CLIP</p>
+            <p class="va-label">Marcar clip</p>
             <div class="va-clip-markers">
               <button class="va-btn" id="va-clip-in" onclick="vaSetClipPoint('in')">🟢 IN</button>
               <button class="va-btn" id="va-clip-out" onclick="vaSetClipPoint('out')">🔴 OUT</button>
             </div>
+            <button class="va-btn va-btn-teal" id="va-save-clip" onclick="vaSaveClip()"
+              style="width:100%;margin-bottom:12px;display:none">✂️ Guardar clip</button>
 
-            <button class="va-btn va-btn-primary" id="va-save-clip" onclick="vaSaveClip()"
-              style="width:100%;margin-bottom:16px;display:none">
-              ✂️ Guardar clip
-            </button>
-
-            <p class="va-label">CLIPS GUARDADOS (<span id="va-clip-count">0</span>)</p>
+            <p class="va-label">Guardados (<span id="va-clip-count">0</span>)</p>
             <div id="va-clip-list">
-              <div class="va-empty">Marca un punto IN y OUT en la línea de tiempo para crear clips.</div>
+              <div class="va-empty">Marca IN y OUT para crear clips.</div>
             </div>
           </div>
-
         </div>
 
-        <!-- Atajos de teclado -->
         <div class="va-hints">
           <span><kbd>Espacio</kbd> Play</span>
           <span><kbd>←→</kbd> ±5s</span>
           <span><kbd>,.</kbd> Frame</span>
+          <span><kbd>1-9</kbd> Acción</span>
+          <span><kbd>Enter</kbd> Añadir</span>
           <span><kbd>Esc</kbd> Salir</span>
         </div>
       </div>
-
     </div>
   </div>
-
 </div>
-
-<!-- JS -->
 <script src="js/videoanalisis.js"></script>
-
 </body>
 </html>

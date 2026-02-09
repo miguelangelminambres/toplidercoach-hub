@@ -113,7 +113,10 @@ function vaLoadFile(file) {
   document.getElementById("va-main").classList.add("active");
   va.events = []; va.drawings = []; va.clips = [];
   va.clipIn = null; va.clipOut = null; va.selectedCategory = null; va.selectedZone = null;
+  va.undoStack = []; va.areaPoints = null; va.anglePoints = null;
   vaRenderTable(); vaRenderClips(); vaRenderTimelineMarkers();
+  // Sync canvas position after layout settles
+  requestAnimationFrame(() => vaSyncCanvasPosition());
 }
 
 function vaNewVideo() {
@@ -129,6 +132,7 @@ function vaSetupVideoEvents() {
     va.duration = vaVideo.duration;
     document.getElementById("va-total-time").textContent = vaFormatTime(va.duration);
     vaVideo.volume = 0.7;
+    vaSyncCanvasPosition();
     console.log("✅ Vídeo cargado:", va.videoName, vaFormatTime(va.duration));
   });
   vaVideo.addEventListener("timeupdate", () => {
@@ -144,6 +148,38 @@ function vaSetupVideoEvents() {
     console.error("❌ Error al cargar el vídeo:", vaVideo.error);
     alert("No se puede reproducir este vídeo.\nPrueba a convertirlo a MP4 (H.264).");
   });
+
+  // Sync canvas on resize
+  window.addEventListener("resize", () => vaSyncCanvasPosition());
+}
+
+// Keep canvas aligned with the actual video rendering area (accounting for object-fit:contain)
+function vaSyncCanvasPosition() {
+  const videoW = vaVideo.videoWidth;
+  const videoH = vaVideo.videoHeight;
+  if (!videoW || !videoH) return;
+
+  const container = vaVideo.parentElement.getBoundingClientRect();
+  const containerRatio = container.width / container.height;
+  const videoRatio = videoW / videoH;
+
+  let renderW, renderH, offsetX, offsetY;
+  if (videoRatio > containerRatio) {
+    renderW = container.width;
+    renderH = container.width / videoRatio;
+    offsetX = 0;
+    offsetY = (container.height - renderH) / 2;
+  } else {
+    renderH = container.height;
+    renderW = container.height * videoRatio;
+    offsetX = (container.width - renderW) / 2;
+    offsetY = 0;
+  }
+
+  vaCanvas.style.left = offsetX + "px";
+  vaCanvas.style.top = offsetY + "px";
+  vaCanvas.style.width = renderW + "px";
+  vaCanvas.style.height = renderH + "px";
 }
 
 function vaTogglePlay() {
@@ -509,7 +545,9 @@ function vaSetupCanvasEvents() {
 
 function vaGetCanvasPos(e) {
   const r = vaCanvas.getBoundingClientRect();
-  return { x: ((e.clientX - r.left) / r.width) * vaCanvas.width, y: ((e.clientY - r.top) / r.height) * vaCanvas.height };
+  const x = ((e.clientX - r.left) / r.width) * vaCanvas.width;
+  const y = ((e.clientY - r.top) / r.height) * vaCanvas.height;
+  return { x, y };
 }
 
 function vaAddTextDrawing() {

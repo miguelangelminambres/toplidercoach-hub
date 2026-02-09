@@ -541,36 +541,78 @@ alert(sesionEditandoId ? 'Sesión actualizada correctamente' : 'Sesión guardada
                     const tCal = cal.reduce((sum, ej) => sum + (ej.duracion || 0), 0);
                     const tPri = pri.reduce((sum, ej) => sum + (ej.duracion || 0), 0);
                     const tEnf = enf.reduce((sum, ej) => sum + (ej.duracion || 0), 0);
+                    const tTotal = tCal + tPri + tEnf;
+                    const totalEj = cal.length + pri.length + enf.length;
                     
-                    const fecha = new Date(s.session_date).toLocaleDateString('es-ES');
+                    const fechaObj = new Date(s.session_date);
+                    const diaSemana = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'][fechaObj.getDay()];
+                    const diaNum = fechaObj.getDate();
+                    const mesCorto = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'][fechaObj.getMonth()];
+                    const anio = fechaObj.getFullYear();
+                    const hora = s.session_time ? s.session_time.slice(0, 5) : '';
+                    
+                    const microciclo = s.microciclo || '';
+                    const md = s.match_day || '';
+                    const equipo = s.team_category || '';
+                    const objetivo = s.objective || '';
+                    const numJugadores = s.num_players || (s.players ? s.players.length : 0);
+                    
+                    // Tags info
+                    let tagsHTML = '';
+                    if (microciclo) tagsHTML += `<span class="sc-tag micro">${microciclo}</span>`;
+                    if (md) tagsHTML += `<span class="sc-tag md">${md}</span>`;
+                    if (equipo) tagsHTML += `<span class="sc-tag equipo">${equipo}</span>`;
                     
                     return `
-                        <div class="sesion-card">
-                            <div class="sesion-card-header">
-                                <h3>${s.name}</h3>
-                                <div class="sesion-card-meta">
-                                    <span>Fecha: ${fecha}</span>
-                                </div>
+                        <div class="sc-card">
+                            <div class="sc-date-strip">
+                                <div class="sc-date-day">${diaSemana}</div>
+                                <div class="sc-date-num">${diaNum}</div>
+                                <div class="sc-date-month">${mesCorto} ${anio}</div>
+                                ${hora ? `<div class="sc-date-time">⏱ ${hora}</div>` : ''}
                             </div>
-                            <div class="sesion-card-resumen">
-                                <div class="seccion-resumen calentamiento">
-                                    <strong>${cal.length}</strong>
-                                    ejercicios<br>${tCal} min
+                            <div class="sc-body">
+                                <div class="sc-top-row">
+                                    <h3 class="sc-title">${s.name}</h3>
+                                    <div class="sc-total-badge">${tTotal} min</div>
                                 </div>
-                                <div class="seccion-resumen principal">
-                                    <strong>${pri.length}</strong>
-                                    ejercicios<br>${tPri} min
+                                ${tagsHTML ? `<div class="sc-tags">${tagsHTML}</div>` : ''}
+                                ${objetivo ? `<div class="sc-objetivo"><span class="sc-obj-label">Objetivo:</span> ${objetivo}</div>` : ''}
+                                <div class="sc-phases">
+                                    <div class="sc-phase warm">
+                                        <div class="sc-phase-bar"></div>
+                                        <div class="sc-phase-info">
+                                            <span class="sc-phase-name">Calentamiento</span>
+                                            <span class="sc-phase-data"><strong>${cal.length}</strong> ej · ${tCal} min</span>
+                                        </div>
+                                    </div>
+                                    <div class="sc-phase main">
+                                        <div class="sc-phase-bar"></div>
+                                        <div class="sc-phase-info">
+                                            <span class="sc-phase-name">Parte Principal</span>
+                                            <span class="sc-phase-data"><strong>${pri.length}</strong> ej · ${tPri} min</span>
+                                        </div>
+                                    </div>
+                                    <div class="sc-phase cool">
+                                        <div class="sc-phase-bar"></div>
+                                        <div class="sc-phase-info">
+                                            <span class="sc-phase-name">Enfriamiento</span>
+                                            <span class="sc-phase-data"><strong>${enf.length}</strong> ej · ${tEnf} min</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="seccion-resumen enfriamiento">
-                                    <strong>${enf.length}</strong>
-                                    ejercicios<br>${tEnf} min
+                                <div class="sc-footer">
+                                    <div class="sc-stats">
+                                        <span class="sc-stat">🏋️ ${totalEj} ejercicios</span>
+                                        ${numJugadores ? `<span class="sc-stat">👥 ${numJugadores} jugadores</span>` : ''}
+                                    </div>
+                                    <div class="sc-actions">
+                                        <button class="sc-btn sc-btn-cargar" onclick="cargarSesionEnEditor('${s.id}')" title="Cargar">✏️</button>
+                                        <button class="sc-btn sc-btn-asistencia" onclick="abrirModalAsistenciaSesion('${s.id}')" title="Asistencia">📋</button>
+                                        <button class="sc-btn sc-btn-pdf" onclick="abrirModalPDFSesion('${s.id}')" title="PDF">📄</button>
+                                        <button class="sc-btn sc-btn-eliminar" onclick="eliminarSesion('${s.id}')" title="Eliminar">🗑️</button>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="sesion-card-actions">
-                                <button class="btn-cargar" onclick="cargarSesionEnEditor('${s.id}')">Cargar</button>
-<button class="btn-asistencia" onclick="abrirModalAsistenciaSesion('${s.id}')">Asistencia</button>
-<button class="btn-pdf-sesion" onclick="abrirModalPDFSesion('${s.id}')">PDF</button>
-<button class="btn-eliminar-sesion" onclick="eliminarSesion('${s.id}')">Eliminar</button>
                             </div>
                         </div>
                     `;

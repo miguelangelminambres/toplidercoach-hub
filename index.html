@@ -78,140 +78,151 @@
       <!-- ==================== MODULO: DASHBOARD ==================== -->
 <div id="modulo-dashboard" class="vista-modulo active">
     <div class="dashboard-container">
-        <!-- Header -->
-        <div class="dashboard-header">
-            <h2>📊 Dashboard del Equipo</h2>
-            <p>Visualiza victorias, derrotas, goles, entrenamientos y bienestar de tu equipo de un vistazo</p>
-            <div class="dashboard-selector">
-                <label>Temporada:</label>
-                <select id="dashboard-temporada" onchange="cargarDashboard()">
-                    <option value="">Todas las temporadas</option>
-                </select>
+        
+        <!-- HERO BANNER -->
+        <div class="dash-hero">
+            <div class="dash-hero-left">
+                <div class="dash-hero-club">
+                    <div class="dash-hero-logo" id="dash-club-logo"></div>
+                    <div>
+                        <h2 id="dash-club-name">Mi Equipo</h2>
+                        <div class="dash-hero-season">
+                            <select id="dashboard-temporada" onchange="cargarDashboard()">
+                                <option value="">Todas</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="dash-hero-stats" id="dash-hero-stats">
+                <div class="dash-hs"><span class="dash-hs-val" id="dh-pj">0</span><span class="dash-hs-lbl">PJ</span></div>
+                <div class="dash-hs win"><span class="dash-hs-val" id="dh-v">0</span><span class="dash-hs-lbl">VIC</span></div>
+                <div class="dash-hs draw"><span class="dash-hs-val" id="dh-e">0</span><span class="dash-hs-lbl">EMP</span></div>
+                <div class="dash-hs loss"><span class="dash-hs-val" id="dh-d">0</span><span class="dash-hs-lbl">DER</span></div>
+                <div class="dash-hs gf"><span class="dash-hs-val" id="dh-gf">0</span><span class="dash-hs-lbl">GF</span></div>
+                <div class="dash-hs gc"><span class="dash-hs-val" id="dh-gc">0</span><span class="dash-hs-lbl">GC</span></div>
+                <div class="dash-hs dif"><span class="dash-hs-val" id="dh-dif">+0</span><span class="dash-hs-lbl">DIF</span></div>
+                <div class="dash-hs pct"><span class="dash-hs-val" id="dh-pct">0%</span><span class="dash-hs-lbl">VICTORIAS</span></div>
             </div>
         </div>
         
-        <!-- Grid de contenido -->
-        <div class="dashboard-grid">
+        <!-- TOP PERFORMERS -->
+        <div class="dash-performers" id="dash-performers">
+            <div class="dash-perf-title">⭐ Destacados de la Temporada</div>
+            <div class="dash-perf-grid" id="dash-perf-grid">
+                <!-- Generated dynamically -->
+            </div>
+        </div>
+        
+        <!-- MAIN GRID -->
+        <div class="dash-main-grid">
             
-            <!-- CARD: Últimos partidos -->
-            <div class="dashboard-card">
-                <div class="dashboard-card-header">
-                    <h3><span class="icon">⚽</span> Partidos</h3>
+            <!-- COL LEFT -->
+            <div class="dash-col">
+                <!-- Últimos Partidos -->
+                <div class="dash-card">
+                    <div class="dash-card-head">
+                        <h3>⚽ Partidos</h3>
+                    </div>
+                    <div class="dash-card-body">
+                        <div class="ultimos-partidos" id="dash-ultimos-partidos">
+                            <div class="sin-datos"><div class="icono">⚽</div><p>Cargando...</p></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="dashboard-card-body">
-                    <div class="ultimos-partidos" id="dash-ultimos-partidos">
-                        <div class="sin-datos">
-                            <div class="icono">📅</div>
-                            <p>Cargando partidos...</p>
+                
+                <!-- Próximos Eventos -->
+                <div class="dash-card">
+                    <div class="dash-card-head">
+                        <h3>📅 Próximos Eventos</h3>
+                    </div>
+                    <div class="dash-card-body">
+                        <div class="proximos-eventos" id="dash-proximos-eventos">
+                            <div class="sin-datos"><div class="icono">📅</div><p>Cargando...</p></div>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- CARD: Distribución de resultados -->
-            <div class="dashboard-card">
-                <div class="dashboard-card-header">
-                    <h3><span class="icon">📈</span> Distribución de Resultados</h3>
-                </div>
-                <div class="dashboard-card-body">
-                    <div class="resultados-multi">
-                        <!-- Donut grande: Total -->
-                        <div class="resultado-donut principal">
-                            <canvas id="chart-resultados-total"></canvas>
-                            <div class="donut-label">Total</div>
-                            <div class="donut-stats" id="stats-total"></div>
-                        </div>
-                        <!-- Donuts pequeños por competición -->
-                        <div class="resultados-competiciones" id="donuts-competiciones">
-                            <!-- Se generan dinámicamente -->
-                        </div>
+            <!-- COL RIGHT -->
+            <div class="dash-col">
+                <!-- Distribución Resultados -->
+                <div class="dash-card">
+                    <div class="dash-card-head">
+                        <h3>📈 Distribución de Resultados</h3>
                     </div>
-                    <div class="chart-legend resultados-legend">
-                        <div class="legend-item">
-                            <div class="legend-color victoria"></div>
-                            <span>Victoria</span>
+                    <div class="dash-card-body">
+                        <div class="resultados-multi">
+                            <div class="resultado-donut principal">
+                                <canvas id="chart-resultados-total"></canvas>
+                                <div class="donut-label">Total</div>
+                                <div class="donut-stats" id="stats-total"></div>
+                            </div>
+                            <div class="resultados-competiciones" id="donuts-competiciones"></div>
                         </div>
-                        <div class="legend-item">
-                            <div class="legend-color empate"></div>
-                            <span>Empate</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color derrota"></div>
-                            <span>Derrota</span>
+                        <div class="chart-legend resultados-legend">
+                            <div class="legend-item"><div class="legend-color victoria"></div><span>Victoria</span></div>
+                            <div class="legend-item"><div class="legend-color empate"></div><span>Empate</span></div>
+                            <div class="legend-item"><div class="legend-color derrota"></div><span>Derrota</span></div>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- CARD: Goles a favor vs en contra -->
-            <div class="dashboard-card">
-                <div class="dashboard-card-header">
-                    <h3><span class="icon">🥅</span> Goles a Favor vs En Contra</h3>
-                </div>
-                <div class="dashboard-card-body">
-                    <div class="chart-container">
-                        <canvas id="chart-goles"></canvas>
+                
+                <!-- Goles -->
+                <div class="dash-card">
+                    <div class="dash-card-head">
+                        <h3>🥅 Goles a Favor vs En Contra</h3>
                     </div>
-                    <div style="text-align:center;margin-top:10px;">
-                        <span style="font-size:14px;color:#6b7280;">Diferencia: </span>
-                        <span id="dash-diferencia-goles" style="font-size:18px;font-weight:700;color:#1f2937;">+0</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- CARD: Resumen entrenamientos -->
-            <div class="dashboard-card">
-                <div class="dashboard-card-header">
-                    <h3><span class="icon">🏃</span> Entrenamientos del Mes</h3>
-                </div>
-                <div class="dashboard-card-body">
-                    <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 0;">
-                        <div class="stat-card sesiones" style="padding: 15px;">
-                            <div class="numero" id="dash-sesiones" style="font-size: 28px;">-</div>
-                            <div class="label">Sesiones</div>
-                        </div>
-                        <div class="stat-card asistencia" style="padding: 15px;">
-                            <div class="numero" id="dash-asistencia-media" style="font-size: 28px;">-%</div>
-                            <div class="label">Asistencia Media</div>
-                        </div>
-                        <div class="stat-card wellness" style="padding: 15px;">
-                            <div class="numero" id="dash-wellness-medio" style="font-size: 28px;">-</div>
-                            <div class="label">Wellness Medio</div>
+                    <div class="dash-card-body">
+                        <div class="chart-container"><canvas id="chart-goles"></canvas></div>
+                        <div style="text-align:center;margin-top:10px;">
+                            <span style="font-size:14px;color:#6b7280;">Diferencia: </span>
+                            <span id="dash-diferencia-goles" style="font-size:18px;font-weight:700;">+0</span>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- CARD: Próximos eventos -->
-            <div class="dashboard-card">
-                <div class="dashboard-card-header">
-                    <h3><span class="icon">📅</span> Próximos Eventos</h3>
+        </div>
+        
+        <!-- BOTTOM ROW -->
+        <div class="dash-bottom-grid">
+            <!-- Entrenamientos del mes -->
+            <div class="dash-card">
+                <div class="dash-card-head">
+                    <h3>🏃 Entrenamientos del Mes</h3>
                 </div>
-                <div class="dashboard-card-body">
-                    <div class="proximos-eventos" id="dash-proximos-eventos">
-                        <div class="sin-datos">
-                            <div class="icono">📅</div>
-                            <p>Cargando eventos...</p>
-                        </div>
+                <div class="dash-card-body">
+                    <div class="dash-train-stats">
+                        <div class="dash-train-stat"><span class="dash-train-val" id="dash-sesiones">-</span><span class="dash-train-lbl">Sesiones</span></div>
+                        <div class="dash-train-stat"><span class="dash-train-val" id="dash-asistencia-media">-</span><span class="dash-train-lbl">Asistencia</span></div>
+                        <div class="dash-train-stat"><span class="dash-train-val" id="dash-wellness-medio">-</span><span class="dash-train-lbl">Wellness</span></div>
                     </div>
                 </div>
             </div>
             
-            <!-- CARD: Alertas de bienestar -->
-            <div class="dashboard-card">
-                <div class="dashboard-card-header">
-                    <h3><span class="icon">⚠️</span> Alertas de Bienestar</h3>
+            <!-- Estado Plantilla -->
+            <div class="dash-card">
+                <div class="dash-card-head">
+                    <h3>🏥 Estado Plantilla</h3>
                 </div>
-                <div class="dashboard-card-body">
+                <div class="dash-card-body">
+                    <div id="dash-squad-status">
+                        <div class="sin-datos"><div class="icono">✅</div><p>Cargando...</p></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Alertas Bienestar -->
+            <div class="dash-card">
+                <div class="dash-card-head">
+                    <h3>⚠️ Alertas Bienestar</h3>
+                </div>
+                <div class="dash-card-body">
                     <div class="alertas-wellness" id="dash-alertas-wellness">
-                        <div class="sin-datos">
-                            <div class="icono">✅</div>
-                            <p>Sin alertas - Todo el equipo está bien</p>
-                        </div>
+                        <div class="sin-datos"><div class="icono">✅</div><p>Cargando...</p></div>
                     </div>
                 </div>
             </div>
-            
         </div>
     </div>
 </div>  

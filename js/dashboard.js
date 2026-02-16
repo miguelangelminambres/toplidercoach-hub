@@ -1,630 +1,206 @@
 // ========== DASHBOARD.JS - TopLiderCoach HUB ==========
-// Dashboard principal, gráficos Chart.js, alertas
-
-registrarModulo('dashboard', function() {
-    cargarSelectorTemporadasDashboard();
-    cargarDashboard();
-});
-
-// Dashboard es el módulo visible por defecto, cargar al iniciar la app
-registrarInit(function() {
-    cargarSelectorTemporadasDashboard();
-    cargarDashboard();
-});
+registrarModulo('dashboard', function() { cargarSelectorTemporadasDashboard(); cargarDashboard(); });
+registrarInit(function() { cargarSelectorTemporadasDashboard(); cargarDashboard(); });
 
 async function cargarSelectorTemporadasDashboard() {
     const select = document.getElementById('dashboard-temporada');
     if (!select) return;
-    
-    const { data: temporadas } = await supabaseClient
-        .from('seasons')
-        .select('*')
-        .eq('club_id', clubId)
-        .order('start_date', { ascending: false });
-    
-    select.innerHTML = '<option value="">Todas las temporadas</option>';
-    
-    if (temporadas) {
-        temporadas.forEach(t => {
-            const option = document.createElement('option');
-            option.value = t.id;
-            option.textContent = t.name;
-            if (t.id === seasonId) option.selected = true;
-            select.appendChild(option);
-        });
-    }
+    const { data: temporadas } = await supabaseClient.from('seasons').select('*').eq('club_id', clubId).order('start_date', { ascending: false });
+    select.innerHTML = '<option value="">Todas</option>';
+    if (temporadas) temporadas.forEach(t => { const o = document.createElement('option'); o.value = t.id; o.textContent = t.name; if (t.id === seasonId) o.selected = true; select.appendChild(o); });
 }
 
-// Función principal para cargar todo el dashboard
 async function cargarDashboard() {
+    cargarHeroBanner();
     await cargarDatosPartidosDashboard();
+    await cargarTopPerformers();
+    await cargarEstadoPlantilla();
     await cargarDatosEntrenamientosDashboard();
     await cargarProximosEventos();
     await cargarAlertasWellness();
 }
 
-// Cargar datos de partidos
-async function cargarDatosPartidosDashboard() {
-    const tempSelect = document.getElementById('dashboard-temporada');
-    const tempId = tempSelect?.value || seasonId;
-    
-    let query = supabaseClient
-        .from('matches')
-        .select('*')
-        .eq('club_id', clubId)
-        .order('match_date', { ascending: false });
-    
-    if (tempId) {
-        query = query.eq('season_id', tempId);
+function cargarHeroBanner() {
+    const logoEl = document.getElementById('dash-club-logo');
+    const nameEl = document.getElementById('dash-club-name');
+    if (clubData) {
+        nameEl.textContent = clubData.name || 'Mi Equipo';
+        logoEl.innerHTML = clubData.logo_url ? `<img src="${clubData.logo_url}" alt="">` : '⚽';
     }
-    
-    const { data: partidos } = await query;
-    
-    if (!partidos || partidos.length === 0) {
-        mostrarSinDatosPartidos();
-        return;
-    }
-    
-    // Calcular estadísticas
-    const partidosJugados = partidos.filter(p => p.result);
-    const victorias = partidosJugados.filter(p => p.result === 'win').length;
-    const empates = partidosJugados.filter(p => p.result === 'draw').length;
-    const derrotas = partidosJugados.filter(p => p.result === 'loss').length;
-    const golesFavor = partidosJugados.reduce((sum, p) => sum + (p.team_goals || 0), 0);
-    const golesContra = partidosJugados.reduce((sum, p) => sum + (p.opponent_goals || 0), 0);
-    
-    // Actualizar tarjetas (si existen)
-    const elV = document.getElementById('dash-victorias'); if (elV) elV.textContent = victorias;
-    const elE = document.getElementById('dash-empates'); if (elE) elE.textContent = empates;
-    const elD = document.getElementById('dash-derrotas'); if (elD) elD.textContent = derrotas;
-    const elG = document.getElementById('dash-goles'); if (elG) elG.textContent = golesFavor;
-    
-    // Diferencia de goles
-    const diferencia = golesFavor - golesContra;
-    const difEl = document.getElementById('dash-diferencia-goles');
-    difEl.textContent = (diferencia >= 0 ? '+' : '') + diferencia;
-    difEl.style.color = diferencia >= 0 ? '#22c55e' : '#ef4444';
-    
-    // Últimos y próximos partidos (jugados recientes + pendientes)
-    const jugadosRecientes = partidosJugados.slice(0, 5);
-    const pendientes = partidos.filter(p => !p.result).reverse().slice(0, 5);
-    const todosParaMostrar = [...jugadosRecientes, ...pendientes]
-        .sort((a, b) => new Date(a.match_date) - new Date(b.match_date))
-        .slice(-10);
-    mostrarUltimosPartidos(todosParaMostrar);
-    
-    // Gráfico de resultados por competición (multi-donut)
-    crearGraficosResultadosPorCompeticion(partidosJugados);
-    
-    // Gráfico de goles
-    crearGraficoGoles(golesFavor, golesContra);
 }
 
-function calcularPorcentaje(valor, total) {
-    if (total === 0) return 0;
-    return Math.round((valor / total) * 100);
+function actualizarHeroStats(pj,v,e,d,gf,gc) {
+    document.getElementById('dh-pj').textContent = pj;
+    document.getElementById('dh-v').textContent = v;
+    document.getElementById('dh-e').textContent = e;
+    document.getElementById('dh-d').textContent = d;
+    document.getElementById('dh-gf').textContent = gf;
+    document.getElementById('dh-gc').textContent = gc;
+    const dif = gf - gc;
+    const difEl = document.getElementById('dh-dif');
+    difEl.textContent = (dif >= 0 ? '+' : '') + dif;
+    difEl.style.color = dif >= 0 ? '#22c55e' : '#ef4444';
+    document.getElementById('dh-pct').textContent = (pj > 0 ? Math.round((v/pj)*100) : 0) + '%';
+}
+
+async function cargarDatosPartidosDashboard() {
+    const tempId = document.getElementById('dashboard-temporada')?.value || seasonId;
+    let query = supabaseClient.from('matches').select('*').eq('club_id', clubId).order('match_date', { ascending: false });
+    if (tempId) query = query.eq('season_id', tempId);
+    const { data: partidos } = await query;
+    if (!partidos || partidos.length === 0) { actualizarHeroStats(0,0,0,0,0,0); mostrarSinDatosPartidos(); return; }
+    const pj = partidos.filter(p => p.result);
+    const v = pj.filter(p => p.result === 'win').length, e = pj.filter(p => p.result === 'draw').length, d = pj.filter(p => p.result === 'loss').length;
+    const gf = pj.reduce((s,p) => s + (p.team_goals||0), 0), gc = pj.reduce((s,p) => s + (p.opponent_goals||0), 0);
+    actualizarHeroStats(pj.length, v, e, d, gf, gc);
+    const difEl = document.getElementById('dash-diferencia-goles');
+    if (difEl) { difEl.textContent = (gf-gc >= 0 ? '+' : '') + (gf-gc); difEl.style.color = gf>=gc ? '#22c55e' : '#ef4444'; }
+    const jugados = pj.slice(0,5), pend = partidos.filter(p => !p.result).reverse().slice(0,5);
+    mostrarUltimosPartidos([...jugados,...pend].sort((a,b) => new Date(a.match_date)-new Date(b.match_date)).slice(-10));
+    crearGraficosResultadosPorCompeticion(pj);
+    crearGraficoGoles(gf, gc);
 }
 
 function mostrarSinDatosPartidos() {
-    const elV = document.getElementById('dash-victorias'); if (elV) elV.textContent = '0';
-    const elE = document.getElementById('dash-empates'); if (elE) elE.textContent = '0';
-    const elD = document.getElementById('dash-derrotas'); if (elD) elD.textContent = '0';
-    const elG = document.getElementById('dash-goles'); if (elG) elG.textContent = '0';
-    document.getElementById('dash-diferencia-goles').textContent = '+0';
-    
-    document.getElementById('dash-ultimos-partidos').innerHTML = `
-        <div class="sin-datos">
-            <div class="icono">⚽</div>
-            <p>No hay partidos registrados</p>
-        </div>
-    `;
-    
+    const d = document.getElementById('dash-diferencia-goles'); if(d) d.textContent = '+0';
+    document.getElementById('dash-ultimos-partidos').innerHTML = '<div class="sin-datos"><div class="icono">⚽</div><p>No hay partidos registrados</p></div>';
     crearGraficosResultadosPorCompeticion([]);
     crearGraficoGoles(0, 0);
 }
 
+// ========== TOP PERFORMERS ==========
+async function cargarTopPerformers() {
+    const tempId = document.getElementById('dashboard-temporada')?.value || seasonId;
+    const grid = document.getElementById('dash-perf-grid');
+    const container = document.getElementById('dash-performers');
+    if (!grid || !tempId) { if(container) container.style.display='none'; return; }
+    const { data: stats } = await supabaseClient.from('match_player_stats').select('player_id, minutes_played, goals, assists, yellow_cards, red_cards, matches!inner(season_id)').eq('matches.season_id', tempId);
+    if (!stats || stats.length === 0) { container.style.display='none'; return; }
+    const agg = {};
+    stats.forEach(s => { const pid = s.player_id; if (!agg[pid]) agg[pid]={pj:0,min:0,g:0,a:0}; if(s.minutes_played>0) agg[pid].pj++; agg[pid].min+=s.minutes_played||0; agg[pid].g+=s.goals||0; agg[pid].a+=s.assists||0; });
+    const playerIds = Object.keys(agg);
+    const { data: players } = await supabaseClient.from('players').select('id, name, photo_url, position').in('id', playerIds);
+    const pm = {}; (players||[]).forEach(p => pm[p.id]=p);
+    const topG = Object.entries(agg).sort((a,b)=>b[1].g-a[1].g)[0];
+    const topA = Object.entries(agg).sort((a,b)=>b[1].a-a[1].a)[0];
+    const topM = Object.entries(agg).sort((a,b)=>b[1].min-a[1].min)[0];
+    const topP = Object.entries(agg).sort((a,b)=>b[1].pj-a[1].pj)[0];
+    const perfs = [
+        {label:'Máx. Goleador',icon:'⚽',pid:topG?.[0],val:topG?.[1]?.g||0,unit:'goles',color:'#22c55e'},
+        {label:'Máx. Asistente',icon:'👟',pid:topA?.[0],val:topA?.[1]?.a||0,unit:'asist.',color:'#3b82f6'},
+        {label:'Más Minutos',icon:'⏱️',pid:topM?.[0],val:topM?.[1]?.min||0,unit:'min',color:'#8b5cf6'},
+        {label:'Más Partidos',icon:'🏟️',pid:topP?.[0],val:topP?.[1]?.pj||0,unit:'PJ',color:'#f59e0b'}
+    ];
+    if (!perfs.some(p=>p.val>0)) { container.style.display='none'; return; }
+    container.style.display = '';
+    grid.innerHTML = perfs.filter(p=>p.val>0).map(p => {
+        const pl = pm[p.pid]||{};
+        const nombre = pl.name ? pl.name.split(' ').pop().toUpperCase() : '—';
+        const foto = pl.photo_url ? `<img src="${pl.photo_url}" alt="">` : `<div class="dash-perf-nofoto">${(pl.name||'?').charAt(0)}</div>`;
+        return `<div class="dash-perf-card" style="--perf-color:${p.color}"><div class="dash-perf-foto">${foto}</div><div class="dash-perf-info"><div class="dash-perf-name">${nombre}</div><div class="dash-perf-pos">${pl.position||''}</div></div><div class="dash-perf-stat"><span class="dash-perf-val">${p.val}</span><span class="dash-perf-unit">${p.unit}</span></div><div class="dash-perf-label">${p.icon} ${p.label}</div></div>`;
+    }).join('');
+}
+
+// ========== ESTADO PLANTILLA ==========
+async function cargarEstadoPlantilla() {
+    const c = document.getElementById('dash-squad-status'); if(!c) return;
+    const { data: sp } = await supabaseClient.from('season_players').select('shirt_number, players(id, name, photo_url, position, status)').eq('season_id', seasonId).order('shirt_number');
+    if (!sp || sp.length===0) { c.innerHTML='<div class="sin-datos"><div class="icono">👥</div><p>Sin plantilla</p></div>'; return; }
+    const inj = sp.filter(s=>s.players?.status==='injured'), sus = sp.filter(s=>s.players?.status==='suspended'), avail = sp.filter(s=>s.players?.status==='available'||!s.players?.status);
+    if (inj.length===0 && sus.length===0) { c.innerHTML=`<div class="dash-squad-ok"><div class="dash-squad-ok-icon">✅</div><div class="dash-squad-ok-text">Plantilla completa</div><div class="dash-squad-ok-count">${avail.length} disponibles</div></div>`; return; }
+    let html = `<div class="dash-squad-summary"><span class="dash-sq-avail">${avail.length} disp.</span>${inj.length?`<span class="dash-sq-inj">${inj.length} lesion.</span>`:''}${sus.length?`<span class="dash-sq-sus">${sus.length} sanc.</span>`:''}</div>`;
+    [...inj.map(s=>({...s,tipo:'injured'})),...sus.map(s=>({...s,tipo:'suspended'}))].forEach(s => {
+        const j=s.players||{};
+        const foto=j.photo_url?`<img src="${j.photo_url}" alt="">`:`<span>${(j.name||'?').charAt(0)}</span>`;
+        html+=`<div class="dash-sq-player ${s.tipo==='injured'?'inj':'sus'}"><div class="dash-sq-foto">${foto}</div><div class="dash-sq-info"><div class="dash-sq-name">${j.name||''}</div><div class="dash-sq-pos">${j.position||''} · #${s.shirt_number||'-'}</div></div><div class="dash-sq-badge ${s.tipo==='injured'?'inj':'sus'}">${s.tipo==='injured'?'🏥 Lesión':'⛔ Sanción'}</div></div>`;
+    });
+    c.innerHTML = html;
+}
+
+// ========== ÚLTIMOS PARTIDOS ==========
 function mostrarUltimosPartidos(partidos) {
-    const container = document.getElementById('dash-ultimos-partidos');
-    
-    if (!partidos || partidos.length === 0) {
-        container.innerHTML = `
-            <div class="sin-datos">
-                <div class="icono">⚽</div>
-                <p>No hay partidos registrados</p>
-            </div>
-        `;
-        return;
-    }
-    
-    const miEscudo = clubData?.logo_url 
-        ? `<img src="${clubData.logo_url}" alt="" class="escudo-mini">` 
-        : `<span class="escudo-placeholder">🏠</span>`;
-    const miNombre = clubData?.name || 'Mi Equipo';
-    
-    container.innerHTML = partidos.map(p => {
-        const esLocal = p.home_away === 'home';
-        const jugado = !!p.result;
-        const fecha = new Date(p.match_date);
-        const fechaStr = fecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
-        const hora = p.kick_off_time ? p.kick_off_time.slice(0, 5) : '';
-        
-        // Competición + jornada
-        let competicionStr = '';
-        if (p.competition) {
-            competicionStr = p.competition;
-            if (p.round) competicionStr += '. ' + p.round;
-        }
-        
-        // Escudo rival
-        const rivalEscudo = p.opponent_logo 
-            ? `<img src="${p.opponent_logo}" alt="" class="escudo-mini">` 
-            : `<span class="escudo-placeholder">🏟️</span>`;
-        
-        // Equipo izquierda (local) y derecha (visitante)
-        const equipoIzq = esLocal ? miNombre : p.opponent;
-        const escudoIzq = esLocal ? miEscudo : rivalEscudo;
-        const equipoDer = esLocal ? p.opponent : miNombre;
-        const escudoDer = esLocal ? rivalEscudo : miEscudo;
-        
-        // Marcador o hora
-        let centroHTML = '';
-        if (jugado) {
-            const gF = p.team_goals || 0;
-            const gC = p.opponent_goals || 0;
-            const marcador = esLocal ? `${gF}-${gC}` : `${gC}-${gF}`;
-            centroHTML = `<span class="match-score">${marcador}</span>`;
-        } else {
-            centroHTML = `<span class="match-time">${hora || 'TBD'}</span>`;
-        }
-        
-        // Badge resultado
-        let badgeHTML = '';
-        if (jugado) {
-            const claseRes = p.result === 'win' ? 'badge-win' : p.result === 'draw' ? 'badge-draw' : 'badge-loss';
-            badgeHTML = `<span class="match-badge ${claseRes}">Fin</span>`;
-        }
-        
-        return `
-            <div class="match-row ${jugado ? 'played' : 'upcoming'}" onclick="verPartido('${p.id}')">
-                ${badgeHTML}
-                ${competicionStr ? `<div class="match-competition">${competicionStr}</div>` : ''}
-                <div class="match-teams">
-                    <div class="match-team left">
-                        <span class="team-name">${equipoIzq}</span>
-                        ${escudoIzq}
-                    </div>
-                    <div class="match-center">
-                        ${centroHTML}
-                    </div>
-                    <div class="match-team right">
-                        ${escudoDer}
-                        <span class="team-name">${equipoDer}</span>
-                    </div>
-                </div>
-                <div class="match-date">${fechaStr}</div>
-            </div>
-        `;
+    const c = document.getElementById('dash-ultimos-partidos');
+    if (!partidos||partidos.length===0) { c.innerHTML='<div class="sin-datos"><div class="icono">⚽</div><p>No hay partidos</p></div>'; return; }
+    const miEsc = clubData?.logo_url?`<img src="${clubData.logo_url}" alt="" class="escudo-mini">`:'<span class="escudo-placeholder">🏠</span>';
+    const miN = clubData?.name||'Mi Equipo';
+    c.innerHTML = partidos.map(p => {
+        const loc=p.home_away==='home', jug=!!p.result;
+        const fechaStr = new Date(p.match_date).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}).toUpperCase();
+        let comp = p.competition||''; if(comp&&p.round) comp+='. '+p.round;
+        const rivEsc = p.opponent_logo?`<img src="${p.opponent_logo}" alt="" class="escudo-mini">`:'<span class="escudo-placeholder">🏟️</span>';
+        let centro='';
+        if(jug){const gf=p.team_goals||0,gc=p.opponent_goals||0;centro=`<span class="match-score">${loc?gf+'-'+gc:gc+'-'+gf}</span>`;}
+        else{centro=`<span class="match-time">${p.kick_off_time?p.kick_off_time.slice(0,5):'TBD'}</span>`;}
+        const badge=jug?`<span class="match-badge badge-${p.result==='win'?'win':p.result==='draw'?'draw':'loss'}"></span>`:'';
+        return `<div class="match-row ${jug?'played':'upcoming'}" onclick="verPartido('${p.id}')">${badge}${comp?`<div class="match-competition">${comp}</div>`:''}<div class="match-teams"><div class="match-team left"><span class="team-name">${loc?miN:p.opponent}</span>${loc?miEsc:rivEsc}</div><div class="match-center">${centro}</div><div class="match-team right">${loc?rivEsc:miEsc}<span class="team-name">${loc?p.opponent:miN}</span></div></div><div class="match-date">${fechaStr}</div></div>`;
     }).join('');
 }
 
-// Charts por competición almacenados
+// ========== CHARTS ==========
 let chartsCompeticion = [];
-
-function crearGraficosResultadosPorCompeticion(partidosJugados) {
-    // Destruir charts anteriores
-    chartsCompeticion.forEach(c => c.destroy());
-    chartsCompeticion = [];
-    
-    // Calcular stats totales
-    const totalV = partidosJugados.filter(p => p.result === 'win').length;
-    const totalE = partidosJugados.filter(p => p.result === 'draw').length;
-    const totalD = partidosJugados.filter(p => p.result === 'loss').length;
-    const totalP = totalV + totalE + totalD;
-    
-    // Crear donut Total
-    const ctxTotal = document.getElementById('chart-resultados-total');
-    if (ctxTotal) {
-        const chart = crearDonut(ctxTotal, totalV, totalE, totalD);
-        if (chart) chartsCompeticion.push(chart);
-    }
-    
-    const statsTotal = document.getElementById('stats-total');
-    if (statsTotal) {
-        statsTotal.innerHTML = `<span class="donut-stat-line">${totalP} PJ · ${totalV}V · ${totalE}E · ${totalD}D</span>`;
-    }
-    
-    // Agrupar por competición
-    const porCompeticion = {};
-    partidosJugados.forEach(p => {
-        const comp = p.competition || 'Sin clasificar';
-        if (!porCompeticion[comp]) porCompeticion[comp] = [];
-        porCompeticion[comp].push(p);
-    });
-    
-    // Crear donuts por competición
-    const container = document.getElementById('donuts-competiciones');
-    if (!container) return;
-    container.innerHTML = '';
-    
-    const competiciones = Object.keys(porCompeticion).sort();
-    
-    if (competiciones.length === 0) {
-        container.innerHTML = '<p style="color:#9ca3af;font-size:12px;text-align:center;grid-column:1/-1;">No hay datos por competición</p>';
-        return;
-    }
-    
-    competiciones.forEach(comp => {
-        const partidos = porCompeticion[comp];
-        const v = partidos.filter(p => p.result === 'win').length;
-        const e = partidos.filter(p => p.result === 'draw').length;
-        const d = partidos.filter(p => p.result === 'loss').length;
-        const pj = v + e + d;
-        
-        const canvasId = 'chart-comp-' + comp.replace(/\s+/g, '-').toLowerCase();
-        
-        const wrapper = document.createElement('div');
-        wrapper.className = 'resultado-donut mini';
-        wrapper.innerHTML = `
-            <canvas id="${canvasId}"></canvas>
-            <div class="donut-label">${comp}</div>
-            <div class="donut-stats"><span class="donut-stat-line">${pj}PJ · ${v}V · ${e}E · ${d}D</span></div>
-        `;
-        container.appendChild(wrapper);
-        
-        const ctx = document.getElementById(canvasId);
-        if (ctx) {
-            const chart = crearDonut(ctx, v, e, d);
-            if (chart) chartsCompeticion.push(chart);
-        }
+function crearGraficosResultadosPorCompeticion(pj) {
+    chartsCompeticion.forEach(c=>c.destroy()); chartsCompeticion=[];
+    const tv=pj.filter(p=>p.result==='win').length,te=pj.filter(p=>p.result==='draw').length,td=pj.filter(p=>p.result==='loss').length,tp=tv+te+td;
+    const ctx=document.getElementById('chart-resultados-total');
+    if(ctx){const ch=crearDonut(ctx,tv,te,td);if(ch)chartsCompeticion.push(ch);}
+    const st=document.getElementById('stats-total');if(st)st.innerHTML=`<span class="donut-stat-line">${tp}PJ · ${tv}V · ${te}E · ${td}D</span>`;
+    const porComp={};pj.forEach(p=>{const c=p.competition||'Sin clasificar';if(!porComp[c])porComp[c]=[];porComp[c].push(p);});
+    const cont=document.getElementById('donuts-competiciones');if(!cont)return;cont.innerHTML='';
+    Object.keys(porComp).sort().forEach(comp=>{
+        const ps=porComp[comp],v=ps.filter(p=>p.result==='win').length,e=ps.filter(p=>p.result==='draw').length,d=ps.filter(p=>p.result==='loss').length,n=v+e+d;
+        const cid='chart-comp-'+comp.replace(/\s+/g,'-').toLowerCase();
+        const w=document.createElement('div');w.className='resultado-donut mini';
+        w.innerHTML=`<canvas id="${cid}"></canvas><div class="donut-label">${comp}</div><div class="donut-stats"><span class="donut-stat-line">${n}PJ·${v}V·${e}E·${d}D</span></div>`;
+        cont.appendChild(w);const cx=document.getElementById(cid);if(cx){const ch=crearDonut(cx,v,e,d);if(ch)chartsCompeticion.push(ch);}
     });
 }
 
-function crearDonut(ctx, victorias, empates, derrotas) {
-    const total = victorias + empates + derrotas;
-    
-    if (total === 0) {
-        return new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Sin partidos'],
-                datasets: [{ data: [1], backgroundColor: ['#e5e7eb'], borderWidth: 0 }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: { legend: { display: false }, tooltip: { enabled: false } }
-            }
-        });
-    }
-    
-    // Plugin para texto central
-    const centerTextPlugin = {
-        id: 'centerText',
-        afterDraw: function(chart) {
-            const { ctx: c, chartArea } = chart;
-            const centerX = (chartArea.left + chartArea.right) / 2;
-            const centerY = (chartArea.top + chartArea.bottom) / 2;
-            const pct = total > 0 ? Math.round((victorias / total) * 100) : 0;
-            
-            c.save();
-            c.textAlign = 'center';
-            c.textBaseline = 'middle';
-            c.font = 'bold ' + (chart.canvas.parentElement.classList.contains('principal') ? '22px' : '16px') + ' system-ui';
-            c.fillStyle = '#22c55e';
-            c.fillText(pct + '%', centerX, centerY - 6);
-            c.font = (chart.canvas.parentElement.classList.contains('principal') ? '11px' : '9px') + ' system-ui';
-            c.fillStyle = '#9ca3af';
-            c.fillText('victorias', centerX, centerY + 12);
-            c.restore();
-        }
-    };
-    
-    return new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Victorias', 'Empates', 'Derrotas'],
-            datasets: [{
-                data: [victorias, empates, derrotas],
-                backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'],
-                borderWidth: 2,
-                borderColor: '#ffffff',
-                hoverOffset: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            cutout: '68%',
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const value = context.raw;
-                            const percentage = Math.round((value / total) * 100);
-                            return `${context.label}: ${value} (${percentage}%)`;
-                        }
-                    }
-                }
-            }
-        },
-        plugins: [centerTextPlugin]
-    });
+function crearDonut(ctx,vic,emp,der) {
+    const t=vic+emp+der;
+    if(t===0) return new Chart(ctx,{type:'doughnut',data:{labels:['Sin partidos'],datasets:[{data:[1],backgroundColor:['#e5e7eb'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false},tooltip:{enabled:false}}}});
+    const ctp={id:'centerText',afterDraw:function(chart){const{ctx:c,chartArea}=chart;const cx=(chartArea.left+chartArea.right)/2,cy=(chartArea.top+chartArea.bottom)/2;c.save();c.textAlign='center';c.textBaseline='middle';const big=chart.canvas.parentElement.classList.contains('principal');c.font='bold '+(big?'22px':'16px')+' system-ui';c.fillStyle='#22c55e';c.fillText(Math.round((vic/t)*100)+'%',cx,cy-6);c.font=(big?'11px':'9px')+' system-ui';c.fillStyle='#9ca3af';c.fillText('victorias',cx,cy+12);c.restore();}};
+    return new Chart(ctx,{type:'doughnut',data:{labels:['Victorias','Empates','Derrotas'],datasets:[{data:[vic,emp,der],backgroundColor:['#22c55e','#f59e0b','#ef4444'],borderWidth:2,borderColor:'#fff',hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:true,cutout:'68%',plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.label+': '+c.raw+' ('+Math.round((c.raw/t)*100)+'%)';}}}}},plugins:[ctp]});
 }
 
-function crearGraficoGoles(favor, contra) {
-    const ctx = document.getElementById('chart-goles');
-    if (!ctx) return;
-    
-    // Destruir gráfico anterior si existe
-    if (chartGoles) {
-        chartGoles.destroy();
-    }
-    
-    chartGoles = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['A favor', 'En contra', 'Diferencia'],
-            datasets: [{
-                data: [favor, contra, favor - contra],
-                backgroundColor: ['#22c55e', '#ef4444', favor >= contra ? '#3b82f6' : '#f97316'],
-                borderRadius: 8,
-                barThickness: 50
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `${context.raw} goles`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: '#f0f0f0'
-                    }
-                },
-                x: {
-                    grid: { display: false }
-                }
-            }
-        }
-    });
+function crearGraficoGoles(f,c) {
+    const ctx=document.getElementById('chart-goles');if(!ctx)return;
+    if(chartGoles)chartGoles.destroy();
+    chartGoles=new Chart(ctx,{type:'bar',data:{labels:['A favor','En contra','Diferencia'],datasets:[{data:[f,c,f-c],backgroundColor:['#22c55e','#ef4444',f>=c?'#3b82f6':'#f97316'],borderRadius:8,barThickness:50}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f0f0'}},x:{grid:{display:false}}}}});
 }
 
-// Cargar datos de entrenamientos del mes actual
+// ========== ENTRENAMIENTOS ==========
 async function cargarDatosEntrenamientosDashboard() {
-    const ahora = new Date();
-    const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1).toISOString().split('T')[0];
-    const finMes = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0).toISOString().split('T')[0];
-    
-    // Sesiones del mes
-    const { data: sesiones } = await supabaseClient
-        .from('training_sessions')
-        .select('id')
-        .eq('club_id', clubId)
-        .gte('session_date', inicioMes)
-        .lte('session_date', finMes);
-    
-    const numSesiones = sesiones?.length || 0;
-    document.getElementById('dash-sesiones').textContent = numSesiones;
-    
-    if (numSesiones === 0) {
-        document.getElementById('dash-asistencia-media').textContent = '-';
-        document.getElementById('dash-wellness-medio').textContent = '-';
-        return;
-    }
-    
-    // Asistencia del mes
-    const sesionIds = sesiones.map(s => s.id);
-    const { data: asistencias } = await supabaseClient
-        .from('attendance')
-        .select('asistio, wellness')
-        .in('sesion_id', sesionIds);
-    
-    if (asistencias && asistencias.length > 0) {
-        const totalRegistros = asistencias.length;
-        const asistieron = asistencias.filter(a => a.asistio).length;
-        const porcentaje = Math.round((asistieron / totalRegistros) * 100);
-        document.getElementById('dash-asistencia-media').textContent = porcentaje + '%';
-        
-        // Wellness medio
-        const wellnessValues = asistencias.filter(a => a.wellness).map(a => a.wellness);
-        if (wellnessValues.length > 0) {
-            const wellnessMedio = (wellnessValues.reduce((a, b) => a + b, 0) / wellnessValues.length).toFixed(1);
-            document.getElementById('dash-wellness-medio').textContent = wellnessMedio;
-        } else {
-            document.getElementById('dash-wellness-medio').textContent = '-';
-        }
-    } else {
-        document.getElementById('dash-asistencia-media').textContent = '-';
-        document.getElementById('dash-wellness-medio').textContent = '-';
-    }
+    const now=new Date(),ini=new Date(now.getFullYear(),now.getMonth(),1).toISOString().split('T')[0],fin=new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().split('T')[0];
+    const{data:ses}=await supabaseClient.from('training_sessions').select('id').eq('club_id',clubId).gte('session_date',ini).lte('session_date',fin);
+    const n=ses?.length||0;document.getElementById('dash-sesiones').textContent=n;
+    if(n===0){document.getElementById('dash-asistencia-media').textContent='-';document.getElementById('dash-wellness-medio').textContent='-';return;}
+    const{data:att}=await supabaseClient.from('attendance').select('asistio, wellness').in('sesion_id',ses.map(s=>s.id));
+    if(att&&att.length>0){const tot=att.length,ok=att.filter(a=>a.asistio).length;document.getElementById('dash-asistencia-media').textContent=Math.round((ok/tot)*100)+'%';const wv=att.filter(a=>a.wellness).map(a=>a.wellness);document.getElementById('dash-wellness-medio').textContent=wv.length>0?(wv.reduce((a,b)=>a+b,0)/wv.length).toFixed(1):'-';}
+    else{document.getElementById('dash-asistencia-media').textContent='-';document.getElementById('dash-wellness-medio').textContent='-';}
 }
 
-// Cargar próximos eventos (partidos y sesiones)
+// ========== PRÓXIMOS EVENTOS ==========
 async function cargarProximosEventos() {
-    const container = document.getElementById('dash-proximos-eventos');
-    const hoy = new Date().toISOString().split('T')[0];
-    
-    // Próximos partidos
-    const { data: partidos } = await supabaseClient
-        .from('matches')
-        .select('*')
-        .eq('club_id', clubId)
-        .gte('match_date', hoy)
-        .is('result', null)
-        .order('match_date')
-        .limit(3);
-    
-    // Próximas sesiones
-    const { data: sesiones } = await supabaseClient
-        .from('training_sessions')
-        .select('*')
-        .eq('club_id', clubId)
-        .gte('session_date', hoy)
-        .order('session_date')
-        .limit(3);
-    
-    // Combinar y ordenar
-    const eventos = [];
-    
-    (partidos || []).forEach(p => {
-        eventos.push({
-            tipo: 'partido',
-            fecha: p.match_date,
-            titulo: `vs ${p.opponent}`,
-            subtitulo: p.home_away === 'home' ? 'Local' : 'Visitante',
-            hora: p.kick_off_time ? p.kick_off_time.slice(0, 5) : ''
-        });
-    });
-    
-    (sesiones || []).forEach(s => {
-        eventos.push({
-            tipo: 'sesion',
-            fecha: s.session_date,
-            titulo: s.name,
-            subtitulo: s.objective || 'Entrenamiento',
-            hora: s.hora_inicio || ''
-        });
-    });
-    
-    // Ordenar por fecha
-    eventos.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-    
-    // Mostrar solo los 5 primeros
-    const eventosLimitados = eventos.slice(0, 5);
-    
-    if (eventosLimitados.length === 0) {
-        container.innerHTML = `
-            <div class="sin-datos">
-                <div class="icono">📅</div>
-                <p>No hay eventos próximos programados</p>
-            </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = eventosLimitados.map(e => {
-        const fecha = new Date(e.fecha);
-        const dia = fecha.getDate();
-        const mes = fecha.toLocaleDateString('es-ES', { month: 'short' }).toUpperCase();
-        
-        return `
-            <div class="evento-item ${e.tipo}">
-                <div class="evento-fecha">
-                    <div class="dia">${dia}</div>
-                    <div class="mes">${mes}</div>
-                </div>
-                <div class="evento-info">
-                    <div class="titulo">${e.titulo}</div>
-                    <div class="subtitulo">${e.subtitulo}${e.hora ? ' - ' + e.hora : ''}</div>
-                </div>
-                <div class="evento-tipo ${e.tipo}">${e.tipo === 'partido' ? '⚽ Partido' : '🏃 Entreno'}</div>
-            </div>
-        `;
-    }).join('');
+    const c=document.getElementById('dash-proximos-eventos');const hoy=new Date().toISOString().split('T')[0];
+    const{data:pa}=await supabaseClient.from('matches').select('*').eq('club_id',clubId).gte('match_date',hoy).is('result',null).order('match_date').limit(3);
+    const{data:se}=await supabaseClient.from('training_sessions').select('*').eq('club_id',clubId).gte('session_date',hoy).order('session_date').limit(3);
+    const ev=[];
+    (pa||[]).forEach(p=>ev.push({tipo:'partido',fecha:p.match_date,titulo:`vs ${p.opponent}`,sub:p.home_away==='home'?'Local':'Visitante',hora:p.kick_off_time?p.kick_off_time.slice(0,5):''}));
+    (se||[]).forEach(s=>ev.push({tipo:'sesion',fecha:s.session_date,titulo:s.name,sub:s.objective||'Entrenamiento',hora:s.hora_inicio||''}));
+    ev.sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
+    if(ev.length===0){c.innerHTML='<div class="sin-datos"><div class="icono">📅</div><p>No hay eventos próximos</p></div>';return;}
+    c.innerHTML=ev.slice(0,5).map(e=>{const f=new Date(e.fecha);return`<div class="evento-item ${e.tipo}"><div class="evento-fecha"><div class="dia">${f.getDate()}</div><div class="mes">${f.toLocaleDateString('es-ES',{month:'short'}).toUpperCase()}</div></div><div class="evento-info"><div class="titulo">${e.titulo}</div><div class="subtitulo">${e.sub}${e.hora?' - '+e.hora:''}</div></div><div class="evento-tipo ${e.tipo}">${e.tipo==='partido'?'⚽':'🏃'}</div></div>`;}).join('');
 }
 
-// Cargar alertas de bienestar (wellness bajo o daño muscular alto)
+// ========== ALERTAS WELLNESS ==========
 async function cargarAlertasWellness() {
-    const container = document.getElementById('dash-alertas-wellness');
-    
-    // Obtener la última sesión con asistencia
-    const { data: ultimaSesion } = await supabaseClient
-        .from('training_sessions')
-        .select('id, session_date, name')
-        .eq('club_id', clubId)
-        .order('session_date', { ascending: false })
-        .limit(1)
-        .single();
-    
-    if (!ultimaSesion) {
-        container.innerHTML = `
-            <div class="sin-datos">
-                <div class="icono">✅</div>
-                <p>Sin datos de bienestar recientes</p>
-            </div>
-        `;
-        return;
-    }
-    
-    // Obtener asistencia de la última sesión
-    const { data: asistencias } = await supabaseClient
-        .from('attendance')
-        .select(`
-            wellness,
-            estado_muscular,
-            jugador_id,
-            players (name, position)
-        `)
-        .eq('sesion_id', ultimaSesion.id)
-        .eq('asistio', true);
-    
-    if (!asistencias || asistencias.length === 0) {
-        container.innerHTML = `
-            <div class="sin-datos">
-                <div class="icono">✅</div>
-                <p>Sin registros de bienestar en la última sesión</p>
-            </div>
-        `;
-        return;
-    }
-    
-    // Filtrar alertas
-    const alertas = [];
-    
-    asistencias.forEach(a => {
-        if (a.wellness && a.wellness <= 5) {
-            alertas.push({
-                jugador: a.players?.name || 'Jugador',
-                tipo: 'Wellness bajo',
-                valor: a.wellness,
-                clase: a.wellness <= 3 ? '' : 'warning'
-            });
-        }
-        if (a.estado_muscular && a.estado_muscular >= 6) {
-            alertas.push({
-                jugador: a.players?.name || 'Jugador',
-                tipo: 'Daño muscular',
-                valor: a.estado_muscular,
-                clase: a.estado_muscular >= 8 ? '' : 'warning'
-            });
-        }
-    });
-    
-    if (alertas.length === 0) {
-        container.innerHTML = `
-            <div class="sin-datos">
-                <div class="icono">✅</div>
-                <p>¡Todo el equipo está en buenas condiciones!</p>
-            </div>
-        `;
-        return;
-    }
-    
-    // Ordenar: más graves primero
-    alertas.sort((a, b) => {
-        if (a.clase === '' && b.clase === 'warning') return -1;
-        if (a.clase === 'warning' && b.clase === '') return 1;
-        return 0;
-    });
-    
-    container.innerHTML = alertas.slice(0, 5).map(a => `
-        <div class="alerta-item ${a.clase}">
-            <div>
-                <div class="jugador-nombre">${a.jugador}</div>
-                <div class="alerta-detalle">${a.tipo}</div>
-            </div>
-            <div class="valor">${a.valor}</div>
-        </div>
-    `).join('');
+    const c=document.getElementById('dash-alertas-wellness');
+    const{data:us}=await supabaseClient.from('training_sessions').select('id').eq('club_id',clubId).order('session_date',{ascending:false}).limit(1).single();
+    if(!us){c.innerHTML='<div class="sin-datos"><div class="icono">✅</div><p>Sin datos recientes</p></div>';return;}
+    const{data:att}=await supabaseClient.from('attendance').select('wellness, estado_muscular, jugador_id, players(name)').eq('sesion_id',us.id).eq('asistio',true);
+    if(!att||att.length===0){c.innerHTML='<div class="sin-datos"><div class="icono">✅</div><p>Sin registros</p></div>';return;}
+    const al=[];
+    att.forEach(a=>{if(a.wellness&&a.wellness<=5)al.push({j:a.players?.name||'Jugador',t:'Wellness bajo',v:a.wellness,cl:a.wellness<=3?'':'warning'});if(a.estado_muscular&&a.estado_muscular>=6)al.push({j:a.players?.name||'Jugador',t:'Daño muscular',v:a.estado_muscular,cl:a.estado_muscular>=8?'':'warning'});});
+    if(al.length===0){c.innerHTML='<div class="sin-datos"><div class="icono">✅</div><p>¡Equipo en buenas condiciones!</p></div>';return;}
+    c.innerHTML=al.slice(0,5).map(a=>`<div class="alerta-item ${a.cl}"><div><div class="jugador-nombre">${a.j}</div><div class="alerta-detalle">${a.t}</div></div><div class="valor">${a.v}</div></div>`).join('');
 }

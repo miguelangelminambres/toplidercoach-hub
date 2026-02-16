@@ -1,4 +1,4 @@
-        /* ========== ESPECÍFICO MI CLUB ========== */
+/* ========== ESPECÍFICO MI CLUB ========== */
         .config-club-content {
             display: flex;
             gap: 30px;
@@ -100,6 +100,12 @@
             margin-left: 10px;
         }
         
+        .temporada-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        
         .temporada-actions button {
             width: 36px;
             height: 36px;
@@ -107,12 +113,31 @@
             border: none;
             cursor: pointer;
             font-size: 16px;
+            transition: background 0.15s;
         }
         
         .btn-activar {
             background: #d1fae5;
             color: #059669;
+            width: auto !important;
+            padding: 0 14px;
+            font-size: 13px !important;
+            font-weight: 600;
         }
+        
+        .btn-edit-temp {
+            background: #e5e7eb;
+            color: #374151;
+        }
+        
+        .btn-edit-temp:hover { background: #d1d5db; }
+        
+        .btn-delete-temp {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .btn-delete-temp:hover { background: #fecaca; }
         
         .nueva-temporada-form {
             background: #f0fdf4;
@@ -404,4 +429,3 @@
             .pcard-apellido { font-size: 12px; }
             .pcard-stat-val { font-size: 13px; }
         }
-

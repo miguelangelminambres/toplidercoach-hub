@@ -92,14 +92,29 @@ registrarSubTab('config', 'datos', cargarDatosClub);
                 const isActive = t.is_active;
                 const fI = t.start_date ? new Date(t.start_date).toLocaleDateString('es-ES') : '';
                 const fF = t.end_date ? new Date(t.end_date).toLocaleDateString('es-ES') : '';
+                const startVal = t.start_date || '';
+                const endVal = t.end_date || '';
                 
                 return `
-                    <div class="temporada-card ${isActive ? 'active' : ''}">
-                        <div class="temporada-info">
+                    <div class="temporada-card ${isActive ? 'active' : ''}" id="temp-card-${t.id}">
+                        <div class="temporada-info" id="temp-view-${t.id}">
                             <h4>${t.name} ${isActive ? '<span class="temporada-badge">ACTIVA</span>' : ''}</h4>
                             <p>${fI} - ${fF}</p>
                         </div>
+                        <div class="temporada-edit" id="temp-edit-${t.id}" style="display:none;flex:1;">
+                            <input type="text" id="temp-edit-nombre-${t.id}" value="${t.name}" style="width:100%;padding:6px 10px;border:1px solid #d1d5db;border-radius:6px;margin-bottom:6px;font-size:14px;">
+                            <div style="display:flex;gap:8px;">
+                                <div style="flex:1;"><label style="font-size:11px;color:#6b7280;">Inicio</label><input type="date" id="temp-edit-inicio-${t.id}" value="${startVal}" style="width:100%;padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;"></div>
+                                <div style="flex:1;"><label style="font-size:11px;color:#6b7280;">Fin</label><input type="date" id="temp-edit-fin-${t.id}" value="${endVal}" style="width:100%;padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;"></div>
+                            </div>
+                            <div style="display:flex;gap:6px;margin-top:8px;">
+                                <button onclick="guardarEdicionTemporada('${t.id}')" style="padding:5px 14px;background:#059669;color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">Guardar</button>
+                                <button onclick="cancelarEdicionTemporada('${t.id}')" style="padding:5px 14px;background:#e5e7eb;color:#374151;border:none;border-radius:6px;cursor:pointer;font-size:12px;">Cancelar</button>
+                            </div>
+                        </div>
                         <div class="temporada-actions">
+                            <button class="btn-edit-temp" onclick="editarTemporada('${t.id}')" title="Editar">✏️</button>
+                            <button class="btn-delete-temp" onclick="eliminarTemporada('${t.id}', '${t.name.replace(/'/g, "\\'")}', ${isActive})" title="Eliminar">🗑️</button>
                             ${!isActive ? `<button class="btn-activar" onclick="activarTemporada('${t.id}')">Activar</button>` : ''}
                         </div>
                     </div>
@@ -107,6 +122,70 @@ registrarSubTab('config', 'datos', cargarDatosClub);
             }).join('');
         }
         
+        function editarTemporada(tempId) {
+            document.getElementById('temp-view-' + tempId).style.display = 'none';
+            document.getElementById('temp-edit-' + tempId).style.display = 'block';
+        }
+        
+        function cancelarEdicionTemporada(tempId) {
+            document.getElementById('temp-view-' + tempId).style.display = '';
+            document.getElementById('temp-edit-' + tempId).style.display = 'none';
+        }
+        
+        async function guardarEdicionTemporada(tempId) {
+            const nombre = document.getElementById('temp-edit-nombre-' + tempId).value.trim();
+            if (!nombre) { alert('El nombre es obligatorio'); return; }
+            
+            const { error } = await supabaseClient.from('seasons').update({
+                name: nombre,
+                start_date: document.getElementById('temp-edit-inicio-' + tempId).value || null,
+                end_date: document.getElementById('temp-edit-fin-' + tempId).value || null
+            }).eq('id', tempId);
+            
+            if (error) { alert('Error: ' + error.message); return; }
+            
+            cargarTemporadas();
+            cargarSelectorTemporadas();
+        }
+        
+        async function eliminarTemporada(tempId, nombre, isActive) {
+            if (isActive) {
+                alert('No se puede eliminar la temporada activa. Activa otra temporada primero.');
+                return;
+            }
+            
+            const confirmacion = prompt(`⚠️ ATENCIÓN: Esto eliminará la temporada "${nombre}" y TODOS sus datos asociados (jugadores de plantilla, partidos, estadísticas, sesiones...).\n\nEsta acción es IRREVERSIBLE.\n\nEscribe el nombre de la temporada para confirmar:`);
+            
+            if (confirmacion === null) return;
+            if (confirmacion.trim() !== nombre.trim()) {
+                alert('El nombre no coincide. Eliminación cancelada.');
+                return;
+            }
+            
+            try {
+                // Eliminar season_players de esa temporada
+                await supabaseClient.from('season_players').delete().eq('season_id', tempId);
+                // Eliminar stats de partidos de esa temporada
+                const { data: matches } = await supabaseClient.from('matches').select('id').eq('season_id', tempId);
+                if (matches && matches.length > 0) {
+                    const matchIds = matches.map(m => m.id);
+                    await supabaseClient.from('match_player_stats').delete().in('match_id', matchIds);
+                }
+                // Eliminar partidos
+                await supabaseClient.from('matches').delete().eq('season_id', tempId);
+                // Eliminar sesiones de entrenamiento
+                await supabaseClient.from('training_sessions').delete().eq('season_id', tempId);
+                // Eliminar la temporada
+                await supabaseClient.from('seasons').delete().eq('id', tempId);
+                
+                alert('Temporada eliminada correctamente.');
+                cargarTemporadas();
+                cargarSelectorTemporadas();
+            } catch (err) {
+                alert('Error al eliminar: ' + err.message);
+            }
+        }
+
         async function crearTemporada() {
             const nombre = document.getElementById('nueva-temp-nombre').value.trim();
             if (!nombre) { alert('El nombre es obligatorio'); return; }

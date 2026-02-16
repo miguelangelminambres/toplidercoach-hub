@@ -73,11 +73,11 @@ async function cargarDatosPartidosDashboard() {
     const golesFavor = partidosJugados.reduce((sum, p) => sum + (p.team_goals || 0), 0);
     const golesContra = partidosJugados.reduce((sum, p) => sum + (p.opponent_goals || 0), 0);
     
-    // Actualizar tarjetas
-    document.getElementById('dash-victorias').textContent = victorias;
-    document.getElementById('dash-empates').textContent = empates;
-    document.getElementById('dash-derrotas').textContent = derrotas;
-    document.getElementById('dash-goles').textContent = golesFavor;
+    // Actualizar tarjetas (si existen)
+    const elV = document.getElementById('dash-victorias'); if (elV) elV.textContent = victorias;
+    const elE = document.getElementById('dash-empates'); if (elE) elE.textContent = empates;
+    const elD = document.getElementById('dash-derrotas'); if (elD) elD.textContent = derrotas;
+    const elG = document.getElementById('dash-goles'); if (elG) elG.textContent = golesFavor;
     
     // Diferencia de goles
     const diferencia = golesFavor - golesContra;
@@ -106,10 +106,10 @@ function calcularPorcentaje(valor, total) {
 }
 
 function mostrarSinDatosPartidos() {
-    document.getElementById('dash-victorias').textContent = '0';
-    document.getElementById('dash-empates').textContent = '0';
-    document.getElementById('dash-derrotas').textContent = '0';
-    document.getElementById('dash-goles').textContent = '0';
+    const elV = document.getElementById('dash-victorias'); if (elV) elV.textContent = '0';
+    const elE = document.getElementById('dash-empates'); if (elE) elE.textContent = '0';
+    const elD = document.getElementById('dash-derrotas'); if (elD) elD.textContent = '0';
+    const elG = document.getElementById('dash-goles'); if (elG) elG.textContent = '0';
     document.getElementById('dash-diferencia-goles').textContent = '+0';
     
     document.getElementById('dash-ultimos-partidos').innerHTML = `
@@ -628,4 +628,3 @@ async function cargarAlertasWellness() {
         </div>
     `).join('');
 }
-

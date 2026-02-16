@@ -333,8 +333,12 @@ if (p.titulares && Array.isArray(p.titulares)) {
     titularesPartido = p.titulares.map(t => String(t.id));
 }
                     
-                    // Forzar reconstrucción del mapa de slots
-                    slotsTitularesMap = [];
+                    // Restaurar mapa de slots guardado o forzar reconstrucción
+                    if (p.alineacion_slots && Array.isArray(p.alineacion_slots) && p.alineacion_slots.length > 0) {
+                        slotsTitularesMap = p.alineacion_slots.map(s => s ? String(s) : null);
+                    } else {
+                        slotsTitularesMap = [];
+                    }
                     slotVacioIdx = null;
                     renderizarConvocatoria();
                 }
@@ -985,7 +989,8 @@ function renderizarConvocatoria() {
                 opponent_logo: opponentLogoUrl || null,
                 convocados: convocadosData,
                 titulares: titularesData,
-                suplentes: suplentesData
+                suplentes: suplentesData,
+                alineacion_slots: slotsTitularesMap || []
             };
             console.log('Datos a guardar:', JSON.stringify(partidoData, null, 2));
             const partidoId = document.getElementById('partido-id').value;

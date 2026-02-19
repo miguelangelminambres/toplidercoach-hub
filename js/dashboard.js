@@ -25,7 +25,7 @@ function cargarHeroBanner() {
     const nameEl = document.getElementById('dash-club-name');
     if (clubData) {
         nameEl.textContent = clubData.name || 'Mi Equipo';
-        logoEl.innerHTML = clubData.logo_url ? `<img src="${clubData.logo_url}" alt="">` : '⚽';
+        logoEl.innerHTML = clubData.logo_url ? `<img src="${sanitizeURL(clubData.logo_url)}" alt="">` : '⚽';
     }
 }
 
@@ -95,9 +95,9 @@ async function cargarTopPerformers() {
     container.style.display = '';
     grid.innerHTML = perfs.filter(p=>p.val>0).map(p => {
         const pl = pm[p.pid]||{};
-        const nombre = pl.name ? pl.name.split(' ').pop().toUpperCase() : '—';
-        const foto = pl.photo_url ? `<img src="${pl.photo_url}" alt="">` : `<div class="dash-perf-nofoto">${(pl.name||'?').charAt(0)}</div>`;
-        return `<div class="dash-perf-card" style="--perf-color:${p.color}"><div class="dash-perf-foto">${foto}</div><div class="dash-perf-info"><div class="dash-perf-name">${nombre}</div><div class="dash-perf-pos">${pl.position||''}</div></div><div class="dash-perf-stat"><span class="dash-perf-val">${p.val}</span><span class="dash-perf-unit">${p.unit}</span></div><div class="dash-perf-label">${p.icon} ${p.label}</div></div>`;
+        const nombre = pl.name ? escapeHTML(pl.name.split(' ').pop().toUpperCase()) : '—';
+        const foto = pl.photo_url ? `<img src="${sanitizeURL(pl.photo_url)}" alt="">` : `<div class="dash-perf-nofoto">${escapeHTML((pl.name||'?').charAt(0))}</div>`;
+        return `<div class="dash-perf-card" style="--perf-color:${escapeAttr(p.color)}"><div class="dash-perf-foto">${foto}</div><div class="dash-perf-info"><div class="dash-perf-name">${nombre}</div><div class="dash-perf-pos">${escapeHTML(pl.position||'')}</div></div><div class="dash-perf-stat"><span class="dash-perf-val">${parseInt(p.val)||0}</span><span class="dash-perf-unit">${escapeHTML(p.unit)}</span></div><div class="dash-perf-label">${escapeHTML(p.icon)} ${escapeHTML(p.label)}</div></div>`;
     }).join('');
 }
 
@@ -111,8 +111,8 @@ async function cargarEstadoPlantilla() {
     let html = `<div class="dash-squad-summary"><span class="dash-sq-avail">${avail.length} disp.</span>${inj.length?`<span class="dash-sq-inj">${inj.length} lesion.</span>`:''}${sus.length?`<span class="dash-sq-sus">${sus.length} sanc.</span>`:''}</div>`;
     [...inj.map(s=>({...s,tipo:'injured'})),...sus.map(s=>({...s,tipo:'suspended'}))].forEach(s => {
         const j=s.players||{};
-        const foto=j.photo_url?`<img src="${j.photo_url}" alt="">`:`<span>${(j.name||'?').charAt(0)}</span>`;
-        html+=`<div class="dash-sq-player ${s.tipo==='injured'?'inj':'sus'}"><div class="dash-sq-foto">${foto}</div><div class="dash-sq-info"><div class="dash-sq-name">${j.name||''}</div><div class="dash-sq-pos">${j.position||''} · #${s.shirt_number||'-'}</div></div><div class="dash-sq-badge ${s.tipo==='injured'?'inj':'sus'}">${s.tipo==='injured'?'🏥 Lesión':'⛔ Sanción'}</div></div>`;
+        const foto=j.photo_url?`<img src="${sanitizeURL(j.photo_url)}" alt="">`:`<span>${escapeHTML((j.name||'?').charAt(0))}</span>`;
+        html+=`<div class="dash-sq-player ${s.tipo==='injured'?'inj':'sus'}"><div class="dash-sq-foto">${foto}</div><div class="dash-sq-info"><div class="dash-sq-name">${escapeHTML(j.name||'')}</div><div class="dash-sq-pos">${escapeHTML(j.position||'')} · #${escapeHTML(s.shirt_number||'-')}</div></div><div class="dash-sq-badge ${s.tipo==='injured'?'inj':'sus'}">${s.tipo==='injured'?'🏥 Lesión':'⛔ Sanción'}</div></div>`;
     });
     c.innerHTML = html;
 }
@@ -121,18 +121,20 @@ async function cargarEstadoPlantilla() {
 function mostrarUltimosPartidos(partidos) {
     const c = document.getElementById('dash-ultimos-partidos');
     if (!partidos||partidos.length===0) { c.innerHTML='<div class="sin-datos"><div class="icono">⚽</div><p>No hay partidos</p></div>'; return; }
-    const miEsc = clubData?.logo_url?`<img src="${clubData.logo_url}" alt="" class="escudo-mini">`:'<span class="escudo-placeholder">🏠</span>';
-    const miN = clubData?.name||'Mi Equipo';
+    const miEsc = clubData?.logo_url?`<img src="${sanitizeURL(clubData.logo_url)}" alt="" class="escudo-mini">`:'<span class="escudo-placeholder">🏠</span>';
+    const miN = escapeHTML(clubData?.name||'Mi Equipo');
     c.innerHTML = partidos.map(p => {
         const loc=p.home_away==='home', jug=!!p.result;
         const fechaStr = new Date(p.match_date).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}).toUpperCase();
-        let comp = p.competition||''; if(comp&&p.round) comp+='. '+p.round;
-        const rivEsc = p.opponent_logo?`<img src="${p.opponent_logo}" alt="" class="escudo-mini">`:'<span class="escudo-placeholder">🏟️</span>';
+        let comp = escapeHTML(p.competition||''); if(comp&&p.round) comp+='. '+escapeHTML(p.round);
+        const rivEsc = p.opponent_logo?`<img src="${sanitizeURL(p.opponent_logo)}" alt="" class="escudo-mini">`:'<span class="escudo-placeholder">🏟️</span>';
+        const safeId = isValidId(p.id) ? escapeAttr(p.id) : '';
         let centro='';
-        if(jug){const gf=p.team_goals||0,gc=p.opponent_goals||0;centro=`<span class="match-score">${loc?gf+'-'+gc:gc+'-'+gf}</span>`;}
-        else{centro=`<span class="match-time">${p.kick_off_time?p.kick_off_time.slice(0,5):'TBD'}</span>`;}
+        if(jug){const gf=parseInt(p.team_goals)||0,gc=parseInt(p.opponent_goals)||0;centro=`<span class="match-score">${loc?gf+'-'+gc:gc+'-'+gf}</span>`;}
+        else{centro=`<span class="match-time">${p.kick_off_time?escapeHTML(p.kick_off_time.slice(0,5)):'TBD'}</span>`;}
         const badge=jug?`<span class="match-badge badge-${p.result==='win'?'win':p.result==='draw'?'draw':'loss'}"></span>`:'';
-        return `<div class="match-row ${jug?'played':'upcoming'}" onclick="verPartido('${p.id}')">${badge}${comp?`<div class="match-competition">${comp}</div>`:''}<div class="match-teams"><div class="match-team left"><span class="team-name">${loc?miN:p.opponent}</span>${loc?miEsc:rivEsc}</div><div class="match-center">${centro}</div><div class="match-team right">${loc?rivEsc:miEsc}<span class="team-name">${loc?p.opponent:miN}</span></div></div><div class="match-date">${fechaStr}</div></div>`;
+        const opp = escapeHTML(p.opponent);
+        return `<div class="match-row ${jug?'played':'upcoming'}" onclick="verPartido('${safeId}')">${badge}${comp?`<div class="match-competition">${comp}</div>`:''}<div class="match-teams"><div class="match-team left"><span class="team-name">${loc?miN:opp}</span>${loc?miEsc:rivEsc}</div><div class="match-center">${centro}</div><div class="match-team right">${loc?rivEsc:miEsc}<span class="team-name">${loc?opp:miN}</span></div></div><div class="match-date">${escapeHTML(fechaStr)}</div></div>`;
     }).join('');
 }
 
@@ -185,11 +187,11 @@ async function cargarProximosEventos() {
     const{data:pa}=await supabaseClient.from('matches').select('*').eq('club_id',clubId).gte('match_date',hoy).is('result',null).order('match_date').limit(3);
     const{data:se}=await supabaseClient.from('training_sessions').select('*').eq('club_id',clubId).gte('session_date',hoy).order('session_date').limit(3);
     const ev=[];
-    (pa||[]).forEach(p=>ev.push({tipo:'partido',fecha:p.match_date,titulo:`vs ${p.opponent}`,sub:p.home_away==='home'?'Local':'Visitante',hora:p.kick_off_time?p.kick_off_time.slice(0,5):''}));
-    (se||[]).forEach(s=>ev.push({tipo:'sesion',fecha:s.session_date,titulo:s.name,sub:s.objective||'Entrenamiento',hora:s.hora_inicio||''}));
+    (pa||[]).forEach(p=>ev.push({tipo:'partido',fecha:p.match_date,titulo:`vs ${escapeHTML(p.opponent)}`,sub:p.home_away==='home'?'Local':'Visitante',hora:p.kick_off_time?escapeHTML(p.kick_off_time.slice(0,5)):''}));
+    (se||[]).forEach(s=>ev.push({tipo:'sesion',fecha:s.session_date,titulo:escapeHTML(s.name),sub:escapeHTML(s.objective||'Entrenamiento'),hora:s.hora_inicio?escapeHTML(s.hora_inicio):''}));
     ev.sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
     if(ev.length===0){c.innerHTML='<div class="sin-datos"><div class="icono">📅</div><p>No hay eventos próximos</p></div>';return;}
-    c.innerHTML=ev.slice(0,5).map(e=>{const f=new Date(e.fecha);return`<div class="evento-item ${e.tipo}"><div class="evento-fecha"><div class="dia">${f.getDate()}</div><div class="mes">${f.toLocaleDateString('es-ES',{month:'short'}).toUpperCase()}</div></div><div class="evento-info"><div class="titulo">${e.titulo}</div><div class="subtitulo">${e.sub}${e.hora?' - '+e.hora:''}</div></div><div class="evento-tipo ${e.tipo}">${e.tipo==='partido'?'⚽':'🏃'}</div></div>`;}).join('');
+    c.innerHTML=ev.slice(0,5).map(e=>{const f=new Date(e.fecha);return`<div class="evento-item ${escapeAttr(e.tipo)}"><div class="evento-fecha"><div class="dia">${f.getDate()}</div><div class="mes">${f.toLocaleDateString('es-ES',{month:'short'}).toUpperCase()}</div></div><div class="evento-info"><div class="titulo">${e.titulo}</div><div class="subtitulo">${e.sub}${e.hora?' - '+e.hora:''}</div></div><div class="evento-tipo ${escapeAttr(e.tipo)}">${e.tipo==='partido'?'⚽':'🏃'}</div></div>`;}).join('');
 }
 
 // ========== ALERTAS WELLNESS ==========
@@ -200,7 +202,7 @@ async function cargarAlertasWellness() {
     const{data:att}=await supabaseClient.from('attendance').select('wellness, estado_muscular, jugador_id, players(name)').eq('sesion_id',us.id).eq('asistio',true);
     if(!att||att.length===0){c.innerHTML='<div class="sin-datos"><div class="icono">✅</div><p>Sin registros</p></div>';return;}
     const al=[];
-    att.forEach(a=>{if(a.wellness&&a.wellness<=5)al.push({j:a.players?.name||'Jugador',t:'Wellness bajo',v:a.wellness,cl:a.wellness<=3?'':'warning'});if(a.estado_muscular&&a.estado_muscular>=6)al.push({j:a.players?.name||'Jugador',t:'Daño muscular',v:a.estado_muscular,cl:a.estado_muscular>=8?'':'warning'});});
+    att.forEach(a=>{if(a.wellness&&a.wellness<=5)al.push({j:a.players?.name||'Jugador',t:'Wellness bajo',v:parseInt(a.wellness)||0,cl:a.wellness<=3?'':'warning'});if(a.estado_muscular&&a.estado_muscular>=6)al.push({j:a.players?.name||'Jugador',t:'Daño muscular',v:parseInt(a.estado_muscular)||0,cl:a.estado_muscular>=8?'':'warning'});});
     if(al.length===0){c.innerHTML='<div class="sin-datos"><div class="icono">✅</div><p>¡Equipo en buenas condiciones!</p></div>';return;}
-    c.innerHTML=al.slice(0,5).map(a=>`<div class="alerta-item ${a.cl}"><div><div class="jugador-nombre">${a.j}</div><div class="alerta-detalle">${a.t}</div></div><div class="valor">${a.v}</div></div>`).join('');
+    c.innerHTML=al.slice(0,5).map(a=>`<div class="alerta-item ${escapeAttr(a.cl)}"><div><div class="jugador-nombre">${escapeHTML(a.j)}</div><div class="alerta-detalle">${escapeHTML(a.t)}</div></div><div class="valor">${parseInt(a.v)||0}</div></div>`).join('');
 }

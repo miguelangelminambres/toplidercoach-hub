@@ -30,7 +30,19 @@ registrarSubTab('config', 'datos', cargarDatosClub);
             const file = event.target.files[0];
             if (!file) return;
             if (file.size > 2 * 1024 * 1024) { alert('Maximo 2MB'); return; }
-            
+
+            // Validar tipo MIME y extensión
+            if (!isAllowedMimeType(file)) {
+                alert('Tipo de archivo no permitido. Solo se aceptan imágenes (JPG, PNG, GIF, WebP, SVG).');
+                event.target.value = '';
+                return;
+            }
+            if (!isAllowedFileExtension(file.name)) {
+                alert('Extensión de archivo no permitida. Solo se aceptan: jpg, jpeg, png, gif, webp, svg.');
+                event.target.value = '';
+                return;
+            }
+
             const reader = new FileReader();
             reader.onload = function(e) {
                 document.getElementById('escudo-preview').src = e.target.result;
@@ -49,11 +61,20 @@ registrarSubTab('config', 'datos', cargarDatosClub);
             
             if (escudoInput.files.length > 0) {
                 const file = escudoInput.files[0];
-                const fileName = `club-${clubId}-${Date.now()}.${file.name.split('.').pop()}`;
-                const { error: upErr } = await supabaseClient.storage.from('logos').upload(fileName, file);
-                if (!upErr) {
-                    const { data: urlData } = supabaseClient.storage.from('logos').getPublicUrl(fileName);
-                    logoUrl = urlData.publicUrl;
+
+                // Validación de seguridad en la subida
+                if (!isAllowedMimeType(file) || !isAllowedFileExtension(file.name)) {
+                    alert('Tipo de archivo no permitido.');
+                } else {
+                    // Sanitizar extensión: solo usar extensiones conocidas
+                    const ext = file.name.split('.').pop().toLowerCase();
+                    const safeExt = ['jpg','jpeg','png','gif','webp','svg'].includes(ext) ? ext : 'png';
+                    const fileName = `club-${clubId}-${Date.now()}.${safeExt}`;
+                    const { error: upErr } = await supabaseClient.storage.from('logos').upload(fileName, file);
+                    if (!upErr) {
+                        const { data: urlData } = supabaseClient.storage.from('logos').getPublicUrl(fileName);
+                        logoUrl = urlData.publicUrl;
+                    }
                 }
             }
             
@@ -70,7 +91,7 @@ registrarSubTab('config', 'datos', cargarDatosClub);
             // Actualizar header
             document.getElementById('club-nombre-header').textContent = nombre;
             if (logoUrl) {
-                document.getElementById('club-badge').innerHTML = `<img src="${logoUrl}" alt=""><span>${nombre}</span>`;
+                document.getElementById('club-badge').innerHTML = `<img src="${sanitizeURL(logoUrl)}" alt=""><span>${escapeHTML(nombre)}</span>`;
             }
             
             alert('Club guardado');
@@ -96,26 +117,26 @@ registrarSubTab('config', 'datos', cargarDatosClub);
                 const endVal = t.end_date || '';
                 
                 return `
-                    <div class="temporada-card ${isActive ? 'active' : ''}" id="temp-card-${t.id}">
-                        <div class="temporada-info" id="temp-view-${t.id}">
-                            <h4>${t.name} ${isActive ? '<span class="temporada-badge">ACTIVA</span>' : ''}</h4>
-                            <p>${fI} - ${fF}</p>
+                    <div class="temporada-card ${isActive ? 'active' : ''}" id="temp-card-${escapeAttr(t.id)}">
+                        <div class="temporada-info" id="temp-view-${escapeAttr(t.id)}">
+                            <h4>${escapeHTML(t.name)} ${isActive ? '<span class="temporada-badge">ACTIVA</span>' : ''}</h4>
+                            <p>${escapeHTML(fI)} - ${escapeHTML(fF)}</p>
                         </div>
-                        <div class="temporada-edit" id="temp-edit-${t.id}" style="display:none;flex:1;">
-                            <input type="text" id="temp-edit-nombre-${t.id}" value="${t.name}" style="width:100%;padding:6px 10px;border:1px solid #d1d5db;border-radius:6px;margin-bottom:6px;font-size:14px;">
+                        <div class="temporada-edit" id="temp-edit-${escapeAttr(t.id)}" style="display:none;flex:1;">
+                            <input type="text" id="temp-edit-nombre-${escapeAttr(t.id)}" value="${escapeAttr(t.name)}" style="width:100%;padding:6px 10px;border:1px solid #d1d5db;border-radius:6px;margin-bottom:6px;font-size:14px;">
                             <div style="display:flex;gap:8px;">
-                                <div style="flex:1;"><label style="font-size:11px;color:#6b7280;">Inicio</label><input type="date" id="temp-edit-inicio-${t.id}" value="${startVal}" style="width:100%;padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;"></div>
-                                <div style="flex:1;"><label style="font-size:11px;color:#6b7280;">Fin</label><input type="date" id="temp-edit-fin-${t.id}" value="${endVal}" style="width:100%;padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;"></div>
+                                <div style="flex:1;"><label style="font-size:11px;color:#6b7280;">Inicio</label><input type="date" id="temp-edit-inicio-${escapeAttr(t.id)}" value="${escapeAttr(startVal)}" style="width:100%;padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;"></div>
+                                <div style="flex:1;"><label style="font-size:11px;color:#6b7280;">Fin</label><input type="date" id="temp-edit-fin-${escapeAttr(t.id)}" value="${escapeAttr(endVal)}" style="width:100%;padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;"></div>
                             </div>
                             <div style="display:flex;gap:6px;margin-top:8px;">
-                                <button onclick="guardarEdicionTemporada('${t.id}')" style="padding:5px 14px;background:#059669;color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">Guardar</button>
-                                <button onclick="cancelarEdicionTemporada('${t.id}')" style="padding:5px 14px;background:#e5e7eb;color:#374151;border:none;border-radius:6px;cursor:pointer;font-size:12px;">Cancelar</button>
+                                <button onclick="guardarEdicionTemporada('${escapeAttr(t.id)}')" style="padding:5px 14px;background:#059669;color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">Guardar</button>
+                                <button onclick="cancelarEdicionTemporada('${escapeAttr(t.id)}')" style="padding:5px 14px;background:#e5e7eb;color:#374151;border:none;border-radius:6px;cursor:pointer;font-size:12px;">Cancelar</button>
                             </div>
                         </div>
                         <div class="temporada-actions">
-                            <button class="btn-edit-temp" onclick="editarTemporada('${t.id}')" title="Editar">✏️</button>
-                            <button class="btn-delete-temp" onclick="eliminarTemporada('${t.id}', '${t.name.replace(/'/g, "\\'")}', ${isActive})" title="Eliminar">🗑️</button>
-                            ${!isActive ? `<button class="btn-activar" onclick="activarTemporada('${t.id}')">Activar</button>` : ''}
+                            <button class="btn-edit-temp" onclick="editarTemporada('${escapeAttr(t.id)}')" title="Editar">✏️</button>
+                            <button class="btn-delete-temp" onclick="eliminarTemporada('${escapeAttr(t.id)}', '${escapeAttr(t.name)}', ${isActive})" title="Eliminar">🗑️</button>
+                            ${!isActive ? `<button class="btn-activar" onclick="activarTemporada('${escapeAttr(t.id)}')">Activar</button>` : ''}
                         </div>
                     </div>
                 `;
@@ -224,7 +245,7 @@ registrarSubTab('config', 'datos', cargarDatosClub);
             
             select.innerHTML = (data || []).map(t => {
                 const selected = t.is_active ? 'selected' : '';
-                return `<option value="${t.id}" ${selected}>${t.name} ${t.is_active ? '(activa)' : ''}</option>`;
+                return `<option value="${escapeAttr(t.id)}" ${selected}>${escapeHTML(t.name)} ${t.is_active ? '(activa)' : ''}</option>`;
             }).join('');
         }
         
@@ -328,37 +349,37 @@ registrarSubTab('config', 'datos', cargarDatosClub);
                     const nombre = j.name ? j.name.split(' ').slice(0, -1).join(' ') : '';
 
 return `
-    <div class="pcard" onclick="abrirFichaJugador('${j.id}')" style="--pos-color:${col};">
+    <div class="pcard" onclick="abrirFichaJugador('${escapeAttr(j.id)}')" style="--pos-color:${escapeAttr(col)};">
         <div class="pcard-top">
-            <div class="pcard-dorsal">${sp.shirt_number || '-'}</div>
-            <div class="pcard-pos-badge">${posAb}</div>
-            <div class="pcard-status pcard-st-${statusClass}" title="${statusText}">${statusIcon}</div>
+            <div class="pcard-dorsal">${escapeHTML(sp.shirt_number || '-')}</div>
+            <div class="pcard-pos-badge">${escapeHTML(posAb)}</div>
+            <div class="pcard-status pcard-st-${escapeAttr(statusClass)}" title="${escapeAttr(statusText)}">${statusIcon}</div>
         </div>
         <div class="pcard-foto">
-            ${j.photo_url 
-                ? `<img src="${j.photo_url}" alt="${j.name}">` 
-                : `<div class="pcard-nofoto">${inicial}</div>`
+            ${j.photo_url
+                ? `<img src="${sanitizeURL(j.photo_url)}" alt="${escapeAttr(j.name)}">`
+                : `<div class="pcard-nofoto">${escapeHTML(inicial)}</div>`
             }
         </div>
         <div class="pcard-name-bar">
-            <div class="pcard-apellido">${apellido}</div>
-            ${nombre ? `<div class="pcard-nombre-small">${nombre}</div>` : ''}
+            <div class="pcard-apellido">${escapeHTML(apellido)}</div>
+            ${nombre ? `<div class="pcard-nombre-small">${escapeHTML(nombre)}</div>` : ''}
         </div>
         <div class="pcard-meta">
-            ${edad ? `<span>${edad} años</span>` : ''}
-            ${altura ? `<span>${altura}</span>` : ''}
-            ${pie ? `<span>Pie ${pie}</span>` : ''}
+            ${edad ? `<span>${parseInt(edad)||0} años</span>` : ''}
+            ${altura ? `<span>${escapeHTML(altura)}</span>` : ''}
+            ${pie ? `<span>Pie ${escapeHTML(pie)}</span>` : ''}
         </div>
         <div class="pcard-stats">
-            <div class="pcard-stat"><span class="pcard-stat-val">${st.pj}</span><span class="pcard-stat-lbl">PJ</span></div>
-            <div class="pcard-stat"><span class="pcard-stat-val">${st.min}</span><span class="pcard-stat-lbl">MIN</span></div>
-            <div class="pcard-stat"><span class="pcard-stat-val">${st.g}</span><span class="pcard-stat-lbl">GOL</span></div>
-            <div class="pcard-stat"><span class="pcard-stat-val">${st.a}</span><span class="pcard-stat-lbl">ASI</span></div>
-            <div class="pcard-stat pcard-stat-ta"><span class="pcard-stat-val">${st.ta}</span><span class="pcard-stat-lbl">TA</span></div>
+            <div class="pcard-stat"><span class="pcard-stat-val">${parseInt(st.pj)||0}</span><span class="pcard-stat-lbl">PJ</span></div>
+            <div class="pcard-stat"><span class="pcard-stat-val">${parseInt(st.min)||0}</span><span class="pcard-stat-lbl">MIN</span></div>
+            <div class="pcard-stat"><span class="pcard-stat-val">${parseInt(st.g)||0}</span><span class="pcard-stat-lbl">GOL</span></div>
+            <div class="pcard-stat"><span class="pcard-stat-val">${parseInt(st.a)||0}</span><span class="pcard-stat-lbl">ASI</span></div>
+            <div class="pcard-stat pcard-stat-ta"><span class="pcard-stat-val">${parseInt(st.ta)||0}</span><span class="pcard-stat-lbl">TA</span></div>
         </div>
         <div class="pcard-actions">
-            <button class="pcard-btn-edit" onclick="event.stopPropagation();editarJugador('${j.id}', '${sp.id}')">✏️</button>
-            <button class="pcard-btn-del" onclick="event.stopPropagation();eliminarJugadorDePlantilla('${sp.id}')">🗑️</button>
+            <button class="pcard-btn-edit" onclick="event.stopPropagation();editarJugador('${escapeAttr(j.id)}', '${escapeAttr(sp.id)}')">✏️</button>
+            <button class="pcard-btn-del" onclick="event.stopPropagation();eliminarJugadorDePlantilla('${escapeAttr(sp.id)}')">🗑️</button>
         </div>
     </div>
 `;

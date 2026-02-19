@@ -70,12 +70,19 @@ function registrarInit(callback) {
 
 // ========== AUTENTICACIÓN ==========
 async function login() {
-    const username = document.getElementById('username').value;
+    const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
     const errorDiv = document.getElementById('login-error');
-    
+
     if (!username || !password) {
         errorDiv.textContent = 'Por favor, introduce usuario y contrasena';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    // Validar longitud para prevenir abusos
+    if (username.length > 100 || password.length > 200) {
+        errorDiv.textContent = 'Datos de entrada demasiado largos';
         errorDiv.style.display = 'block';
         return;
     }
@@ -165,8 +172,8 @@ async function inicializarClub() {
         
         if (club.logo_url) {
             document.getElementById('club-badge').innerHTML =
-                '<img src="' + club.logo_url + '" alt="">' +
-                '<span>' + club.name + '</span>';
+                '<img src="' + sanitizeURL(club.logo_url) + '" alt="">' +
+                '<span>' + escapeHTML(club.name) + '</span>';
         }
         
         await cargarTemporadaActiva();
@@ -258,15 +265,15 @@ function cambiarSubTab(modulo, subtab, btn) {
 
 // ========== INICIALIZACIÓN ==========
 document.addEventListener('DOMContentLoaded', function() {
-    var savedUser = localStorage.getItem('hub_user');
-    var savedToken = localStorage.getItem('hub_token');
-    
-    if (savedUser && savedToken) {
-        usuario = JSON.parse(savedUser);
-        token = savedToken;
+    // Restaurar sesión de forma segura (valida expiración del token)
+    var restored = secureSessionRestore();
+
+    if (restored) {
+        usuario = restored.user;
+        token = restored.token;
         mostrarApp();
     }
-    
+
     document.getElementById('password').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') login();
     });

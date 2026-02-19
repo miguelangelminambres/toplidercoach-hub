@@ -49,19 +49,19 @@ registrarSubTab('planificador', 'calendario', cargarCalendarioUnificado);
                         imagen: ej.imagen,
                         duracion: ej.duracion || 10
                     };
-                    
+
                     return `
-                    <div class="ejercicio-card" onclick="seleccionarEjercicio(${ej.id})">
-                        <img src="${ej.imagen || 'https://via.placeholder.com/80x60?text=Sin+img'}" alt="">
+                    <div class="ejercicio-card" onclick="seleccionarEjercicio(${parseInt(ej.id) || 0})">
+                        <img src="${sanitizeURL(ej.imagen) || 'https://via.placeholder.com/80x60?text=Sin+img'}" alt="">
                         <div class="info">
-                            <div class="titulo">${ej.titulo}</div>
+                            <div class="titulo">${escapeHTML(ej.titulo)}</div>
                             <div class="tags">
-                                ${ej.tema ? `<span class="tag">${ej.tema}</span>` : ''}
-                                ${ej.dificultad ? `<span class="tag dificultad">Dif: ${ej.dificultad}</span>` : ''}
+                                ${ej.tema ? `<span class="tag">${escapeHTML(ej.tema)}</span>` : ''}
+                                ${ej.dificultad ? `<span class="tag dificultad">Dif: ${escapeHTML(ej.dificultad)}</span>` : ''}
                             </div>
                         </div>
-                        <button class="btn-agregar" 
-                                data-ejercicio='${JSON.stringify(ejercicioData).replace(/'/g, "&#39;")}'
+                        <button class="btn-agregar"
+                                data-ejercicio='${escapeAttr(JSON.stringify(ejercicioData))}'
                                 onclick="event.stopPropagation(); agregarEjercicioDesdeBoton(this)">
                             + Anadir
                         </button>
@@ -125,13 +125,13 @@ registrarSubTab('planificador', 'calendario', cargarCalendarioUnificado);
                 const foto = jugador?.photo_url;
                 const inicial = jugador?.name ? jugador.name.charAt(0).toUpperCase() : '?';
                 return `
-                    <div class="jugador-check ${seleccionado ? 'selected' : ''}" data-id="${sp.id}">
+                    <div class="jugador-check ${seleccionado ? 'selected' : ''}" data-id="${escapeAttr(sp.id)}">
                         <div class="jugador-foto-mini">
-                            ${foto ? `<img src="${foto}" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">` 
-                                   : `<span class="jugador-inicial" style="width:36px;height:36px;border-radius:50%;background:#6b21a8;color:white;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;">${inicial}</span>`}
+                            ${foto ? `<img src="${sanitizeURL(foto)}" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">`
+                                   : `<span class="jugador-inicial" style="width:36px;height:36px;border-radius:50%;background:#6b21a8;color:white;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;">${escapeHTML(inicial)}</span>`}
                         </div>
-                        <span class="dorsal">${sp.shirt_number || '?'}</span>
-                        <span class="nombre">${jugador?.name || 'Sin nombre'}</span>
+                        <span class="dorsal">${escapeHTML(sp.shirt_number || '?')}</span>
+                        <span class="nombre">${escapeHTML(jugador?.name || 'Sin nombre')}</span>
                     </div>
                 `;
             }).join('');
@@ -211,21 +211,30 @@ registrarSubTab('planificador', 'calendario', cargarCalendarioUnificado);
                     if (data.filtros.entrenadores) {
                         const select = document.getElementById('filtro-entrenador');
                         data.filtros.entrenadores.forEach(e => {
-                            select.innerHTML += `<option value="${e}">${e.replace(/_/g, ' ')}</option>`;
+                            const opt = document.createElement('option');
+                            opt.value = e;
+                            opt.textContent = e.replace(/_/g, ' ');
+                            select.appendChild(opt);
                         });
                     }
-                    
+
                     if (data.filtros.equipos) {
                         const select = document.getElementById('filtro-equipo');
                         data.filtros.equipos.forEach(e => {
-                            select.innerHTML += `<option value="${e}">${e.replace(/_/g, ' ')}</option>`;
+                            const opt = document.createElement('option');
+                            opt.value = e;
+                            opt.textContent = e.replace(/_/g, ' ');
+                            select.appendChild(opt);
                         });
                     }
-                    
+
                     if (data.filtros.temas) {
                         const select = document.getElementById('filtro-tema');
                         data.filtros.temas.forEach(t => {
-                            select.innerHTML += `<option value="${t}">${t}</option>`;
+                            const opt = document.createElement('option');
+                            opt.value = t;
+                            opt.textContent = t;
+                            select.appendChild(opt);
                         });
                     }
                 }
@@ -247,28 +256,28 @@ registrarSubTab('planificador', 'calendario', cargarCalendarioUnificado);
                         
                         detalle.className = 'detalle-ejercicio active';
                         detalle.innerHTML = `
-                            <img src="${ej.imagen || 'https://via.placeholder.com/400x300?text=Sin+imagen'}" alt="${ej.titulo}">
-                            <h3>${ej.titulo}</h3>
+                            <img src="${sanitizeURL(ej.imagen) || 'https://via.placeholder.com/400x300?text=Sin+imagen'}" alt="${escapeAttr(ej.titulo)}">
+                            <h3>${escapeHTML(ej.titulo)}</h3>
                             <div class="meta" style="font-size:13px;color:#666;line-height:1.8;margin-bottom:10px;">
-                                ${ej.entrenador ? `<strong>Entrenador:</strong> ${ej.entrenador.replace(/_/g, ' ')}<br>` : ''}
-                                ${ej.equipo ? `<strong>Equipo:</strong> ${ej.equipo.replace(/_/g, ' ')}<br>` : ''}
-                                ${ej.tema ? `<strong>Tema:</strong> ${ej.tema}<br>` : ''}
-                                ${ej.dificultad ? `<strong>Dificultad:</strong> ${ej.dificultad}<br>` : ''}
-                                <strong>Duracion:</strong> ${ej.duracion || 10} min
+                                ${ej.entrenador ? `<strong>Entrenador:</strong> ${escapeHTML(ej.entrenador.replace(/_/g, ' '))}<br>` : ''}
+                                ${ej.equipo ? `<strong>Equipo:</strong> ${escapeHTML(ej.equipo.replace(/_/g, ' '))}<br>` : ''}
+                                ${ej.tema ? `<strong>Tema:</strong> ${escapeHTML(ej.tema)}<br>` : ''}
+                                ${ej.dificultad ? `<strong>Dificultad:</strong> ${escapeHTML(ej.dificultad)}<br>` : ''}
+                                <strong>Duracion:</strong> ${parseInt(ej.duracion) || 10} min
                             </div>
                             ${ej.objetivo ? `
                                 <div class="detalle-seccion">
                                     <h4>Objetivo</h4>
-                                    <p>${ej.objetivo}</p>
+                                    <p>${escapeHTML(ej.objetivo)}</p>
                                 </div>
                             ` : ''}
                             ${ej.organizacion ? `
                                 <div class="detalle-seccion">
                                     <h4>Organizacion y Desarrollo</h4>
-                                    <p>${ej.organizacion}</p>
+                                    <p>${escapeHTML(ej.organizacion)}</p>
                                 </div>
                             ` : ''}
-                            ${ej.url ? `<a href="${ej.url}" target="_blank" class="btn-ver-completo" title="Necesitas estar logeado en la página principal, no solo en el planificador">🎬 Ver video ejercicio</a>` : ''}
+                            ${ej.url ? `<a href="${sanitizeURL(ej.url)}" target="_blank" class="btn-ver-completo" title="Necesitas estar logeado en la página principal, no solo en el planificador">🎬 Ver video ejercicio</a>` : ''}
                             <button class="btn-primary purple" style="width:100%;margin-top:10px;" onclick="abrirModalSeccion()">Anadir a Sesion</button>
                         `;
                     } else {
@@ -369,12 +378,12 @@ registrarSubTab('planificador', 'calendario', cargarCalendarioUnificado);
                     lista.innerHTML = '<p style="text-align:center;color:#9ca3af;padding:20px;font-size:13px;">Arrastra ejercicios aqui</p>';
               } else {
                     lista.innerHTML = sesion[seccion].map((ej, idx) => `
-                        <div class="ejercicio-en-sesion" onclick="seleccionarEjercicio(${ej.id})" style="cursor: pointer;">
+                        <div class="ejercicio-en-sesion" onclick="seleccionarEjercicio(${parseInt(ej.id) || 0})" style="cursor: pointer;">
                             <div>
-                                <div class="nombre">${ej.titulo}</div>
-                                <div class="duracion">${ej.duracion} min</div>
+                                <div class="nombre">${escapeHTML(ej.titulo)}</div>
+                                <div class="duracion">${parseInt(ej.duracion) || 0} min</div>
                             </div>
-                            <button onclick="event.stopPropagation(); quitarEjercicio('${seccion}', ${idx})">Quitar</button>
+                            <button onclick="event.stopPropagation(); quitarEjercicio('${escapeAttr(seccion)}', ${idx})">Quitar</button>
                         </div>
                     `).join('');
                 }
@@ -559,25 +568,25 @@ alert(sesionEditandoId ? 'Sesión actualizada correctamente' : 'Sesión guardada
                     
                     // Tags info
                     let tagsHTML = '';
-                    if (microciclo) tagsHTML += `<span class="sc-tag micro">${microciclo}</span>`;
-                    if (md) tagsHTML += `<span class="sc-tag md">${md}</span>`;
-                    if (equipo) tagsHTML += `<span class="sc-tag equipo">${equipo}</span>`;
+                    if (microciclo) tagsHTML += `<span class="sc-tag micro">${escapeHTML(microciclo)}</span>`;
+                    if (md) tagsHTML += `<span class="sc-tag md">${escapeHTML(md)}</span>`;
+                    if (equipo) tagsHTML += `<span class="sc-tag equipo">${escapeHTML(equipo)}</span>`;
                     
                     return `
                         <div class="sc-card">
                             <div class="sc-date-strip">
-                                <div class="sc-date-day">${diaSemana}</div>
+                                <div class="sc-date-day">${escapeHTML(diaSemana)}</div>
                                 <div class="sc-date-num">${diaNum}</div>
-                                <div class="sc-date-month">${mesCorto} ${anio}</div>
-                                ${hora ? `<div class="sc-date-time">⏱ ${hora}</div>` : ''}
+                                <div class="sc-date-month">${escapeHTML(mesCorto)} ${anio}</div>
+                                ${hora ? `<div class="sc-date-time">⏱ ${escapeHTML(hora)}</div>` : ''}
                             </div>
                             <div class="sc-body">
                                 <div class="sc-top-row">
-                                    <h3 class="sc-title">${s.name}</h3>
+                                    <h3 class="sc-title">${escapeHTML(s.name)}</h3>
                                     <div class="sc-total-badge">${tTotal} min</div>
                                 </div>
                                 ${tagsHTML ? `<div class="sc-tags">${tagsHTML}</div>` : ''}
-                                ${objetivo ? `<div class="sc-objetivo"><span class="sc-obj-label">Objetivo:</span> ${objetivo}</div>` : ''}
+                                ${objetivo ? `<div class="sc-objetivo"><span class="sc-obj-label">Objetivo:</span> ${escapeHTML(objetivo)}</div>` : ''}
                                 <div class="sc-phases">
                                     <div class="sc-phase warm">
                                         <div class="sc-phase-bar"></div>
@@ -607,10 +616,10 @@ alert(sesionEditandoId ? 'Sesión actualizada correctamente' : 'Sesión guardada
                                         ${numJugadores ? `<span class="sc-stat">👥 ${numJugadores} jugadores</span>` : ''}
                                     </div>
                                     <div class="sc-actions">
-                                        <button class="sc-btn sc-btn-cargar" onclick="cargarSesionEnEditor('${s.id}')" title="Cargar">✏️</button>
-                                        <button class="sc-btn sc-btn-asistencia" onclick="abrirModalAsistenciaSesion('${s.id}')" title="Asistencia">📋</button>
-                                        <button class="sc-btn sc-btn-pdf" onclick="abrirModalPDFSesion('${s.id}')" title="PDF">📄</button>
-                                        <button class="sc-btn sc-btn-eliminar" onclick="eliminarSesion('${s.id}')" title="Eliminar">🗑️</button>
+                                        <button class="sc-btn sc-btn-cargar" onclick="cargarSesionEnEditor('${escapeAttr(s.id)}')" title="Cargar">✏️</button>
+                                        <button class="sc-btn sc-btn-asistencia" onclick="abrirModalAsistenciaSesion('${escapeAttr(s.id)}')" title="Asistencia">📋</button>
+                                        <button class="sc-btn sc-btn-pdf" onclick="abrirModalPDFSesion('${escapeAttr(s.id)}')" title="PDF">📄</button>
+                                        <button class="sc-btn sc-btn-eliminar" onclick="eliminarSesion('${escapeAttr(s.id)}')" title="Eliminar">🗑️</button>
                                     </div>
                                 </div>
                             </div>
@@ -1074,9 +1083,9 @@ if (s.players && s.players.length > 0) {
                     sesionesPorDia[dia].forEach(s => {
                         const hora = s.session_time ? s.session_time.slice(0, 5) : '';
                         eventosHTML += `
-                            <div class="cal-evento cal-sesion" onclick="cargarSesionEnEditor('${s.id}')">
-                                <span class="cal-evento-nombre">${s.name}</span>
-                                ${hora ? `<span class="cal-evento-hora">${hora}</span>` : ''}
+                            <div class="cal-evento cal-sesion" onclick="cargarSesionEnEditor('${escapeAttr(s.id)}')">
+                                <span class="cal-evento-nombre">${escapeHTML(s.name)}</span>
+                                ${hora ? `<span class="cal-evento-hora">${escapeHTML(hora)}</span>` : ''}
                             </div>`;
                     });
                 }
@@ -1097,15 +1106,15 @@ if (s.players && s.players.length > 0) {
                             info = p.kick_off_time ? p.kick_off_time.slice(0, 5) : 'TBD';
                         }
                         
-                        const escudoRival = p.opponent_logo 
-                            ? `<img src="${p.opponent_logo}" class="cal-escudo">` 
+                        const escudoRival = p.opponent_logo
+                            ? `<img src="${sanitizeURL(p.opponent_logo)}" class="cal-escudo">`
                             : '';
-                        
+
                         eventosHTML += `
-                            <div class="cal-evento cal-partido ${resultClass}" onclick="verPartido('${p.id}')">
+                            <div class="cal-evento cal-partido ${resultClass}" onclick="verPartido('${escapeAttr(p.id)}')">
                                 ${escudoRival}
-                                <span class="cal-evento-nombre">${p.opponent}</span>
-                                <span class="cal-partido-resultado">${info}</span>
+                                <span class="cal-evento-nombre">${escapeHTML(p.opponent)}</span>
+                                <span class="cal-partido-resultado">${escapeHTML(info)}</span>
                             </div>`;
                     });
                 }

@@ -189,12 +189,13 @@ if (hasta) {
                     const hora = p.kick_off_time ? p.kick_off_time.slice(0, 5) : '';
                     const esLocal = p.home_away === 'home';
                     
-                    const miNombre = clubData?.name || 'Mi Equipo';
-                    const miEscudo = clubData?.logo_url ? `<img src="${clubData.logo_url}" class="mc-escudo">` : '<div class="mc-escudo-placeholder">🏠</div>';
-                    const rivalEscudo = p.opponent_logo ? `<img src="${p.opponent_logo}" class="mc-escudo">` : '<div class="mc-escudo-placeholder">🏟️</div>';
-                    
-                    const equipoLocal = esLocal ? miNombre : p.opponent;
-                    const equipoVisitante = esLocal ? p.opponent : miNombre;
+                    const miNombre = escapeHTML(clubData?.name || 'Mi Equipo');
+                    const miEscudo = clubData?.logo_url ? `<img src="${sanitizeURL(clubData.logo_url)}" class="mc-escudo">` : '<div class="mc-escudo-placeholder">🏠</div>';
+                    const rivalEscudo = p.opponent_logo ? `<img src="${sanitizeURL(p.opponent_logo)}" class="mc-escudo">` : '<div class="mc-escudo-placeholder">🏟️</div>';
+
+                    const rivalNombre = escapeHTML(p.opponent || '');
+                    const equipoLocal = esLocal ? miNombre : rivalNombre;
+                    const equipoVisitante = esLocal ? rivalNombre : miNombre;
                     const escudoLocal = esLocal ? miEscudo : rivalEscudo;
                     const escudoVisitante = esLocal ? rivalEscudo : miEscudo;
                     
@@ -215,10 +216,10 @@ if (hasta) {
                         marcadorHTML = `<div class="mc-score mc-score-pending"><span class="mc-score-time">${hora || 'TBD'}</span></div>`;
                     }
                     
-                    const competicion = p.competition || '';
-                    const jornada = p.round || '';
-                    const estadio = p.stadium || '';
-                    
+                    const competicion = escapeHTML(p.competition || '');
+                    const jornada = escapeHTML(p.round || '');
+                    const estadio = escapeHTML(p.stadium || '');
+
                     let metaHTML = '';
                     if (jornada) metaHTML += `<span class="mc-meta-item">📋 ${jornada}</span>`;
                     if (estadio) metaHTML += `<span class="mc-meta-item">🏟 ${estadio}</span>`;
@@ -252,10 +253,10 @@ if (hasta) {
                                 </div>
                                 ${metaHTML ? `<div class="mc-meta">${metaHTML}</div>` : ''}
                                 <div class="mc-actions">
-                                    <button class="mc-btn mc-btn-ver" onclick="verPartido('${p.id}')">👁️ Ver</button>
-                                    <button class="mc-btn mc-btn-editar" onclick="editarPartido('${p.id}')">✏️ Editar</button>
-                                    <button class="mc-btn mc-btn-stats" onclick="abrirModalResultado('${p.id}')">📊 Stats</button>
-                                    <button class="mc-btn mc-btn-eliminar" onclick="eliminarPartido('${p.id}')">🗑️</button>
+                                    <button class="mc-btn mc-btn-ver" onclick="verPartido('${escapeAttr(p.id)}')">👁️ Ver</button>
+                                    <button class="mc-btn mc-btn-editar" onclick="editarPartido('${escapeAttr(p.id)}')">✏️ Editar</button>
+                                    <button class="mc-btn mc-btn-stats" onclick="abrirModalResultado('${escapeAttr(p.id)}')">📊 Stats</button>
+                                    <button class="mc-btn mc-btn-eliminar" onclick="eliminarPartido('${escapeAttr(p.id)}')">🗑️</button>
                                 </div>
                             </div>
                         </div>
@@ -387,28 +388,28 @@ if (p.titulares && Array.isArray(p.titulares)) {
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;">
                 ${convocados.sort((a,b) => (a.shirt_number || 99) - (b.shirt_number || 99)).map(j => `
                     <div style="display:flex;align-items:center;gap:8px;padding:8px;background:#f0fdf4;border-radius:8px;">
-                        <span style="background:#059669;color:white;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">${j.shirt_number || '-'}</span>
-                        <span style="font-size:12px;">${j.name}</span>
+                        <span style="background:#059669;color:white;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">${escapeHTML(j.shirt_number || '-')}</span>
+                        <span style="font-size:12px;">${escapeHTML(j.name)}</span>
                     </div>
                 `).join('')}
             </div>
         `;
     }
-    
+
     let titularesHTML = '<p style="color:#9ca3af;">No hay titulares</p>';
     if (titulares.length > 0) {
         titularesHTML = `
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;">
                 ${titulares.sort((a,b) => (a.shirt_number || 99) - (b.shirt_number || 99)).map(j => `
                     <div style="display:flex;align-items:center;gap:8px;padding:8px;background:#dbeafe;border-radius:8px;">
-                        <span style="background:#3b82f6;color:white;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">${j.shirt_number || '-'}</span>
-                        <span style="font-size:12px;">${j.name}</span>
+                        <span style="background:#3b82f6;color:white;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">${escapeHTML(j.shirt_number || '-')}</span>
+                        <span style="font-size:12px;">${escapeHTML(j.name)}</span>
                     </div>
                 `).join('')}
             </div>
         `;
     }
-    
+
     let suplentesHTML = '';
     if (suplentes.length > 0) {
         suplentesHTML = `
@@ -417,8 +418,8 @@ if (p.titulares && Array.isArray(p.titulares)) {
                 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;">
                     ${suplentes.sort((a,b) => (a.shirt_number || 99) - (b.shirt_number || 99)).map(j => `
                         <div style="display:flex;align-items:center;gap:8px;padding:8px;background:#f3f4f6;border-radius:8px;">
-                            <span style="background:#6b7280;color:white;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">${j.shirt_number || '-'}</span>
-                            <span style="font-size:12px;">${j.name}</span>
+                            <span style="background:#6b7280;color:white;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">${escapeHTML(j.shirt_number || '-')}</span>
+                            <span style="font-size:12px;">${escapeHTML(j.name)}</span>
                         </div>
                     `).join('')}
                 </div>
@@ -566,19 +567,19 @@ function renderizarConvocatoria() {
                 const j = sp.players;
                 if (!j) return '';
                 const seleccionado = convocadosPartido.includes(String(sp.id));
-                const foto = j.photo_url;
-                const inicial = j.name ? j.name.charAt(0).toUpperCase() : '?';
+                const foto = sanitizeURL(j.photo_url);
+                const inicial = escapeHTML(j.name ? j.name.charAt(0).toUpperCase() : '?');
                 return `
-                    <div class="jugador-check ${seleccionado ? 'selected' : ''}" data-sp-id="${sp.id}" onclick="toggleConvocado('${sp.id}')">
+                    <div class="jugador-check ${seleccionado ? 'selected' : ''}" data-sp-id="${escapeAttr(sp.id)}" onclick="toggleConvocado('${escapeAttr(sp.id)}')">
                         <div class="jugador-foto-mini">
-                            ${foto ? `<img src="${foto}" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">` 
+                            ${foto ? `<img src="${foto}" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">`
                                    : `<span class="jugador-inicial" style="width:36px;height:36px;border-radius:50%;background:#6b21a8;color:white;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;">${inicial}</span>`}
                         </div>
                         <div class="jugador-check-info">
-                            <div class="nombre">${j.name}</div>
-                            <div class="posicion">${j.position || ''}</div>
+                            <div class="nombre">${escapeHTML(j.name)}</div>
+                            <div class="posicion">${escapeHTML(j.position || '')}</div>
                         </div>
-                        <div class="dorsal">${sp.shirt_number || '-'}</div>
+                        <div class="dorsal">${escapeHTML(sp.shirt_number || '-')}</div>
                     </div>
                 `;
             }).join('');
@@ -756,10 +757,10 @@ function renderizarConvocatoria() {
         
         if (sp && sp.players) {
             const j = sp.players;
-            const foto = j.photo_url;
-            const dorsal = sp.shirt_number || '';
-            const nombre = j.name ? j.name.split(' ').pop() : '?';
-            
+            const foto = sanitizeURL(j.photo_url);
+            const dorsal = escapeHTML(sp.shirt_number || '');
+            const nombre = escapeHTML(j.name ? j.name.split(' ').pop() : '?');
+
             playerEl.onclick = function() { quitarTitularDeSlot(idx); };
             playerEl.innerHTML = `
                 <div class="jugador-posicion-circulo">
@@ -795,18 +796,18 @@ function renderizarConvocatoria() {
             suplentesGrid.innerHTML = suplentes.sort((a,b) => (a.shirt_number || 99) - (b.shirt_number || 99)).map(sp => {
                 const j = sp.players;
                 if (!j) return '';
-                const foto = j.photo_url;
-                const inicial = j.name ? j.name.charAt(0).toUpperCase() : '?';
-                const posAbrev = posicionAbrev(j.position);
-                const posCol = colorPosicion(j.position);
+                const foto = sanitizeURL(j.photo_url);
+                const inicial = escapeHTML(j.name ? j.name.charAt(0).toUpperCase() : '?');
+                const posAbrev = escapeHTML(posicionAbrev(j.position));
+                const posCol = escapeAttr(colorPosicion(j.position));
                 const destacado = slotVacioIdx !== null ? ' sup-destacado' : '';
                 return `
-                    <div class="sup-jugador${destacado}" onclick="ponerSuplenteEnSlot('${sp.id}')">
+                    <div class="sup-jugador${destacado}" onclick="ponerSuplenteEnSlot('${escapeAttr(sp.id)}')">
                         <div class="sup-foto">
                             ${foto ? `<img src="${foto}">` : `<span class="sup-inicial">${inicial}</span>`}
                         </div>
                         <span class="sup-pos-badge" style="background:${posCol};">${posAbrev}</span>
-                        <span class="sup-nombre">${j.name}${sp.shirt_number ? ' #' + sp.shirt_number : ''}</span>
+                        <span class="sup-nombre">${escapeHTML(j.name)}${sp.shirt_number ? ' #' + escapeHTML(sp.shirt_number) : ''}</span>
                     </div>
                 `;
             }).join('');
@@ -821,13 +822,13 @@ function renderizarConvocatoria() {
             noConvGrid.innerHTML = noConvocados.slice(0, 8).map(sp => {
                 const j = sp.players;
                 if (!j) return '';
-                const posAbrev = posicionAbrev(j.position);
-                const posCol = colorPosicion(j.position);
+                const posAbrev = escapeHTML(posicionAbrev(j.position));
+                const posCol = escapeAttr(colorPosicion(j.position));
                 return `
                     <div class="sup-jugador nc">
-                        <div class="sup-foto"><span class="sup-inicial" style="opacity:0.4;">${j.name ? j.name.charAt(0) : '?'}</span></div>
+                        <div class="sup-foto"><span class="sup-inicial" style="opacity:0.4;">${escapeHTML(j.name ? j.name.charAt(0) : '?')}</span></div>
                         <span class="sup-pos-badge" style="background:${posCol};opacity:0.4;">${posAbrev}</span>
-                        <span class="sup-nombre" style="opacity:0.4;">${j.name}</span>
+                        <span class="sup-nombre" style="opacity:0.4;">${escapeHTML(j.name)}</span>
                     </div>
                 `;
             }).join('');
@@ -1005,14 +1006,14 @@ function renderizarConvocatoria() {
     
     if (resultado.error) {
         console.error('Error Supabase:', resultado.error);
-        alert('Error: ' + resultado.error.message);
+        mostrarErrorSeguro('Error al guardar el partido. Inténtalo de nuevo.', resultado.error);
         return;
     }
-                
+
                 cerrarModalPartido();
                 cargarPartidos();
             } catch (error) {
-                alert('Error al guardar: ' + error.message);
+                mostrarErrorSeguro('Error al guardar el partido. Inténtalo de nuevo.', error);
             }
         }
         
@@ -1061,10 +1062,10 @@ function renderizarConvocatoria() {
             const esTitular = (p.titulares || []).some(t => t.player_id === j.player_id);
             
             return `
-                <div class="jugador-stats-row" data-player-id="${j.player_id}">
+                <div class="jugador-stats-row" data-player-id="${escapeAttr(j.player_id)}">
                     <div class="nombre">
-                        <span style="display:inline-block;background:${esTitular ? '#3b82f6' : '#6b7280'};color:white;width:22px;height:22px;border-radius:6px;text-align:center;line-height:22px;font-size:11px;margin-right:8px;">${j.shirt_number || '-'}</span>
-                        ${j.name}
+                        <span style="display:inline-block;background:${esTitular ? '#3b82f6' : '#6b7280'};color:white;width:22px;height:22px;border-radius:6px;text-align:center;line-height:22px;font-size:11px;margin-right:8px;">${escapeHTML(j.shirt_number || '-')}</span>
+                        ${escapeHTML(j.name)}
                         ${esTitular ? '<span style="font-size:10px;color:#3b82f6;margin-left:5px;">TIT</span>' : '<span style="font-size:10px;color:#9ca3af;margin-left:5px;">SUP</span>'}
                     </div>
                     <input type="number" class="stat-min" value="${s.minutes_played || 0}" min="0" max="120" placeholder="Min">

@@ -458,17 +458,23 @@ function cerrarChatStaff(event) {
 async function enviarMensajeChat() {
     const input = document.getElementById('chat-input');
     const mensaje = input.value.trim();
-    
+
     if (!mensaje || !currentStaff) return;
-    
+
+    // Rate limiting: máximo 10 mensajes por minuto
+    if (isRateLimited('groq-chat', 10, 60000)) {
+        alert('Demasiados mensajes. Espera un momento antes de enviar otro.');
+        return;
+    }
+
     const staff = staffConfig[currentStaff];
     const messagesDiv = document.getElementById('chat-messages');
     
-    // Añadir mensaje del usuario
+    // Añadir mensaje del usuario (escapar HTML para prevenir XSS)
     messagesDiv.innerHTML += `
         <div class="chat-message user">
             <div class="avatar">👤</div>
-            <div class="contenido">${mensaje}</div>
+            <div class="contenido">${escapeHTML(mensaje)}</div>
         </div>
     `;
     
@@ -485,8 +491,9 @@ async function enviarMensajeChat() {
     `;
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
     
-    // Añadir a historial
-    chatHistory.push({ role: 'user', content: mensaje });
+    // Sanitizar y añadir a historial (protección prompt injection)
+    const mensajeSanitizado = sanitizePromptInput(mensaje);
+    chatHistory.push({ role: 'user', content: mensajeSanitizado });
     
     try {
         // ========== BÚSQUEDA DINÁMICA DE EJERCICIOS ==========
@@ -648,7 +655,10 @@ async function llamarGroq(systemPrompt, messages) {
 }
 
 function formatearRespuesta(texto) {
-    return texto
+    // Primero escapar HTML del texto crudo para prevenir XSS desde la respuesta del LLM
+    let safe = escapeHTML(texto);
+    // Luego aplicar formato markdown limitado (solo bold, italic, párrafos)
+    return safe
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
         .replace(/\n\n/g, '</p><p>')

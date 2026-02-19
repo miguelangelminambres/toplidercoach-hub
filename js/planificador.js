@@ -10,6 +10,10 @@ registrarInit(function() {
     renderizarSesion();
 });
 
+registrarModulo('planificador', function() {
+    cargarJugadoresSesion();
+});
+
 registrarSubTab('planificador', 'mis-sesiones', cargarMisSesiones);
 registrarSubTab('planificador', 'calendario', cargarCalendarioUnificado);
 
@@ -1152,4 +1156,3 @@ if (s.players && s.players.length > 0) {
             if (calendarioMes > 11) { calendarioMes = 0; calendarioAnio++; }
             cargarCalendarioUnificado();
         }
-   

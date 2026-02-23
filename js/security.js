@@ -143,7 +143,66 @@ const Security = (function() {
         return mensajeUsuario || 'Ha ocurrido un error. Inténtalo de nuevo.';
     }
 
+    // ========== SANITIZAR HTML CON DOMPURIFY ==========
+    function safeHTML(html) {
+        if (typeof DOMPurify !== 'undefined') {
+            return DOMPurify.sanitize(html, {
+                ALLOWED_TAGS: ['div','span','img','button','p','br','strong','em','h1','h2','h3','h4','h5','table','thead','tbody','tr','th','td','ul','ol','li','a','canvas','label','input','select','option','textarea','i','small','b'],
+                ALLOWED_ATTR: ['class','id','style','src','alt','onclick','onchange','oninput','type','value','placeholder','data-id','data-tab','href','target','colspan','rowspan','disabled','checked','selected','title','draggable','min','max','step','name','for','width','height']
+            });
+        }
+        return html;
+    }
+
+// ========== AUTO-SANITIZAR TODOS LOS innerHTML ==========
+    function activarProteccionGlobal() {
+        if (typeof DOMPurify === 'undefined') {
+            console.warn('DOMPurify no cargado, protección global desactivada');
+            return;
+        }
+
+        var config = {
+            ALLOWED_TAGS: ['div','span','img','button','p','br','strong','em',
+                'h1','h2','h3','h4','h5','h6','table','thead','tbody','tr','th','td',
+                'ul','ol','li','a','canvas','label','input','select','option',
+                'textarea','i','small','b','svg','path','circle','rect','line',
+                'polyline','polygon','g','text','font','sub','sup','hr','pre','code'],
+            ALLOWED_ATTR: ['class','id','style','src','alt','onclick','onchange',
+                'oninput','onkeydown','onkeyup','onmousedown','onmouseup',
+                'ondragstart','ondragover','ondrop','ondragend',
+                'type','value','placeholder','href','target',
+                'colspan','rowspan','disabled','checked','selected','title',
+                'draggable','min','max','step','name','for','width','height',
+                'viewBox','d','fill','stroke','stroke-width','cx','cy','r',
+                'x','y','x1','y1','x2','y2','points','transform',
+                'contenteditable','tabindex','role','aria-label'],
+            ALLOW_DATA_ATTR: true
+        };
+
+        var desc = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+        if (!desc) return;
+
+        Object.defineProperty(Element.prototype, 'innerHTML', {
+            set: function(value) {
+                if (typeof value === 'string' && value.trim() !== '') {
+                    value = DOMPurify.sanitize(value, config);
+                }
+                desc.set.call(this, value);
+            },
+            get: function() {
+                return desc.get.call(this);
+            },
+            configurable: true
+        });
+
+        console.log('🔒 Protección innerHTML global activada');
+    }
+
+    // Activar automáticamente
+    activarProteccionGlobal();
+
     return {
+        safeHTML: safeHTML,
         escapeHTML: escapeHTML,
         escapeAttr: escapeAttr,
         sanitizeURL: sanitizeURL,

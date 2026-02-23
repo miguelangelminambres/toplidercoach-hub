@@ -451,23 +451,33 @@
 <div id="planificador-asistencia" class="vista-contenido">
     <div class="section-header">
         <h2>📊 Control de Asistencia</h2>
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <select id="asistencia-mes" onchange="cargarAsistenciaMes()">
-                <option value="">Selecciona mes...</option>
-            </select>
-            <button class="btn-primary purple" onclick="cargarAsistenciaMes()">🔄 Actualizar</button>
+        <div class="asistencia-controles">
+            <div class="asistencia-fechas">
+                <label>Desde:</label>
+                <input type="date" id="asistencia-fecha-inicio">
+                <label>Hasta:</label>
+                <input type="date" id="asistencia-fecha-fin">
+            </div>
+            <div class="asistencia-botones">
+                <button class="btn-primary purple" onclick="cargarAsistenciaRango()">🔄 Actualizar</button>
+                <button class="btn-primary" style="background:#0f172a;" onclick="generarPDFPlantillaGeneral()">📄 PDF General</button>
+            </div>
         </div>
     </div>
     
-    <!-- Resumen del mes -->
+    <!-- Resumen del periodo -->
     <div class="asistencia-resumen" id="asistencia-resumen">
         <div class="asistencia-stat">
             <span class="numero" id="asistencia-total-sesiones">0</span>
-            <span class="label">Sesiones del mes</span>
+            <span class="label">Sesiones en el periodo</span>
         </div>
         <div class="asistencia-stat">
             <span class="numero" id="asistencia-promedio">0%</span>
             <span class="label">Asistencia media</span>
+        </div>
+        <div class="asistencia-stat">
+            <span class="numero" id="asistencia-total-jugadores">0</span>
+            <span class="label">Jugadores</span>
         </div>
     </div>
     
@@ -491,7 +501,7 @@
                     </tr>
                 </thead>
                 <tbody id="asistencia-tabla-body">
-                    <tr><td colspan="8" style="text-align:center; color:#9ca3af;">Selecciona un mes para ver datos</td></tr>
+                    <tr><td colspan="8" style="text-align:center; color:#9ca3af;">Selecciona fechas y pulsa Actualizar</td></tr>
                 </tbody>
             </table>
         </div>

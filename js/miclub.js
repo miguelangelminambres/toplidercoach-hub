@@ -392,7 +392,8 @@ return `
             document.getElementById('jugador-telefono').value = '';
             document.getElementById('jugador-email').value = '';
             document.getElementById('jugador-estado').value = 'available';
-            
+            document.getElementById('jugador-documento').value = '';
+            document.getElementById('jugador-licencia').value = '';
             document.getElementById('jugador-foto-preview').style.display = 'none';
             document.getElementById('jugador-foto-placeholder').style.display = 'flex';
             
@@ -418,6 +419,8 @@ return `
             document.getElementById('jugador-telefono').value = player.phone || '';
             document.getElementById('jugador-email').value = player.email || '';
             document.getElementById('jugador-estado').value = player.status || 'available';
+            document.getElementById('jugador-documento').value = player.document_number || '';
+            document.getElementById('jugador-licencia').value = player.federation_license || '';
             
             if (player.photo_url) {
                 document.getElementById('jugador-foto-preview').src = player.photo_url;
@@ -484,7 +487,9 @@ return `
                 weight_kg: document.getElementById('jugador-peso').value || null,
                 phone: document.getElementById('jugador-telefono').value,
                 email: document.getElementById('jugador-email').value,
-                status: document.getElementById('jugador-estado').value
+         status: document.getElementById('jugador-estado').value,
+                document_number: document.getElementById('jugador-documento').value || null,
+                federation_license: document.getElementById('jugador-licencia').value || null
             };
             
             if (photoUrl) playerData.photo_url = photoUrl;
@@ -515,3 +520,168 @@ return `
 // Añadir estas funciones en la sección de JavaScript
 
 // Detectar plataforma del video
+// ========== DESCARGAR PLANTILLA PDF ==========
+
+function abrirModalDescargarPlantilla() {
+    document.getElementById('modal-descargar-plantilla').style.display = 'flex';
+}
+
+function cerrarModalDescargarPlantilla(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('modal-descargar-plantilla').style.display = 'none';
+}
+
+function seleccionarTodosCamposPDF(marcar) {
+    document.querySelectorAll('.campo-pdf-check').forEach(cb => cb.checked = marcar);
+}
+
+async function generarPDFPlantilla() {
+    const campos = [];
+    document.querySelectorAll('.campo-pdf-check:checked').forEach(cb => campos.push(cb.value));
+    
+    if (campos.length === 0) {
+        alert('Selecciona al menos un campo');
+        return;
+    }
+    
+    const orientacion = document.querySelector('input[name="pdf-orientacion"]:checked').value;
+    
+    // Cargar datos completos de los jugadores
+    const tempId = document.getElementById('plantilla-temporada').value;
+    if (!tempId) { alert('Selecciona una temporada'); return; }
+    
+    const { data, error } = await supabaseClient
+        .from('season_players')
+        .select('shirt_number, players(name, position, birth_date, dominant_foot, height_cm, weight_kg, phone, email, status, document_number, federation_license)')
+        .eq('season_id', tempId)
+        .order('shirt_number');
+    
+    if (error || !data || data.length === 0) {
+        alert('No hay jugadores en la plantilla');
+        return;
+    }
+    
+    // Obtener nombre temporada
+    const tempSelect = document.getElementById('plantilla-temporada');
+    const tempNombre = tempSelect.options[tempSelect.selectedIndex].text;
+    
+    // Mapeo de campos a columnas
+    const campoConfig = {
+        dorsal:      { header: 'Dorsal', getValue: (sp) => sp.shirt_number || '-' },
+        nombre:      { header: 'Nombre', getValue: (sp) => sp.players?.name || '-' },
+        posicion:    { header: 'Posición', getValue: (sp) => sp.players?.position || '-' },
+        nacimiento:  { header: 'F. Nacimiento', getValue: (sp) => sp.players?.birth_date ? new Date(sp.players.birth_date).toLocaleDateString('es-ES') : '-' },
+        edad:        { header: 'Edad', getValue: (sp) => {
+            if (!sp.players?.birth_date) return '-';
+            const hoy = new Date(); const nac = new Date(sp.players.birth_date);
+            let e = hoy.getFullYear() - nac.getFullYear();
+            const m = hoy.getMonth() - nac.getMonth();
+            if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) e--;
+            return e;
+        }},
+        pie:         { header: 'Pie', getValue: (sp) => sp.players?.dominant_foot || '-' },
+        altura:      { header: 'Altura', getValue: (sp) => sp.players?.height_cm ? sp.players.height_cm + ' cm' : '-' },
+        peso:        { header: 'Peso', getValue: (sp) => sp.players?.weight_kg ? sp.players.weight_kg + ' kg' : '-' },
+        telefono:    { header: 'Teléfono', getValue: (sp) => sp.players?.phone || '-' },
+        email:       { header: 'Email', getValue: (sp) => sp.players?.email || '-' },
+        documento:   { header: 'Nº Documento', getValue: (sp) => sp.players?.document_number || '-' },
+        licencia:    { header: 'Nº Licencia', getValue: (sp) => sp.players?.federation_license || '-' },
+        estado:      { header: 'Estado', getValue: (sp) => {
+            const st = sp.players?.status;
+            return st === 'available' ? 'Disponible' : st === 'injured' ? 'Lesionado' : st === 'suspended' ? 'Sancionado' : '-';
+        }}
+    };
+    
+    // Construir headers y filas
+    const headers = campos.map(c => campoConfig[c].header);
+    const rows = data.map(sp => campos.map(c => String(campoConfig[c].getValue(sp))));
+    
+    // Generar PDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: orientacion, unit: 'mm', format: 'a4' });
+    
+    const pageW = doc.internal.pageSize.getWidth();
+    const clubNombre = clubData?.name || 'Mi Club';
+    
+    // Header con fondo oscuro
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 0, pageW, 30, 'F');
+    
+    // Logo del club si existe
+    let logoX = 15;
+    if (clubData?.logo_url) {
+        try {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+                img.src = clubData.logo_url;
+            });
+            doc.addImage(img, 'PNG', 10, 3, 24, 24);
+            logoX = 38;
+        } catch(e) { /* sin logo */ }
+    }
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.text(clubNombre, logoX, 14);
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text('Plantilla - ' + tempNombre, logoX, 22);
+    
+    // Fecha de generación
+    doc.setFontSize(8);
+    doc.text('Generado: ' + new Date().toLocaleDateString('es-ES'), pageW - 15, 22, { align: 'right' });
+    
+    // Tabla con autoTable
+    doc.autoTable({
+        startY: 36,
+        head: [headers],
+        body: rows,
+        theme: 'grid',
+        styles: {
+            fontSize: 8,
+            cellPadding: 3,
+            lineColor: [200, 200, 200],
+            lineWidth: 0.3,
+            overflow: 'linebreak'
+        },
+        headStyles: {
+            fillColor: [30, 41, 59],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            fontSize: 8,
+            halign: 'center'
+        },
+        alternateRowStyles: {
+            fillColor: [248, 250, 252]
+        },
+        columnStyles: campos.reduce((acc, c, i) => {
+            if (c === 'dorsal' || c === 'edad' || c === 'altura' || c === 'peso') {
+                acc[i] = { halign: 'center', cellWidth: c === 'dorsal' ? 14 : 18 };
+            }
+            if (c === 'nombre') {
+                acc[i] = { fontStyle: 'bold' };
+            }
+            return acc;
+        }, {}),
+        didDrawPage: function(data) {
+            // Footer
+            doc.setFontSize(7);
+            doc.setTextColor(150, 150, 150);
+            doc.text('TopLiderCoach HUB', 15, doc.internal.pageSize.getHeight() - 8);
+            doc.text('Pág. ' + doc.internal.getNumberOfPages(), pageW - 15, doc.internal.pageSize.getHeight() - 8, { align: 'right' });
+        }
+    });
+    
+    // Total jugadores al final
+    const finalY = doc.lastAutoTable.finalY + 8;
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Total: ${data.length} jugadores`, 15, finalY);
+    
+    doc.save(`plantilla_${clubNombre.replace(/\s+/g, '_')}.pdf`);
+    cerrarModalDescargarPlantilla();
+}

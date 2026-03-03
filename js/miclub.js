@@ -546,7 +546,6 @@ async function generarPDFPlantilla() {
     
     const orientacion = document.querySelector('input[name="pdf-orientacion"]:checked').value;
     
-    // Cargar datos completos de los jugadores
     const tempId = document.getElementById('plantilla-temporada').value;
     if (!tempId) { alert('Selecciona una temporada'); return; }
     
@@ -561,11 +560,9 @@ async function generarPDFPlantilla() {
         return;
     }
     
-    // Obtener nombre temporada
     const tempSelect = document.getElementById('plantilla-temporada');
     const tempNombre = tempSelect.options[tempSelect.selectedIndex].text;
     
-    // Mapeo de campos a columnas
     const campoConfig = {
         dorsal:      { header: 'Dorsal', getValue: (sp) => sp.shirt_number || '-' },
         nombre:      { header: 'Nombre', getValue: (sp) => sp.players?.name || '-' },
@@ -592,23 +589,34 @@ async function generarPDFPlantilla() {
         }}
     };
     
-    // Construir headers y filas
     const headers = campos.map(c => campoConfig[c].header);
     const rows = data.map(sp => campos.map(c => String(campoConfig[c].getValue(sp))));
     
-    // Generar PDF
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: orientacion, unit: 'mm', format: 'a4' });
     
     const pageW = doc.internal.pageSize.getWidth();
     const clubNombre = clubData?.name || 'Mi Club';
     
+    // === AJUSTE DINÁMICO según número de campos ===
+    const numCampos = campos.length;
+    let fontSize, headFontSize, cellPadding, margin;
+    
+    if (numCampos <= 5) {
+        fontSize = 9; headFontSize = 9; cellPadding = 3; margin = 15;
+    } else if (numCampos <= 8) {
+        fontSize = 7.5; headFontSize = 7.5; cellPadding = 2.5; margin = 10;
+    } else if (numCampos <= 10) {
+        fontSize = 6.5; headFontSize = 6.5; cellPadding = 2; margin = 8;
+    } else {
+        fontSize = 5.5; headFontSize = 5.5; cellPadding = 1.5; margin = 6;
+    }
+    
     // Header con fondo oscuro
     doc.setFillColor(15, 23, 42);
-    doc.rect(0, 0, pageW, 30, 'F');
+    doc.rect(0, 0, pageW, 28, 'F');
     
-    // Logo del club si existe
-    let logoX = 15;
+    let logoX = margin;
     if (clubData?.logo_url) {
         try {
             const img = new Image();
@@ -618,70 +626,82 @@ async function generarPDFPlantilla() {
                 img.onerror = reject;
                 img.src = clubData.logo_url;
             });
-            doc.addImage(img, 'PNG', 10, 3, 24, 24);
-            logoX = 38;
-        } catch(e) { /* sin logo */ }
+            doc.addImage(img, 'PNG', margin, 2, 22, 22);
+            logoX = margin + 26;
+        } catch(e) {}
     }
     
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(16);
+    doc.setFontSize(14);
     doc.setFont(undefined, 'bold');
-    doc.text(clubNombre, logoX, 14);
-    doc.setFontSize(10);
+    doc.text(clubNombre, logoX, 12);
+    doc.setFontSize(9);
     doc.setFont(undefined, 'normal');
-    doc.text('Plantilla - ' + tempNombre, logoX, 22);
+    doc.text('Plantilla - ' + tempNombre, logoX, 20);
     
-    // Fecha de generación
-    doc.setFontSize(8);
-    doc.text('Generado: ' + new Date().toLocaleDateString('es-ES'), pageW - 15, 22, { align: 'right' });
+    doc.setFontSize(7);
+    doc.text('Generado: ' + new Date().toLocaleDateString('es-ES'), pageW - margin, 20, { align: 'right' });
     
-    // Tabla con autoTable
+    // === Anchos de columna dinámicos ===
+    const tableWidth = pageW - (margin * 2);
+    
+    // Campos estrechos vs normales vs anchos
+    const camposEstrechos = ['dorsal', 'edad', 'altura', 'peso'];
+    const camposAnchos = ['nombre', 'email', 'telefono', 'licencia'];
+    
+    const columnStyles = {};
+    campos.forEach((c, i) => {
+        if (camposEstrechos.includes(c)) {
+            columnStyles[i] = { halign: 'center', cellWidth: numCampos > 8 ? 12 : 15 };
+        }
+        if (c === 'nombre') {
+            columnStyles[i] = { fontStyle: 'bold' };
+        }
+        if (c === 'estado') {
+            columnStyles[i] = { halign: 'center', cellWidth: numCampos > 8 ? 16 : 20 };
+        }
+    });
+    
     doc.autoTable({
-        startY: 36,
+        startY: 33,
         head: [headers],
         body: rows,
         theme: 'grid',
+        margin: { left: margin, right: margin },
+        tableWidth: 'auto',
         styles: {
-            fontSize: 8,
-            cellPadding: 3,
+            fontSize: fontSize,
+            cellPadding: cellPadding,
             lineColor: [200, 200, 200],
             lineWidth: 0.3,
-            overflow: 'linebreak'
+            overflow: 'linebreak',
+            valign: 'middle'
         },
         headStyles: {
             fillColor: [30, 41, 59],
             textColor: [255, 255, 255],
             fontStyle: 'bold',
-            fontSize: 8,
-            halign: 'center'
+            fontSize: headFontSize,
+            halign: 'center',
+            cellPadding: cellPadding
         },
         alternateRowStyles: {
             fillColor: [248, 250, 252]
         },
-        columnStyles: campos.reduce((acc, c, i) => {
-            if (c === 'dorsal' || c === 'edad' || c === 'altura' || c === 'peso') {
-                acc[i] = { halign: 'center', cellWidth: c === 'dorsal' ? 14 : 18 };
-            }
-            if (c === 'nombre') {
-                acc[i] = { fontStyle: 'bold' };
-            }
-            return acc;
-        }, {}),
+        columnStyles: columnStyles,
         didDrawPage: function(data) {
-            // Footer
-            doc.setFontSize(7);
+            doc.setFontSize(6);
             doc.setTextColor(150, 150, 150);
-            doc.text('TopLiderCoach HUB', 15, doc.internal.pageSize.getHeight() - 8);
-            doc.text('Pág. ' + doc.internal.getNumberOfPages(), pageW - 15, doc.internal.pageSize.getHeight() - 8, { align: 'right' });
+            doc.text('TopLiderCoach HUB', margin, doc.internal.pageSize.getHeight() - 6);
+            doc.text('Pág. ' + doc.internal.getNumberOfPages(), pageW - margin, doc.internal.pageSize.getHeight() - 6, { align: 'right' });
         }
     });
     
-    // Total jugadores al final
-    const finalY = doc.lastAutoTable.finalY + 8;
-    doc.setFontSize(9);
+    const finalY = doc.lastAutoTable.finalY + 6;
+    doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
-    doc.text(`Total: ${data.length} jugadores`, 15, finalY);
+    doc.text('Total: ' + data.length + ' jugadores', margin, finalY);
     
-    doc.save(`plantilla_${clubNombre.replace(/\s+/g, '_')}.pdf`);
+    doc.save('plantilla_' + clubNombre.replace(/\s+/g, '_') + '.pdf');
     cerrarModalDescargarPlantilla();
 }

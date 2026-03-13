@@ -296,9 +296,13 @@ function ejRenderSVG() {
             html += `<rect x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}" fill="none" stroke="${ejP.lineColor}" stroke-width="${sw}" stroke-dasharray="${dash}" opacity="0.7"/>`;
         } else if (t.type === 'ellipse') {
             html += `<ellipse cx="${t.cx}" cy="${t.cy}" rx="${t.rx}" ry="${t.ry}" fill="none" stroke="${ejP.lineColor}" stroke-width="${sw}" stroke-dasharray="${dash}" opacity="0.7"/>`;
-        } else if (t.type === 'freehand' && t.points.length > 1) {
+} else if (t.type === 'freehand' && t.points.length > 1) {
             const d = t.points.map((p,i)=>`${i===0?'M':'L'}${p.x} ${p.y}`).join(' ');
             html += `<path d="${d}" stroke="${ejP.lineColor}" stroke-width="${sw}" fill="none" stroke-linecap="round" opacity="0.7"/>`;
+        } else if (t.type === 'curved') {
+            const cx = t.cx ?? (t.x1+t.x2)/2, cy = t.cy ?? (t.y1+t.y2)/2 - 40;
+            html += `<path d="M${t.x1} ${t.y1} Q${cx} ${cy} ${t.x2} ${t.y2}" stroke="${ejP.lineColor}" stroke-width="${sw}" fill="none" opacity="0.7"/>`;
+            html += `<circle cx="${cx}" cy="${cy}" r="5" fill="#facc15" opacity="0.7"/>`;
         }
     }
 
@@ -331,7 +335,10 @@ function ejRenderSVG() {
 // Trayectorias del frame actual (modo animación)
 if (ejP.animMode && ejP.frames[ejP.currentFrame]) {
     const trajs = ejP.frames[ejP.currentFrame].trajectories || [];
-    for (const l of trajs) {
+for (const l of trajs) {
+        if (l.isMovement && l.fromX !== undefined) {
+            html += `<circle cx="${l.fromX}" cy="${l.fromY}" r="13" fill="none" stroke="#facc15" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.3"/>`;
+        }
         const sw = l.strokeWidth || 3;
         const dash = l.dashed ? '10 5' : 'none';
         const col = l.color || '#facc15';
@@ -534,19 +541,60 @@ function ejSvgPointerMove(e) {
         return;
     }
 
-    // Arrastrar elemento
-    function ejSvgPointerUp(e) {
+    // Arrastrar jugador/equipamiento
+    if (ejP.isDragging && ejP.selectedId) {
+        const id = ejP.selectedId;
+        const p = ejP.players.find(p => p.id === id);
+        if (p) {
+            p.x = pos.x - ejP.dragOffset.x;
+            p.y = pos.y - ejP.dragOffset.y;
+        } else {
+            const eq = ejP.equipment.find(eq => eq.id === id);
+            if (eq) {
+                eq.x = pos.x - ejP.dragOffset.x;
+                eq.y = pos.y - ejP.dragOffset.y;
+            } else {
+                const tx = ejP.texts.find(t => t.id === id);
+                if (tx) { tx.x = pos.x - ejP.dragOffset.x; tx.y = pos.y - ejP.dragOffset.y; }
+                const sh = ejP.shapes.find(s => s.id === id);
+                if (sh && sh.x !== undefined) { sh.x = pos.x - ejP.dragOffset.x; sh.y = pos.y - ejP.dragOffset.y; }
+            }
+        }
+        ejRenderSVG();
+        return;
+    }
+
+    // Actualizar trazo mientras dibuja
+    if (ejP.isDrawing && ejP.tempShape) {
+        const t = ejP.tempShape;
+        if (t.type === 'freehand') {
+            t.points.push(pos);
+        } else if (t.type === 'rect') {
+            t.w = pos.x - t.x; t.h = pos.y - t.y;
+        } else if (t.type === 'ellipse') {
+            t.rx = Math.abs(pos.x - t.cx); t.ry = Math.abs(pos.y - t.cy);
+        } else if (t.type === 'curved') {
+            t.x2 = pos.x; t.y2 = pos.y;
+            t.cx = (t.x1 + pos.x) / 2; t.cy = (t.y1 + pos.y) / 2 - 40;
+        } else {
+            t.x2 = pos.x; t.y2 = pos.y;
+        }
+        ejRenderSVG();
+    }
+}
+
+function ejSvgPointerUp(e) {
     const pos = ejGetPos(e);
 
-    // --- FIN DE DRAG ---
-if (ejP.isDragging && ejP.selectedId) {
+    // Fin de arrastre
+    if (ejP.isDragging && ejP.selectedId) {
         ejSaveHistory();
         if (ejP.animMode) ejFrameSaveCurrent();
     }
     ejP.isDragging = false;
     ejP._ctrlId = null;
 
-    // --- FIN DE DIBUJO ---
+    // Fin de dibujo
     if (ejP.isDrawing && ejP.drawStart) {
         const id = ejP.nextId++;
         const color = ejP.lineColor;
@@ -555,15 +603,16 @@ if (ejP.isDragging && ejP.selectedId) {
         const t = ejP.tempShape;
         let newLine = null;
 
-        if (ejP.activeTool === 'pencil' && t.points.length > 2) {
+        if (ejP.activeTool === 'pencil' && t && t.points && t.points.length > 2) {
             newLine = { id, type: 'freehand', points: [...t.points], color, strokeWidth: sw, dashed };
-        } else if (ejP.activeTool === 'rect' && t.w > 5 && t.h > 5) {
+        } else if (ejP.activeTool === 'rect' && t && t.w > 5 && t.h > 5) {
             newLine = { id, type: 'rect', x: t.x, y: t.y, w: t.w, h: t.h, color, fill: 'none', strokeWidth: sw, dashed };
-        } else if (ejP.activeTool === 'ellipse' && t.rx > 5 && t.ry > 5) {
+        } else if (ejP.activeTool === 'ellipse' && t && t.rx > 5 && t.ry > 5) {
             newLine = { id, type: 'ellipse', cx: t.cx, cy: t.cy, rx: t.rx, ry: t.ry, color, fill: 'none', strokeWidth: sw, dashed };
-        } else if (ejP.activeTool === 'curved') {
+        } else if (ejP.activeTool === 'curved' && t) {
             newLine = { id, type: 'curved', x1: t.x1, y1: t.y1, x2: t.x2, y2: t.y2,
-                cx: t.cx, cy: t.cy, color, strokeWidth: sw, dashed, hasArrow: true };
+                cx: t.cx ?? (t.x1+t.x2)/2, cy: t.cy ?? (t.y1+t.y2)/2 - 40,
+                color, strokeWidth: sw, dashed, hasArrow: true };
         } else {
             const dx = pos.x - ejP.drawStart.x, dy = pos.y - ejP.drawStart.y;
             if (Math.sqrt(dx*dx+dy*dy) > 5) {
@@ -578,21 +627,21 @@ if (ejP.isDragging && ejP.selectedId) {
                 const frame = ejP.frames[ejP.currentFrame];
                 if (!frame.trajectories) frame.trajectories = [];
                 if (!frame.undoStack) frame.undoStack = [];
-
                 const snap = ejP._animDrawSnap;
                 if (snap) {
-                    // ES MOVIMIENTO — el trazo parte de un jugador/equipamiento
-                    const endX = newLine.x2 ?? newLine.points?.[newLine.points.length-1]?.x ?? ejP.drawStart.x;
-                    const endY = newLine.y2 ?? newLine.points?.[newLine.points.length-1]?.y ?? ejP.drawStart.y;
+                    const endX = newLine.x2 ?? newLine.points?.[newLine.points.length-1]?.x ?? pos.x;
+                    const endY = newLine.y2 ?? newLine.points?.[newLine.points.length-1]?.y ?? pos.y;
                     const elem = snap.elemType === 'player'
                         ? ejP.players.find(p => p.id === snap.id)
                         : ejP.equipment.find(eq => eq.id === snap.id);
                     if (elem) {
                         const fromX = elem.x, fromY = elem.y;
                         elem.x = endX; elem.y = endY;
-                        newLine.isMovement = true;
+                       newLine.isMovement = true;
+                        newLine.fromX = fromX;
+                        newLine.fromY = fromY;
                         newLine.linkedId = snap.id;
-                        newLine.color = '#facc15'; // amarillo = movimiento
+                        newLine.color = '#facc15';
                         newLine.strokeWidth = 2;
                         newLine.dashed = true;
                         frame.trajectories.push(newLine);
@@ -600,14 +649,12 @@ if (ejP.isDragging && ejP.selectedId) {
                         ejFrameSaveCurrent();
                     }
                 } else {
-                    // ES DIBUJO DECORATIVO — trazo en el campo sin snap
                     newLine.isMovement = false;
                     frame.trajectories.push(newLine);
                     frame.undoStack.push({ type: 'traj', trajId: newLine.id });
                 }
                 ejP._animDrawSnap = null;
             } else {
-                // Modo normal: guardar en campo permanente
                 if (newLine.type === 'rect' || newLine.type === 'ellipse') ejP.shapes.push(newLine);
                 else ejP.lines.push(newLine);
                 ejSaveHistory();
@@ -620,64 +667,6 @@ if (ejP.isDragging && ejP.selectedId) {
     }
     ejRenderSVG();
 }
-}
-
-function ejSvgPointerUp(e) {
-    const pos = ejGetPos(e);
-
-   if (ejP.isDragging && ejP.selectedId) {
-    ejSaveHistory();
-    if (ejP.animMode) ejFrameSaveCurrent();  // ← AÑADIR ESTA LÍNEA
-}
-    ejP.isDragging = false;
-    ejP._ctrlId = null;
-
-if (ejP.isDrawing && ejP.drawStart) {
-    const id = ejP.nextId++;
-    const color = ejP.lineColor;
-    const sw = ejP.lineWidth;
-    const dashed = ejP.lineDashed;
-    const t = ejP.tempShape;
-    let newLine = null;
-
-    if (ejP.activeTool === 'pencil' && t.points.length > 2) {
-        newLine = { id, type: 'freehand', points: [...t.points], color, strokeWidth: sw, dashed };
-    } else if (ejP.activeTool === 'rect' && t.w > 5 && t.h > 5) {
-        newLine = { id, type: 'rect', x: t.x, y: t.y, w: t.w, h: t.h, color, fill: 'none', strokeWidth: sw, dashed };
-    } else if (ejP.activeTool === 'ellipse' && t.rx > 5 && t.ry > 5) {
-        newLine = { id, type: 'ellipse', cx: t.cx, cy: t.cy, rx: t.rx, ry: t.ry, color, fill: 'none', strokeWidth: sw, dashed };
-    } else if (ejP.activeTool === 'curved') {
-        newLine = { id, type: 'curved', x1: t.x1, y1: t.y1, x2: t.x2, y2: t.y2,
-            cx: t.cx, cy: t.cy, color, strokeWidth: sw, dashed, hasArrow: true };
-    } else {
-        const dx = pos.x - ejP.drawStart.x, dy = pos.y - ejP.drawStart.y;
-        if (Math.sqrt(dx*dx+dy*dy) > 5) {
-            newLine = { id, type: 'line', x1: ejP.drawStart.x, y1: ejP.drawStart.y,
-                x2: pos.x, y2: pos.y, color, strokeWidth: sw, dashed,
-                hasArrow: ejP.activeTool === 'arrow' };
-        }
-    }
-
-    if (newLine) {
-        if (ejP.animMode && ejP.frames[ejP.currentFrame]) {
-            // En modo animación: guardar como trayectoria del frame
-            if (!ejP.frames[ejP.currentFrame].trajectories) ejP.frames[ejP.currentFrame].trajectories = [];
-            ejP.frames[ejP.currentFrame].trajectories.push(newLine);
-        } else {
-            // Modo normal: guardar en el campo permanente
-            if (newLine.type === 'rect' || newLine.type === 'ellipse') ejP.shapes.push(newLine);
-            else ejP.lines.push(newLine);
-            ejSaveHistory();
-        }
-    }
-
-    ejP.isDrawing = false;
-    ejP.drawStart = null;
-    ejP.tempShape = null;
-}
-    ejRenderSVG();
-}
-
 // =============================================
 // ACCIONES
 // =============================================

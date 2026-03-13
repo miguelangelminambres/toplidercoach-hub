@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="css/staff.css">
     <link rel="stylesheet" href="css/miclub.css">
     <link rel="stylesheet" href="css/asistencia.css">
+    <link rel="stylesheet" href="css/ejercicios.css">
 </head>
 <body>
     <!-- ==================== LOGIN ==================== -->
@@ -232,7 +233,7 @@
                 <button class="sub-tab active" onclick="cambiarSubTab('planificador', 'crear', this)">Crear Sesion</button>
                 <button class="sub-tab" onclick="cambiarSubTab('planificador', 'mis-sesiones', this)">Mis Sesiones</button>
                 <button class="sub-tab" onclick="cambiarSubTab('planificador', 'calendario', this)">Calendario</button>
-                <button class="sub-tab" onclick="cambiarSubTab('planificador', 'asistencia', this)">📊 Asistencia</button>
+                <button class="sub-tab" onclick="cambiarSubTab('planificador', 'ejercicios', this)">🎯 Ejercicios</button>
             </div>
             
             <!-- Sub: Crear Sesión -->
@@ -328,31 +329,59 @@
                 </div>
                 
                 <!-- Layout del planificador -->
-                <div class="planificador-layout">
-                  <!-- Panel Biblioteca -->
+<div class="planificador-layout">
                     <div class="panel">
                         <div class="panel-header">
-                            <h3>Biblioteca de Ejercicios</h3>
-                        </div>
+    <h3>Biblioteca de Ejercicios</h3>
+</div>
                         <div class="panel-content">
                             <!-- Toggle Filtros -->
                        <!-- Toggle Filtros -->
+<div style="display:flex;gap:0;margin-bottom:6px;">
+    <button id="btn-fuente-tlc" onclick="cambiarFuenteBiblioteca('tlc')" style="flex:1;padding:5px 0;font-size:10px;font-weight:700;border:1.5px solid #7c3aed;background:#7c3aed;color:white;border-radius:6px 0 0 6px;cursor:pointer;">TopLiderCoach</button>
+    <button id="btn-fuente-mis" onclick="cambiarFuenteBiblioteca('mis')" style="flex:1;padding:5px 0;font-size:10px;font-weight:700;border:1.5px solid #7c3aed;background:transparent;color:#7c3aed;border-radius:0 6px 6px 0;cursor:pointer;">Mis Ejercicios</button>
+</div>
                             <div class="filtros-toggle collapsed" onclick="toggleFiltros()" id="filtros-toggle">
                                 <h4>Filtros Avanzados</h4>
                                 <span class="toggle-icon">▼</span>
                             </div>
                             
                             <!-- Filtros (colapsados por defecto) -->
-                            <div class="filtros-biblioteca collapsed" id="filtros-biblioteca">
+                          <div class="filtros-biblioteca collapsed" id="filtros-biblioteca">
                                 <input type="text" id="filtro-buscar" placeholder="Buscar por nombre...">
-                                <select id="filtro-entrenador">
+                                <select id="filtro-entrenador" class="filtro-tlc">
                                     <option value="">Entrenador</option>
                                 </select>
-                                <select id="filtro-equipo">
+                                <select id="filtro-equipo" class="filtro-tlc">
                                     <option value="">Equipo</option>
                                 </select>
                                 <select id="filtro-tema">
                                     <option value="">Tema</option>
+                                    <option>Calentamiento</option>
+                                    <option>Cambios de orientación</option>
+                                    <option>Centros laterales</option>
+                                    <option>Contraataque</option>
+                                    <option>Defensa en bloque bajo</option>
+                                    <option>Defensa en inferioridad</option>
+                                    <option>Duelos</option>
+                                    <option>Finalización</option>
+                                    <option>Físico-Técnico</option>
+                                    <option>Juego de posición</option>
+                                    <option>Juego interior</option>
+                                    <option>Juegos Lúdicos</option>
+                                    <option>Partidos</option>
+                                    <option>Porteros</option>
+                                    <option>Posesiones</option>
+                                    <option>Presión</option>
+                                    <option>Press perdida</option>
+                                    <option>Progresión en el juego</option>
+                                    <option>Rondos</option>
+                                    <option>Ruedas de pases</option>
+                                    <option>Salida de balón</option>
+                                    <option>Tercer hombre</option>
+                                    <option>Trabajo táctico</option>
+                                    <option>Transiciones</option>
+                                    <option>Técnica individual</option>
                                 </select>
                                 <select id="filtro-dificultad">
                                     <option value="">Dificultad</option>
@@ -362,8 +391,38 @@
                                     <option value="4">4</option>
                                     <option value="5">5</option>
                                 </select>
+                                <select id="filtro-categoria" class="filtro-mis" style="display:none;">
+                                    <option value="">Categoría</option>
+                                    <option>Técnica individual</option>
+                                    <option>Posesión</option>
+                                    <option>Pressing</option>
+                                    <option>Ataque posicional</option>
+                                    <option>Defensa</option>
+                                    <option>Transiciones</option>
+                                    <option>Portería</option>
+                                    <option>Físico</option>
+                                    <option>Táctica</option>
+                                </select>
+                                <select id="filtro-edad" class="filtro-mis" style="display:none;">
+                                    <option value="">Edad</option>
+                                    <option>Prebenjamín</option>
+                                    <option>Benjamín</option>
+                                    <option>Alevín</option>
+                                    <option>Infantil</option>
+                                    <option>Cadete</option>
+                                    <option>Juvenil</option>
+                                    <option>Senior</option>
+                                </select>
+                                <select id="filtro-fase" class="filtro-mis" style="display:none;">
+                                    <option value="">Fase de juego</option>
+                                    <option>Organización ofensiva</option>
+                                    <option>Organización defensiva</option>
+                                    <option>Transición ataque</option>
+                                    <option>Transición defensa</option>
+                                    <option>Balón parado</option>
+                                </select>
                                 <div class="filtros-botones">
-                                    <button class="btn-filtrar" onclick="cargarEjercicios(1)">Filtrar</button>
+                                    <button class="btn-filtrar" onclick="fuenteBiblioteca==='mis' ? cargarMisEjerciciosBiblioteca(1) : cargarEjercicios(1)">Filtrar</button>
                                     <button class="btn-limpiar-filtros" onclick="limpiarFiltros()">Limpiar</button>
                                 </div>
                             </div>
@@ -507,6 +566,10 @@
             </table>
         </div>
     </div>
+</div>
+<!-- Sub: Ejercicios -->
+<div id="planificador-ejercicios" class="vista-contenido">
+    <div id="ejercicios-root"></div>
 </div>
             <!-- Sub: Calendario Unificado -->
             <div id="planificador-calendario" class="vista-contenido">
@@ -1655,6 +1718,8 @@
     <script src="js/staff.js"></script>
     <script src="js/miclub.js"></script>
     <script src="js/asistencia.js"></script>
+    <script src="js/ejercicios.js"></script>
+    <link rel="stylesheet" href="css/ejercicios.css">
     <script src="js/dashboard.js"></script>
 </body>
 </html>

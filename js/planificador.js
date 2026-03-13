@@ -197,14 +197,18 @@ registrarSubTab('planificador', 'calendario', cargarCalendarioUnificado);
             filtros.classList.toggle('collapsed');
             toggle.classList.toggle('collapsed');
         }
-        function limpiarFiltros() {
-            document.getElementById('filtro-buscar').value = '';
-            document.getElementById('filtro-entrenador').value = '';
-            document.getElementById('filtro-equipo').value = '';
-            document.getElementById('filtro-tema').value = '';
-            document.getElementById('filtro-dificultad').value = '';
-            cargarEjercicios(1);
-        }
+      function limpiarFiltros() {
+    document.getElementById('filtro-buscar').value = '';
+    document.getElementById('filtro-entrenador').value = '';
+    document.getElementById('filtro-equipo').value = '';
+    document.getElementById('filtro-tema').value = '';
+    document.getElementById('filtro-dificultad').value = '';
+    if (fuenteBiblioteca === 'mis') {
+        cargarMisEjerciciosBiblioteca(1);
+    } else {
+        cargarEjercicios(1);
+    }
+}
         
     async function cargarFiltrosOpciones() {
             try {
@@ -295,10 +299,9 @@ registrarSubTab('planificador', 'calendario', cargarCalendarioUnificado);
             document.getElementById('modal-seccion').style.display = 'none';
         }
         
-    function seleccionarSeccion(seccion) {
+   async function seleccionarSeccion(seccion) {
             if (!ejercicioSeleccionado) return;
             
-            // Funcion para limpiar HTML
             function limpiarHTML(html) {
                 if (!html) return '';
                 const temp = document.createElement('div');
@@ -306,11 +309,22 @@ registrarSubTab('planificador', 'calendario', cargarCalendarioUnificado);
                 return temp.textContent || temp.innerText || '';
             }
             
+            let imagen = ejercicioSeleccionado.imagen || '';
+            
+            // Si es ejercicio propio con SVG, convertir a imagen para el PDF
+            if (ejercicioSeleccionado.thumbnailSvg && !imagen) {
+                try {
+                    imagen = await svgToPngDataURL(ejercicioSeleccionado.thumbnailSvg);
+                } catch(e) {
+                    console.log('No se pudo convertir SVG a imagen');
+                }
+            }
+            
             const ejercicioParaSesion = {
                 id: ejercicioSeleccionado.id,
                 titulo: ejercicioSeleccionado.titulo,
                 duracion: parseInt(document.getElementById('ejercicio-duracion-input').value) || 15,
-                imagen: ejercicioSeleccionado.imagen || '',
+                imagen: imagen,
                 objetivo: limpiarHTML(ejercicioSeleccionado.objetivo),
                 entrenador: ejercicioSeleccionado.entrenador || '',
                 equipo: ejercicioSeleccionado.equipo || ''
@@ -372,8 +386,8 @@ registrarSubTab('planificador', 'calendario', cargarCalendarioUnificado);
                 if (sesion[seccion].length === 0) {
                     lista.innerHTML = '<p style="text-align:center;color:#9ca3af;padding:20px;font-size:13px;">Arrastra ejercicios aqui</p>';
               } else {
-                    lista.innerHTML = sesion[seccion].map((ej, idx) => `
-                        <div class="ejercicio-en-sesion" onclick="seleccionarEjercicio(${ej.id})" style="cursor: pointer;">
+         lista.innerHTML = sesion[seccion].map((ej, idx) => `
+                        <div class="ejercicio-en-sesion" onclick="${String(ej.id).startsWith('custom_') ? `seleccionarEjercicioPropioDesdeSesion('${ej.id}')` : `seleccionarEjercicio(${ej.id})`}" style="cursor: pointer;">
                             <div>
                                 <div class="nombre">${ej.titulo}</div>
                                 <div class="duracion">${ej.duracion} min</div>
@@ -1158,3 +1172,256 @@ if (s.players && s.players.length > 0) {
             if (calendarioMes > 11) { calendarioMes = 0; calendarioAnio++; }
             cargarCalendarioUnificado();
         }
+        // ========== BIBLIOTECA: SELECTOR DE FUENTE ==========
+let fuenteBiblioteca = 'tlc';
+
+function cambiarFuenteBiblioteca(fuente) {
+    fuenteBiblioteca = fuente;
+    
+    const btnTlc = document.getElementById('btn-fuente-tlc');
+    const btnMis = document.getElementById('btn-fuente-mis');
+    if (fuente === 'tlc') {
+        btnTlc.style.background = '#7c3aed';
+        btnTlc.style.color = 'white';
+        btnMis.style.background = 'transparent';
+        btnMis.style.color = '#7c3aed';
+    } else {
+        btnMis.style.background = '#7c3aed';
+        btnMis.style.color = 'white';
+        btnTlc.style.background = 'transparent';
+        btnTlc.style.color = '#7c3aed';
+    }
+    
+    // Mostrar/ocultar filtros según fuente
+    document.querySelectorAll('.filtro-tlc').forEach(el => el.style.display = fuente === 'tlc' ? '' : 'none');
+    document.querySelectorAll('.filtro-mis').forEach(el => el.style.display = fuente === 'mis' ? '' : 'none');
+    
+    if (fuente === 'tlc') {
+        cargarEjercicios(1);
+    } else {
+        cargarMisEjerciciosBiblioteca(1);
+    }
+}
+
+let misEjCacheBib = [];
+let paginaMisEj = 1;
+
+async function cargarMisEjerciciosBiblioteca(pagina = 1) {
+    paginaMisEj = pagina;
+    const lista = document.getElementById('lista-ejercicios');
+    lista.innerHTML = '<div class="loading">Cargando tus ejercicios...</div>';
+    
+    const porPagina = 10;
+    const desde = (pagina - 1) * porPagina;
+    
+    // Leer filtros
+  const buscar = document.getElementById('filtro-buscar')?.value?.toLowerCase() || '';
+    const tema = document.getElementById('filtro-tema')?.value || '';
+    const dificultad = document.getElementById('filtro-dificultad')?.value || '';
+    const categoria = document.getElementById('filtro-categoria')?.value || '';
+    const edad = document.getElementById('filtro-edad')?.value || '';
+    const fase = document.getElementById('filtro-fase')?.value || '';
+    
+    try {
+        let query = supabaseClient
+            .from('custom_exercises')
+            .select('id,name,category,tema,difficulty,duration_min,players_count,num_goalkeepers,age_group,game_phase,eii,objectives,description,variants,coach_notes,materials,thumbnail_svg', { count: 'exact' })
+            .order('created_at', { ascending: false });
+        
+if (buscar) query = query.ilike('name', `%${buscar}%`);
+        if (tema) query = query.eq('tema', tema);
+        if (dificultad) query = query.eq('difficulty', dificultad);
+        if (categoria) query = query.eq('category', categoria);
+        if (edad) query = query.eq('age_group', edad);
+        if (fase) query = query.eq('game_phase', fase);
+        
+        query = query.range(desde, desde + porPagina - 1);
+        
+        const { data, error, count } = await query;
+        
+        if (error) throw error;
+        
+        misEjCacheBib = data || [];
+        
+        if (misEjCacheBib.length === 0) {
+            lista.innerHTML = '<p style="text-align:center;color:#9ca3af;padding:20px;">No hay ejercicios con estos filtros.<br><br><span style="font-size:12px;">Crea ejercicios en la pestaña 🎯 Ejercicios</span></p>';
+            document.getElementById('paginacion-ejercicios').innerHTML = '';
+            return;
+        }
+        
+        const difColor = { basico: '#22c55e', medio: '#eab308', avanzado: '#ef4444' };
+        
+        lista.innerHTML = misEjCacheBib.map(ej => {
+            const ejercicioData = {
+                id: 'custom_' + ej.id,
+                titulo: ej.name,
+                imagen: '',
+                duracion: ej.duration_min || 10,
+                objetivo: ej.objectives || '',
+                source: 'custom',
+                customId: ej.id
+            };
+            
+            const thumbHTML = ej.thumbnail_svg
+                ? `<div style="width:80px;height:60px;overflow:hidden;border-radius:6px;background:#0f4c2a;flex-shrink:0;">${ej.thumbnail_svg}</div>`
+                : `<div style="width:80px;height:60px;border-radius:6px;background:#1e3a5f;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font-size:20px;">🎯</span></div>`;
+            
+            return `
+            <div class="ejercicio-card" onclick="seleccionarEjercicioPropio('${ej.id}')">
+                ${thumbHTML}
+                <div class="info">
+                    <div class="titulo">${ej.name}</div>
+                    <div class="tags">
+                        ${ej.category ? `<span class="tag">${ej.category}</span>` : ''}
+                        ${ej.difficulty ? `<span class="tag dificultad" style="color:${difColor[ej.difficulty]||'#6b7280'}">${ej.difficulty}</span>` : ''}
+                    </div>
+                </div>
+                <button class="btn-agregar"
+                        data-ejercicio='${JSON.stringify(ejercicioData).replace(/'/g, "&#39;")}'
+                        onclick="event.stopPropagation(); agregarEjercicioPropioDesdeBoton(this)">
+                    + Anadir
+                </button>
+            </div>
+        `}).join('');
+        
+        const pag = document.getElementById('paginacion-ejercicios');
+        const totalPaginas = Math.ceil((count || 0) / porPagina);
+        pag.innerHTML = `
+            <button class="btn-secondary" onclick="cargarMisEjerciciosBiblioteca(${pagina - 1})" ${pagina <= 1 ? 'disabled' : ''}>Anterior</button>
+            <span style="margin: 0 15px;">Pagina ${pagina} de ${totalPaginas || 1}</span>
+            <button class="btn-secondary" onclick="cargarMisEjerciciosBiblioteca(${pagina + 1})" ${pagina >= totalPaginas ? 'disabled' : ''}>Siguiente</button>
+        `;
+        
+    } catch (error) {
+        console.error('Error cargando mis ejercicios:', error);
+        lista.innerHTML = '<p style="color:red;">Error al cargar tus ejercicios</p>';
+    }
+}
+
+function seleccionarEjercicioPropio(id) {
+    const ej = misEjCacheBib.find(x => x.id === id);
+    if (!ej) return;
+    
+    const detalle = document.getElementById('detalle-ejercicio');
+    detalle.className = 'detalle-ejercicio active';
+    
+    const thumbHTML = ej.thumbnail_svg
+        ? `<div style="width:100%;aspect-ratio:8/5;overflow:hidden;border-radius:8px;background:#0f4c2a;margin-bottom:10px;">${ej.thumbnail_svg}</div>`
+        : `<div style="width:100%;aspect-ratio:8/5;border-radius:8px;background:#1e3a5f;display:flex;align-items:center;justify-content:center;margin-bottom:10px;"><span style="font-size:40px;">🎯</span></div>`;
+    
+    ejercicioSeleccionado = {
+        id: 'custom_' + ej.id,
+        titulo: ej.name,
+        duracion: ej.duration_min || 10,
+        imagen: '',
+        objetivo: ej.objectives || '',
+        entrenador: '',
+        equipo: '',
+source: 'custom',
+        customId: ej.id,
+        thumbnailSvg: ej.thumbnail_svg || ''
+    };
+    
+    detalle.innerHTML = `
+        ${thumbHTML}
+        <h3>${ej.name}</h3>
+        <div class="meta" style="font-size:13px;color:#666;line-height:1.8;margin-bottom:10px;">
+            ${ej.category ? `<strong>Categoría:</strong> ${ej.category}<br>` : ''}
+            ${ej.tema ? `<strong>Tema:</strong> ${ej.tema}<br>` : ''}
+            ${ej.age_group ? `<strong>Edad:</strong> ${ej.age_group}<br>` : ''}
+            ${ej.difficulty ? `<strong>Dificultad:</strong> ${ej.difficulty}<br>` : ''}
+            ${ej.game_phase ? `<strong>Fase:</strong> ${ej.game_phase}<br>` : ''}
+            ${ej.players_count ? `<strong>Jugadores:</strong> ${ej.players_count}<br>` : ''}
+            ${ej.num_goalkeepers ? `<strong>Porteros:</strong> ${ej.num_goalkeepers}<br>` : ''}
+            ${ej.eii ? `<strong>EII:</strong> ${ej.eii} m²/jug<br>` : ''}
+            ${ej.materials ? `<strong>Material:</strong> ${ej.materials}<br>` : ''}
+            <strong>Duración:</strong> ${ej.duration_min || 10} min
+        </div>
+        ${ej.objectives ? `<div class="detalle-seccion"><h4>Objetivos</h4><p>${ej.objectives}</p></div>` : ''}
+        ${ej.description ? `<div class="detalle-seccion"><h4>Descripción</h4><p>${ej.description}</p></div>` : ''}
+        ${ej.variants ? `<div class="detalle-seccion"><h4>Variantes</h4><p>${ej.variants}</p></div>` : ''}
+        ${ej.coach_notes ? `<div class="detalle-seccion"><h4>Notas del entrenador</h4><p>${ej.coach_notes}</p></div>` : ''}
+        <button class="btn-primary purple" style="width:100%;margin-top:10px;" onclick="abrirModalSeccion()">Anadir a Sesion</button>
+    `;
+}
+
+function agregarEjercicioPropioDesdeBoton(btn) {
+    const data = JSON.parse(btn.dataset.ejercicio);
+    
+    ejercicioSeleccionado = {
+        id: data.id,
+        titulo: data.titulo,
+        duracion: data.duracion || 10,
+        imagen: '',
+        objetivo: data.objetivo || '',
+        entrenador: '',
+        equipo: '',
+source: 'custom',
+        customId: data.customId,
+        thumbnailSvg: (misEjCacheBib.find(x => x.id == data.customId) || {}).thumbnail_svg || ''
+    };
+    
+    abrirModalSeccion();
+}
+async function seleccionarEjercicioPropioDesdeSesion(customId) {
+    const realId = customId.replace('custom_', '');
+    const detalle = document.getElementById('detalle-ejercicio');
+    detalle.innerHTML = '<div class="loading">Cargando detalles...</div>';
+    
+    try {
+        const { data: ej, error } = await supabaseClient
+            .from('custom_exercises')
+            .select('*')
+            .eq('id', realId)
+            .single();
+        
+        if (error) throw error;
+        
+        detalle.className = 'detalle-ejercicio active';
+        
+        const thumbHTML = ej.thumbnail_svg
+            ? `<div style="width:100%;aspect-ratio:8/5;overflow:hidden;border-radius:8px;background:#0f4c2a;margin-bottom:10px;">${ej.thumbnail_svg}</div>`
+            : `<div style="width:100%;aspect-ratio:8/5;border-radius:8px;background:#1e3a5f;display:flex;align-items:center;justify-content:center;margin-bottom:10px;"><span style="font-size:40px;">🎯</span></div>`;
+        
+        detalle.innerHTML = `
+            ${thumbHTML}
+            <h3>${ej.name}</h3>
+            <div class="meta" style="font-size:13px;color:#666;line-height:1.8;margin-bottom:10px;">
+                ${ej.category ? `<strong>Categoría:</strong> ${ej.category}<br>` : ''}
+                ${ej.tema ? `<strong>Tema:</strong> ${ej.tema}<br>` : ''}
+                ${ej.age_group ? `<strong>Edad:</strong> ${ej.age_group}<br>` : ''}
+                ${ej.difficulty ? `<strong>Dificultad:</strong> ${ej.difficulty}<br>` : ''}
+                ${ej.game_phase ? `<strong>Fase:</strong> ${ej.game_phase}<br>` : ''}
+                ${ej.players_count ? `<strong>Jugadores:</strong> ${ej.players_count}<br>` : ''}
+                ${ej.num_goalkeepers ? `<strong>Porteros:</strong> ${ej.num_goalkeepers}<br>` : ''}
+                ${ej.eii ? `<strong>EII:</strong> ${ej.eii} m²/jug<br>` : ''}
+                ${ej.materials ? `<strong>Material:</strong> ${ej.materials}<br>` : ''}
+                <strong>Duración:</strong> ${ej.duration_min || 10} min
+            </div>
+            ${ej.objectives ? `<div class="detalle-seccion"><h4>Objetivos</h4><p>${ej.objectives}</p></div>` : ''}
+            ${ej.description ? `<div class="detalle-seccion"><h4>Descripción</h4><p>${ej.description}</p></div>` : ''}
+            ${ej.variants ? `<div class="detalle-seccion"><h4>Variantes</h4><p>${ej.variants}</p></div>` : ''}
+            ${ej.coach_notes ? `<div class="detalle-seccion"><h4>Notas del entrenador</h4><p>${ej.coach_notes}</p></div>` : ''}
+        `;
+    } catch(err) {
+        detalle.innerHTML = '<p style="color:red;">Error al cargar detalles</p>';
+    }
+}
+function svgToPngDataURL(svgString) {
+    return new Promise((resolve) => {
+        const svg = new Blob([svgString], {type: 'image/svg+xml;charset=utf-8'});
+        const url = URL.createObjectURL(svg);
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 800;
+            canvas.height = 500;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, 800, 500);
+            URL.revokeObjectURL(url);
+            resolve(canvas.toDataURL('image/jpeg', 0.8));
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); resolve(''); };
+        img.src = url;
+    });
+}

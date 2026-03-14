@@ -73,8 +73,8 @@ const ejP = {
     activeTool: 'select',
     myColor: 'blue',
     rivalColor: 'red',
-    selectedSize: 'medium',
-    showNumbers: true,
+    selectedSize: 'small',
+    showNumbers: false,
     hasVest: false,
     vestColor: 'yellow',
 
@@ -1277,7 +1277,26 @@ function ejCalcEII() {
         el.textContent = '';
     }
 }
-
+async function ejSubirThumbnail(ejercicioId) {
+    const svgEl = document.getElementById('ej-pizarra-svg');
+    if (!svgEl) return null;
+    try {
+        const svgData = new XMLSerializer().serializeToString(svgEl);
+        const res = await fetch('https://toplidercoach.com/wp-content/uploads/ejercicios/upload-thumbnail.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer toplider_thumb_2026'
+            },
+            body: JSON.stringify({ svg: svgData, id: String(ejercicioId) })
+        });
+        const data = await res.json();
+        return data.ok ? data.url : null;
+    } catch (e) {
+        console.warn('Error subiendo thumbnail:', e);
+        return null;
+    }
+}
 async function ejGuardarEjercicio() {
     const nombre = document.getElementById('ej-nombre')?.value?.trim();
     if (!nombre) { alert('El nombre del ejercicio es obligatorio'); return; }
@@ -1325,9 +1344,12 @@ let thumbnailSvg = window.ejThumbnailPendiente || null;
         board_data:  ejP.players.length > 0 ? {
             players: ejP.players, lines: ejP.lines,
             shapes: ejP.shapes, texts: ejP.texts,
-            fieldType: ejP.fieldType
+            fieldType: ejP.fieldType,
+            animFrames: ejP.animMode ? ejP.frames : [],
+            animMode: ejP.animMode
         } : null,
         thumbnail_svg: thumbnailSvg ? thumbnailSvg.substring(0, 50000) : null,
+        
         source: 'custom'
     };
 
@@ -1343,7 +1365,15 @@ let thumbnailSvg = window.ejThumbnailPendiente || null;
                 .from('custom_exercises').insert([data]).select());
         }
         if (error) throw error;
-        if (res && res[0]) ejEditandoId = res[0].id;
+        if (res && res[0]) {
+            ejEditandoId = res[0].id;
+            if (ejP.players.length > 0) {
+                const thumbUrl = await ejSubirThumbnail(ejEditandoId);
+                if (thumbUrl) {
+                    await supabaseClient.from('custom_exercises').update({ thumbnail_url: thumbUrl }).eq('id', ejEditandoId);
+                }
+            }
+        }
         // Actualizar caché local para que el Banco refleje los cambios al instante
         if (res && res[0]) {
             const idx = ejBancoCache.findIndex(x => x.id === res[0].id);
@@ -1352,7 +1382,7 @@ let thumbnailSvg = window.ejThumbnailPendiente || null;
         }
         if (msg) msg.innerHTML = `<span style="color:#22c55e">✅ Ejercicio ${ejEditandoId ? 'actualizado' : 'guardado'} correctamente</span>`;
         setTimeout(() => { if (msg) msg.innerHTML = ''; }, 3000);
-    } catch(err) {
+    } catch(err){
         console.error(err);
         if (msg) msg.innerHTML = `<span style="color:#ef4444">❌ Error: ${err.message}</span>`;
     }
@@ -1473,7 +1503,12 @@ function ejBancoRender(list) {
             ${e.duration_min ? `<span>⏱ ${e.duration_min}min</span>` : ''}
             ${e.players_count ? `<span>👥 ${e.players_count}</span>` : ''}
         </div>
-        ${e.thumbnail_svg ? `
+        ${e.thumbnail_url ? `
+        <div onclick="ejAbrirModal('${e.id}')" title="Ver ficha completa"
+            style="width:100%;aspect-ratio:8/5;overflow:hidden;border-radius:6px;margin:6px 0;background:#0f4c2a;cursor:pointer;position:relative">
+            <img src="${e.thumbnail_url}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"/>
+            <div style="position:absolute;bottom:4px;right:5px;font-size:9px;color:#fff;background:rgba(0,0,0,.6);padding:1px 6px;border-radius:4px">ver ficha</div>
+        </div>` : e.thumbnail_svg ? `
         <div onclick="ejAbrirModal('${e.id}')" title="Ver ficha completa"
              style="width:100%;aspect-ratio:8/5;overflow:hidden;border-radius:6px;margin:6px 0;background:#0f4c2a;cursor:pointer;position:relative">
             ${e.thumbnail_svg}
@@ -1502,6 +1537,17 @@ async function ejBancoCargar(id) {
             ejP.texts     = data.board_data.texts   || [];
             ejP.fieldType = data.board_data.fieldType || 'full';
             ejP.selectedId = null;
+            // Restaurar animación si existe
+            if (data.board_data.animFrames && data.board_data.animFrames.length > 0) {
+                ejP.frames = data.board_data.animFrames;
+                ejP.currentFrame = 0;
+                ejP.animMode = data.board_data.animMode || false;
+                ejFrameRestore(ejP.frames[0]);
+                const bar = document.getElementById('ej-timeline-bar');
+                if (bar) bar.style.display = ejP.animMode ? 'block' : 'none';
+                ejRenderTimeline();
+                ejRenderToolbar();
+            }
             ejRenderSVG();
         }
         // Rellenar ficha

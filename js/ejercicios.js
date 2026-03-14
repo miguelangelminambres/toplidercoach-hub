@@ -73,6 +73,8 @@ const ejP = {
     activeTool: 'select',
     myColor: 'blue',
     rivalColor: 'red',
+    myGkColor: 'yellow',
+    rivalGkColor: 'orange',
     selectedSize: 'small',
     showNumbers: false,
     hasVest: false,
@@ -305,7 +307,10 @@ function ejRenderSVG() {
 
     // Jugadores (encima de todo)
     for (const p of ejP.players) {
-        const tc = EJ_TEAM_COLORS[p.color] || EJ_TEAM_COLORS.blue;
+        const isGk = p.number == 1;
+        const gkColor = p.color === ejP.rivalColor ? ejP.rivalGkColor : ejP.myGkColor;
+        const effectiveColor = isGk ? gkColor : p.color;
+        const tc = EJ_TEAM_COLORS[effectiveColor] || EJ_TEAM_COLORS.blue;
         const vc = EJ_TEAM_COLORS[p.vestColor] || EJ_TEAM_COLORS.yellow;
         const sel = p.id === ejP.selectedId;
         const scale = p.scale ?? 1.0;
@@ -729,6 +734,13 @@ function ejNuevaPizarra() {
     ejSaveHistory();
     ejP.players = []; ejP.lines = []; ejP.shapes = []; ejP.texts = []; ejP.equipment = [];
     ejP.selectedId = null; ejP.playerCounts = {};
+    // Resetear animación
+    ejFrameStop();
+    ejP.animMode = false;
+    ejP.frames = [];
+    ejP.currentFrame = 0;
+    const bar = document.getElementById('ej-timeline-bar');
+    if (bar) bar.style.display = 'none';
     // Ocultar barra de ejercicio cargado
  const lbl = document.getElementById('ej-pizarra-nombre-label');
     if (lbl) lbl.textContent = 'Pizarra libre';
@@ -806,6 +818,23 @@ function ejChangePlayerColor(color) {
     if (!ejP.selectedId) return;
     ejP.players = ejP.players.map(p =>
         p.id === ejP.selectedId ? { ...p, color } : p
+    );
+    ejSaveHistory();
+    ejRenderSVG();
+}
+function ejChangePlayerNumber(val) {
+    if (!ejP.selectedId) return;
+    ejP.players = ejP.players.map(p =>
+        p.id === ejP.selectedId ? { ...p, number: val } : p
+    );
+    ejSaveHistory();
+    ejRenderSVG();
+}
+
+function ejTogglePlayerNumber(show) {
+    if (!ejP.selectedId) return;
+    ejP.players = ejP.players.map(p =>
+        p.id === ejP.selectedId ? { ...p, showNumber: show } : p
     );
     ejSaveHistory();
     ejRenderSVG();
@@ -946,11 +975,15 @@ function ejRenderToolbar() {
         <div class="ej-team-block">
             <label class="ej-team-label blue">🔵 Mi equipo</label>
             ${colorSwatches(ejP.myColor, true, true, 'ejSetMyColor')}
+            <label style="font-size:10px;color:#9ca3af;margin-top:4px;display:block">🧤 Portero (nº1):</label>
+            ${colorSwatches(ejP.myGkColor, true, false, 'ejSetMyGkColor')}
             <div class="ej-formations">${formationBtns('ejApplyFormation_my')}</div>
         </div>
         <div class="ej-team-block rival">
             <label class="ej-team-label red">🔴 Equipo rival</label>
             ${colorSwatches(ejP.rivalColor, true, true, 'ejSetRivalColor')}
+            <label style="font-size:10px;color:#9ca3af;margin-top:4px;display:block">🧤 Portero (nº1):</label>
+            ${colorSwatches(ejP.rivalGkColor, true, false, 'ejSetRivalGkColor')}
             <div class="ej-formations rival">${formationBtns('ejApplyFormation_rival')}</div>
         </div>
         <div class="ej-opts-block">
@@ -1028,6 +1061,15 @@ function ejRenderToolbar() {
         ${selPlayer ? `
         <div class="ej-selected-block">
             <div style="font-size:11px;color:#9ca3af;margin-bottom:4px">Jugador seleccionado</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <label style="font-size:11px;color:#9ca3af">Nº camiseta:</label>
+                <input type="text" value="${selPlayer.number||''}" maxlength="3"
+                    onchange="ejChangePlayerNumber(this.value)"
+                    style="width:50px;padding:4px 6px;background:#0f172a;border:1px solid #334155;color:#fff;border-radius:6px;font-size:14px;font-weight:700;text-align:center"/>
+                <label style="font-size:11px;color:#9ca3af;margin-left:4px">
+                    <input type="checkbox" ${selPlayer.showNumber?'checked':''} onchange="ejTogglePlayerNumber(this.checked)"> Ver nº
+                </label>
+            </div>
             <label style="font-size:11px;color:#9ca3af">Cambiar color:</label>
             ${colorSwatches(selPlayer.color, true, true, 'ejChangePlayerColor')}
         </div>` : ''}
@@ -1080,8 +1122,10 @@ function ejToggleSection(id) {
 // Wrappers para onclick (no se puede pasar booleano directamente)
 function ejApplyFormation_my(key)    { ejApplyFormation(key, false); }
 function ejApplyFormation_rival(key) { ejApplyFormation(key, true);  }
-function ejSetMyColor(c)    { ejP.myColor    = c; ejRenderToolbar(); }
-function ejSetRivalColor(c) { ejP.rivalColor = c; ejRenderToolbar(); }
+function ejSetMyColor(c)      { ejP.myColor     = c; ejRenderToolbar(); ejRenderSVG(); }
+function ejSetRivalColor(c)   { ejP.rivalColor  = c; ejRenderToolbar(); ejRenderSVG(); }
+function ejSetMyGkColor(c)    { ejP.myGkColor   = c; ejRenderToolbar(); ejRenderSVG(); }
+function ejSetRivalGkColor(c) { ejP.rivalGkColor = c; ejRenderToolbar(); ejRenderSVG(); }
 
 // =============================================
 // LAYOUT PRINCIPAL DE LA PIZARRA

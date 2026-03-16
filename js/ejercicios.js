@@ -112,7 +112,7 @@ nextId: 1,
     currentFrame: 0,
     isPlaying: false,
     playSpeed: 800,
-    _animId: null
+    _animId: null, _exportingVideo: false, _lastVideoUrl: null
 };
 
 // =============================================
@@ -196,7 +196,7 @@ function ejRenderSVG() {
         const dash = s.dashed ? '10 5' : 'none';
         if (s.type === 'rect') {
             html += `<rect data-id="${s.id}" data-type="shape"
-                x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}"
+                x="${s.x||0}" y="${s.y||0}" width="${s.w||0}" height="${s.h||0}"
                 fill="${s.fill||'none'}" stroke="${s.color}" stroke-width="${sel?sw+1:sw}"
                 stroke-dasharray="${dash}" style="cursor:${ejP.activeTool==='select'?'move':'crosshair'};pointer-events:${ejP.activeTool==='select'?'auto':'none'}"/>`;
             if (sel) {
@@ -1563,7 +1563,7 @@ async function ejBancoLoad() {
     try {
         const { data, error } = await supabaseClient
             .from('custom_exercises')
-            .select('id,name,category,age_group,difficulty,duration_min,players_count,game_phase,field_width,field_length,eii,objectives,description,variants,coach_notes,materials,thumbnail_svg')
+            .select('id,name,category,age_group,difficulty,duration_min,players_count,game_phase,field_width,field_length,eii,objectives,description,variants,coach_notes,materials,thumbnail_svg,animation_url')
             .order('created_at', { ascending: false })
             .limit(50);
         if (error) throw error;
@@ -1678,6 +1678,8 @@ async function ejBancoCargar(id) {
         set('ej-ancho', data.field_width);
         set('ej-largo', data.field_length);
         ejCalcEII();
+        ejP._lastVideoUrl = data.animation_url || null;
+
         // Cambiar a pestaña pizarra
         ejShowTab('pizarra', document.querySelector('[onclick*="pizarra"]'));
         // Mostrar barra con nombre del ejercicio cargado
@@ -1752,11 +1754,13 @@ function ejAbrirModal(id) {
                 <button id="ej-modal-cargar-btn" style="width:100%;padding:10px;background:#3b82f6;border:none;color:#fff;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px">
                     📋 Cargar en pizarra
                 </button>
-                ${e.animation_url ? `
-                <a href="${e.animation_url}" target="_blank" download style="display:block;width:100%;margin-top:8px;padding:10px;background:#f97316;border:none;color:#fff;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;text-align:center;text-decoration:none">
-                    🎬 Ver / Descargar animación
-                </a>` : ''}
-            </div>
+            ${e.animation_url ? `
+                <div style="margin-top:10px">
+                    <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🎬 Animación del ejercicio</div>
+                    <video src="${e.animation_url}" controls playsinline loop style="width:100%;border-radius:8px;background:#000"></video>
+<a href="https://toplidercoach.com/wp-content/uploads/ejercicios/download-video.php?url=${encodeURIComponent(e.animation_url)}" target="_blank" style="display:block;width:100%;margin-top:8px;padding:10px;background:#f97316;border:none;color:#fff;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;text-align:center;text-decoration:none">
+                    </a>
+                </div>` : ''}
 
             <!-- Columna derecha: info -->
             <div style="padding:20px 24px 20px 12px;display:flex;flex-direction:column;gap:8px">
@@ -2114,9 +2118,9 @@ function ejRenderTimeline() {
             <button onclick="ejFrameSetSpeed(400)" style="background:${ejP.playSpeed<800?'#1e3a5f':'#0f172a'};border:1px solid #334155;color:#9ca3af;padding:3px 6px;border-radius:4px;cursor:pointer;font-size:10px">2x</button>
         </div>
         <span style="color:#64748b;font-size:11px;white-space:nowrap">Frame ${cur+1}/${total}</span>
-        <button onclick="ejExportarAnimacionGIF()" style="background:#f97316;border:none;color:#fff;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600" title="Exportar animación como GIF">🎬 GIF</button>
+        <button onclick="ejExportarAnimacionMP4()" style="background:#f97316;border:none;color:#fff;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600" title="Exportar animación como GIF">🎬 MP4</button>
     </div>
-    <div id="ej-anim-msg" style="font-size:11px;color:#9ca3af;margin-top:4px;text-align:center"></div>`;
+    <div id="ej-anim-msg" style="font-size:11px;color:#9ca3af;margin-top:4px;text-align:center">${ejP._exportingVideo ? '⏳ Generando vídeo... (no toques nada)' : ejP._lastVideoUrl ? '<span style="color:#22c55e">✅ Vídeo MP4 guardado</span> — <a href="'+ejP._lastVideoUrl+'" target="_blank" style="color:#93c5fd;text-decoration:underline">Ver vídeo ▶</a> · <a href="https://toplidercoach.com/wp-content/uploads/ejercicios/download-video.php?url='+encodeURIComponent(ejP._lastVideoUrl)+'" target="_blank" style="color:#f97316;text-decoration:underline">📥 Descargar</a>' : ''}</div>`;
 }
 async function ejCargarPlantilla() {
     try {
@@ -2169,13 +2173,12 @@ function ejColocarJugadorPlantilla(idx) {
     ejP._plantillaMode = true;
     ejRenderToolbar();
 }
-async function ejExportarAnimacionGIF() {
+async function ejExportarAnimacionMP4() {
     if (!ejP.animMode || ejP.frames.length < 2) {
         alert('Activa el modo animación y crea al menos 2 frames.');
         return;
     }
     if (!ejEditandoId) {
-        // Intentar obtener el ID del ejercicio actual del topbar
         const lbl = document.getElementById('ej-pizarra-nombre-label');
         const ejercicioActual = ejBancoCache.find(x => x.name === lbl?.textContent);
         if (ejercicioActual) {
@@ -2187,52 +2190,162 @@ async function ejExportarAnimacionGIF() {
     }
 
     const msg = document.getElementById('ej-anim-msg');
-    if (msg) msg.textContent = 'Generando GIF...';
+    ejP._exportingVideo = true; ejRenderTimeline();
 
     const svg = document.getElementById('ej-svg');
     const W = ejP.svgW;
     const H = ejP.svgH;
-    const scale = 1;
 
-    const gif = new GIF({
-        workers: 2,
-        quality: 10,
-        width: W * scale,
-        height: H * scale,
-        workerScript: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'js/gif.worker.js'
-            : 'https://toplidercoach.com/planificadorpro/js/gif.worker.js'
+    // Canvas offscreen para grabar
+    const canvas = document.createElement('canvas');
+    canvas.width = W * 2;
+    canvas.height = H * 2;
+    const ctx = canvas.getContext('2d');
+
+    // Configurar grabación
+    const stream = canvas.captureStream(30);
+    let mimeType = 'video/webm;codecs=vp9';
+    if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'video/webm';
+    }
+    const recorder = new MediaRecorder(stream, {
+        mimeType,
+        videoBitsPerSecond: 5000000
     });
+    const chunks = [];
+    recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
 
     // Guardar estado actual
     const savedFrame = ejP.currentFrame;
     const savedPlaying = ejP.isPlaying;
     if (savedPlaying) ejFrameStop();
 
-    // Renderizar cada frame como canvas
+    // Helper: renderizar SVG actual al canvas
+    function renderSVGToCanvas() {
+        return new Promise((resolve) => {
+            const clone = svg.cloneNode(true);
+            clone.setAttribute('width', W);
+            clone.setAttribute('height', H);
+            const svgData = new XMLSerializer().serializeToString(clone);
+            const img = new Image();
+            img.onload = () => {
+                ctx.clearRect(0, 0, W * 2, H * 2);
+                ctx.drawImage(img, 0, 0, W * 2, H * 2);
+                resolve();
+            };
+            img.onerror = () => { console.error('Error renderizando frame SVG'); resolve(); };
+            img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+        });
+    }
+
+    // Iniciar grabación
+    recorder.start();
+
+    const FPS = 30;
+    const frameDuration = ejP.playSpeed;
+    const framesPerTransition = Math.round((frameDuration / 1000) * FPS);
+    const holdFrames = Math.round(0.4 * FPS); // pausa en cada keyframe
+
     for (let i = 0; i < ejP.frames.length; i++) {
+        // Mostrar keyframe
         ejFrameRestore(ejP.frames[i]);
         ejP.currentFrame = i;
         ejRenderSVG();
 
-        const svgData = new XMLSerializer().serializeToString(
-            (() => { const c = svg.cloneNode(true); c.setAttribute('width', W); c.setAttribute('height', H); return c; })()
-        );
+        // Mantener keyframe un momento
+        for (let h = 0; h < holdFrames; h++) {
+            await renderSVGToCanvas();
+            await new Promise(r => setTimeout(r, 1000 / FPS));
+        }
 
-        await new Promise(resolve => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                canvas.width = W * scale;
-                canvas.height = H * scale;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, W * scale, H * scale);
-                gif.addFrame(canvas, { delay: ejP.playSpeed, copy: true });
-                resolve();
-            };
-            img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
-        });
+        // Interpolar hacia el siguiente frame
+        if (i < ejP.frames.length - 1) {
+            const fA = ejP.frames[i];
+            const fB = ejP.frames[i + 1];
+
+            for (let f = 0; f <= framesPerTransition; f++) {
+                const t = f / framesPerTransition;
+                const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+                // Interpolar jugadores
+                for (const pa of fA.players) {
+                    const pb = fB.players.find(p => p.id === pa.id);
+                    const player = ejP.players.find(p => p.id === pa.id);
+                    if (!pb || !player) continue;
+
+                    const trajFree = (fA.trajectories || []).find(tr =>
+                        tr.isMovement && tr.linkedId === pa.id && tr.type === 'freehand' && tr.points && tr.points.length > 1
+                    );
+                    const trajCurved = (fA.trajectories || []).find(tr =>
+                        tr.isMovement && tr.linkedId === pa.id && tr.type === 'curved'
+                    );
+
+                    if (trajFree) {
+                        const pts = trajFree.points;
+                        const pos = ease * (pts.length - 1);
+                        const idx = Math.min(Math.floor(pos), pts.length - 2);
+                        const frac = pos - idx;
+                        player.x = pts[idx].x + (pts[idx + 1].x - pts[idx].x) * frac;
+                        player.y = pts[idx].y + (pts[idx + 1].y - pts[idx].y) * frac;
+                    } else if (trajCurved) {
+                        const cx = trajCurved.cx ?? (trajCurved.x1 + trajCurved.x2) / 2;
+                        const cy = trajCurved.cy ?? (trajCurved.y1 + trajCurved.y2) / 2 - 40;
+                        player.x = (1-ease)*(1-ease)*trajCurved.x1 + 2*(1-ease)*ease*cx + ease*ease*trajCurved.x2;
+                        player.y = (1-ease)*(1-ease)*trajCurved.y1 + 2*(1-ease)*ease*cy + ease*ease*trajCurved.y2;
+                    } else {
+                        player.x = pa.x + (pb.x - pa.x) * ease;
+                        player.y = pa.y + (pb.y - pa.y) * ease;
+                    }
+                }
+
+                // Interpolar equipamiento
+                for (const ea of fA.equipment) {
+                    const eb = fB.equipment.find(e => e.id === ea.id);
+                    const eq = ejP.equipment.find(e => e.id === ea.id);
+                    if (!eb || !eq) continue;
+
+                    const trajFreeEq = (fA.trajectories || []).find(tr =>
+                        tr.isMovement && tr.linkedId === ea.id && tr.type === 'freehand' && tr.points && tr.points.length > 1
+                    );
+                    const trajCurvedEq = (fA.trajectories || []).find(tr =>
+                        tr.isMovement && tr.linkedId === ea.id && tr.type === 'curved'
+                    );
+
+                    if (trajFreeEq) {
+                        const pts = trajFreeEq.points;
+                        const pos = ease * (pts.length - 1);
+                        const idx = Math.min(Math.floor(pos), pts.length - 2);
+                        const frac = pos - idx;
+                        eq.x = pts[idx].x + (pts[idx + 1].x - pts[idx].x) * frac;
+                        eq.y = pts[idx].y + (pts[idx + 1].y - pts[idx].y) * frac;
+                    } else if (trajCurvedEq) {
+                        const cx = trajCurvedEq.cx ?? (trajCurvedEq.x1 + trajCurvedEq.x2) / 2;
+                        const cy = trajCurvedEq.cy ?? (trajCurvedEq.y1 + trajCurvedEq.y2) / 2 - 40;
+                        eq.x = (1-ease)*(1-ease)*trajCurvedEq.x1 + 2*(1-ease)*ease*cx + ease*ease*trajCurvedEq.x2;
+                        eq.y = (1-ease)*(1-ease)*trajCurvedEq.y1 + 2*(1-ease)*ease*cy + ease*ease*trajCurvedEq.y2;
+                    } else {
+                        eq.x = ea.x + (eb.x - ea.x) * ease;
+                        eq.y = ea.y + (eb.y - ea.y) * ease;
+                    }
+                }
+
+                ejRenderSVG();
+                await renderSVGToCanvas();
+                await new Promise(r => setTimeout(r, 1000 / FPS));
+            }
+        }
     }
+
+    // Mantener último frame
+    for (let h = 0; h < holdFrames; h++) {
+        await renderSVGToCanvas();
+        await new Promise(r => setTimeout(r, 1000 / FPS));
+    }
+
+    console.log('Animación renderizada, parando grabación...'); // Parar grabación y esperar a que termine
+    recorder.onerror = (e) => { console.error('Recorder error:', e); }; const recordingDone = new Promise(resolve => { recorder.onstop = () => { console.log('Recorder parado OK'); resolve(); }; });
+    recorder.stop();
+    await recordingDone;
 
     // Restaurar estado
     ejFrameRestore(ejP.frames[savedFrame]);
@@ -2240,42 +2353,36 @@ async function ejExportarAnimacionGIF() {
     ejRenderSVG();
     ejRenderTimeline();
 
-    gif.on('finished', async (blob) => {
-        if (msg) msg.textContent = 'Subiendo al servidor...';
+    console.log('Video generado, chunks:', chunks.length); if (msg) msg.textContent = 'Subiendo al servidor y convirtiendo a MP4...';
 
-        // Convertir blob a base64
-        const reader = new FileReader();
-        reader.onload = async () => {
-            const base64 = reader.result.split(',')[1];
-            try {
-                const res = await fetch('https://toplidercoach.com/wp-content/uploads/ejercicios/upload-animation.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer toplider_thumb_2026'
-                    },
-                    body: JSON.stringify({ gif: base64, id: String(ejEditandoId) })
-                });
-                const data = await res.json();
-                if (data.ok) {
-                    // Guardar URL en Supabase
-                    await supabaseClient.from('custom_exercises')
-                        .update({ animation_url: data.url })
-                        .eq('id', ejEditandoId);
-                    // Actualizar caché
-                    const idx = ejBancoCache.findIndex(x => x.id === ejEditandoId);
-                    if (idx >= 0) ejBancoCache[idx].animation_url = data.url;
-                    if (msg) msg.textContent = '✅ Animación guardada';
-                    setTimeout(() => { if (msg) msg.textContent = ''; }, 3000);
-                }
-            } catch(e) {
-                if (msg) msg.textContent = '❌ Error: ' + e.message;
-            }
-        };
-        reader.readAsDataURL(blob);
-    });
-
-    gif.render();
+    const blob = new Blob(chunks, { type: 'video/webm' }); console.log('Blob creado, tamaño:', blob.size, 'bytes');
+   console.log('Iniciando conversión a base64...');
+    try {
+        const base64 = await new Promise((resolve, reject) => {
+            const rd = new FileReader();
+            rd.onload = () => { console.log('Base64 OK'); resolve(rd.result.split(',')[1]); };
+            rd.onerror = () => reject(new Error('FileReader falló'));
+            rd.readAsDataURL(blob);
+        });
+        console.log('Enviando al servidor, tamaño:', base64.length);
+        const res = await fetch('https://toplidercoach.com/wp-content/uploads/ejercicios/upload-video.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer toplider_thumb_2026' },
+            body: JSON.stringify({ video: base64, id: String(ejEditandoId) })
+        });
+        const data = await res.json();
+        if (data.ok) {
+            await supabaseClient.from('custom_exercises').update({ animation_url: data.url }).eq('id', ejEditandoId);
+            const idx = ejBancoCache.findIndex(x => x.id === ejEditandoId);
+            if (idx >= 0) ejBancoCache[idx].animation_url = data.url;
+            ejP._exportingVideo = false; ejP._lastVideoUrl = data.url; ejRenderTimeline(); const msgFinal = document.getElementById('ej-anim-msg'); if (msgFinal) msgFinal.innerHTML = '✅ Vídeo MP4 guardado — <a href="' + data.url + '" target="_blank" style="color:#93c5fd;text-decoration:underline">Ver vídeo ▶</a>';
+        } else {
+            ejP._exportingVideo = false; ejRenderTimeline(); const msgErr = document.getElementById('ej-anim-msg'); if (msgErr) msgErr.textContent = '❌ Error: ' + (data.error || 'desconocido');
+        }
+    } catch(e) {
+        console.error('Error exportando:', e);
+        ejP._exportingVideo = false; ejRenderTimeline(); const msgCatch = document.getElementById('ej-anim-msg'); if (msgCatch) msgCatch.textContent = '❌ Error: ' + e.message;
+    }
 }
 function ejInit() {
     const root = document.getElementById('ejercicios-root');

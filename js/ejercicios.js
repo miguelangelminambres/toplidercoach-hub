@@ -911,15 +911,19 @@ function ejExportPNG() {
     ejRenderSVG();
     setTimeout(() => {
         const svg = document.getElementById('ej-svg');
-        const data = new XMLSerializer().serializeToString(svg);
+        // Clonar el SVG y ponerle dimensiones explícitas
+        const clone = svg.cloneNode(true);
+        clone.setAttribute('width', ejP.svgW);
+        clone.setAttribute('height', ejP.svgH);
+        const data = new XMLSerializer().serializeToString(clone);
         const canvas = document.createElement('canvas');
         canvas.width = ejP.svgW * 2;
         canvas.height = ejP.svgH * 2;
         const ctx = canvas.getContext('2d');
         const img = new Image();
         img.onload = () => {
-            ctx.scale(2,2);
-            ctx.drawImage(img, 0, 0);
+            ctx.scale(2, 2);
+            ctx.drawImage(img, 0, 0, ejP.svgW, ejP.svgH);
             const a = document.createElement('a');
             a.download = 'pizarra_tactica.png';
             a.href = canvas.toDataURL('image/png');
@@ -1216,6 +1220,17 @@ root.innerHTML = `
     ejSaveHistory();
     ejRenderToolbar();
     ejRenderSVG();
+    // Tecla Supr para eliminar seleccionado
+    document.addEventListener('keydown', function(e) {
+        if ((e.key === 'Delete' || e.key === 'Backspace') && ejP.selectedId) {
+            const focused = document.activeElement;
+            const isInput = focused && (focused.tagName === 'INPUT' || focused.tagName === 'TEXTAREA');
+            if (!isInput) {
+                e.preventDefault();
+                ejDelete();
+            }
+        }
+    });
 }
 
 // =============================================
@@ -1737,6 +1752,10 @@ function ejAbrirModal(id) {
                 <button id="ej-modal-cargar-btn" style="width:100%;padding:10px;background:#3b82f6;border:none;color:#fff;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px">
                     📋 Cargar en pizarra
                 </button>
+                ${e.animation_url ? `
+                <a href="${e.animation_url}" target="_blank" download style="display:block;width:100%;margin-top:8px;padding:10px;background:#f97316;border:none;color:#fff;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;text-align:center;text-decoration:none">
+                    🎬 Ver / Descargar animación
+                </a>` : ''}
             </div>
 
             <!-- Columna derecha: info -->
@@ -2095,7 +2114,9 @@ function ejRenderTimeline() {
             <button onclick="ejFrameSetSpeed(400)" style="background:${ejP.playSpeed<800?'#1e3a5f':'#0f172a'};border:1px solid #334155;color:#9ca3af;padding:3px 6px;border-radius:4px;cursor:pointer;font-size:10px">2x</button>
         </div>
         <span style="color:#64748b;font-size:11px;white-space:nowrap">Frame ${cur+1}/${total}</span>
-    </div>`;
+        <button onclick="ejExportarAnimacionGIF()" style="background:#f97316;border:none;color:#fff;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600" title="Exportar animación como GIF">🎬 GIF</button>
+    </div>
+    <div id="ej-anim-msg" style="font-size:11px;color:#9ca3af;margin-top:4px;text-align:center"></div>`;
 }
 async function ejCargarPlantilla() {
     try {
@@ -2147,6 +2168,114 @@ function ejColocarJugadorPlantilla(idx) {
     ejP.activeTool = 'player';
     ejP._plantillaMode = true;
     ejRenderToolbar();
+}
+async function ejExportarAnimacionGIF() {
+    if (!ejP.animMode || ejP.frames.length < 2) {
+        alert('Activa el modo animación y crea al menos 2 frames.');
+        return;
+    }
+    if (!ejEditandoId) {
+        // Intentar obtener el ID del ejercicio actual del topbar
+        const lbl = document.getElementById('ej-pizarra-nombre-label');
+        const ejercicioActual = ejBancoCache.find(x => x.name === lbl?.textContent);
+        if (ejercicioActual) {
+            ejEditandoId = ejercicioActual.id;
+        } else {
+            alert('Guarda el ejercicio primero desde la Ficha.');
+            return;
+        }
+    }
+
+    const msg = document.getElementById('ej-anim-msg');
+    if (msg) msg.textContent = 'Generando GIF...';
+
+    const svg = document.getElementById('ej-svg');
+    const W = ejP.svgW;
+    const H = ejP.svgH;
+    const scale = 1;
+
+    const gif = new GIF({
+        workers: 2,
+        quality: 10,
+        width: W * scale,
+        height: H * scale,
+        workerScript: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'js/gif.worker.js'
+            : 'https://toplidercoach.com/planificadorpro/js/gif.worker.js'
+    });
+
+    // Guardar estado actual
+    const savedFrame = ejP.currentFrame;
+    const savedPlaying = ejP.isPlaying;
+    if (savedPlaying) ejFrameStop();
+
+    // Renderizar cada frame como canvas
+    for (let i = 0; i < ejP.frames.length; i++) {
+        ejFrameRestore(ejP.frames[i]);
+        ejP.currentFrame = i;
+        ejRenderSVG();
+
+        const svgData = new XMLSerializer().serializeToString(
+            (() => { const c = svg.cloneNode(true); c.setAttribute('width', W); c.setAttribute('height', H); return c; })()
+        );
+
+        await new Promise(resolve => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = W * scale;
+                canvas.height = H * scale;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, W * scale, H * scale);
+                gif.addFrame(canvas, { delay: ejP.playSpeed, copy: true });
+                resolve();
+            };
+            img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+        });
+    }
+
+    // Restaurar estado
+    ejFrameRestore(ejP.frames[savedFrame]);
+    ejP.currentFrame = savedFrame;
+    ejRenderSVG();
+    ejRenderTimeline();
+
+    gif.on('finished', async (blob) => {
+        if (msg) msg.textContent = 'Subiendo al servidor...';
+
+        // Convertir blob a base64
+        const reader = new FileReader();
+        reader.onload = async () => {
+            const base64 = reader.result.split(',')[1];
+            try {
+                const res = await fetch('https://toplidercoach.com/wp-content/uploads/ejercicios/upload-animation.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer toplider_thumb_2026'
+                    },
+                    body: JSON.stringify({ gif: base64, id: String(ejEditandoId) })
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    // Guardar URL en Supabase
+                    await supabaseClient.from('custom_exercises')
+                        .update({ animation_url: data.url })
+                        .eq('id', ejEditandoId);
+                    // Actualizar caché
+                    const idx = ejBancoCache.findIndex(x => x.id === ejEditandoId);
+                    if (idx >= 0) ejBancoCache[idx].animation_url = data.url;
+                    if (msg) msg.textContent = '✅ Animación guardada';
+                    setTimeout(() => { if (msg) msg.textContent = ''; }, 3000);
+                }
+            } catch(e) {
+                if (msg) msg.textContent = '❌ Error: ' + e.message;
+            }
+        };
+        reader.readAsDataURL(blob);
+    });
+
+    gif.render();
 }
 function ejInit() {
     const root = document.getElementById('ejercicios-root');

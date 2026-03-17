@@ -895,7 +895,17 @@ function ejChangeLineColor(color) {
 function ejCapturarParaFicha() {
     const svgEl = document.getElementById('ej-svg');
     if (!svgEl) { alert('No hay pizarra para capturar'); return; }
+    // Limpiar datos del ejercicio anterior si es pizarra libre
+    const lbl = document.getElementById('ej-pizarra-nombre-label');
+    if (!ejEditandoId || (lbl && lbl.textContent === 'Pizarra libre')) {
+        ejEditandoId = null;
+        ejP._lastVideoUrl = null;
+        window._ejPdfThumbData = null;
+        ejLimpiarFicha();
+        ejBuildFicha();
+    }
     window.ejThumbnailPendiente = new XMLSerializer().serializeToString(svgEl);
+    ejPrepararThumbParaPDF();
     // Cambiar a la pestaña Ficha
     ejShowTab('ficha', document.querySelector('[onclick*="\'ficha\'"]'));
     // Actualizar miniatura y vídeo en la ficha
@@ -1249,7 +1259,7 @@ function ejBuildFicha() {
                 <div id="ej-ficha-thumb" style="width:100%;aspect-ratio:8/5;border-radius:8px;background:#1e3a5f;display:flex;align-items:center;justify-content:center;overflow:hidden">
                     <span style="color:#475569;font-size:11px">Dibuja en la pizarra y pulsa "Usar en ficha"</span>
                 </div>
-                <button onclick="ejCapturarMiniatura()" style="width:100%;margin-top:6px;padding:6px;background:#3b82f6;border:none;color:#fff;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600">📸 Capturar pizarra</button>
+                
             </div>
             <div style="padding:14px 16px">
                 <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🎬 Vídeo animación</div>
@@ -1429,6 +1439,7 @@ function ejCapturarMiniatura() {
     thumbContainer.innerHTML = '';
     thumbContainer.appendChild(clone);
     window.ejThumbnailPendiente = new XMLSerializer().serializeToString(svgEl);
+    ejPrepararThumbParaPDF();
     const msg = document.getElementById('ej-ficha-msg');
     if (msg) msg.innerHTML = '<span style="color:#a855f7">📸 Miniatura capturada — se guardará con el ejercicio</span>';
     setTimeout(() => { if (msg) msg.innerHTML = ''; }, 3000);
@@ -1437,10 +1448,13 @@ function ejCapturarMiniatura() {
 function ejActualizarFichaMedia() {
     // Miniatura
     const thumbContainer = document.getElementById('ej-ficha-thumb');
-    if (thumbContainer && window.ejThumbnailPendiente) {
-        thumbContainer.innerHTML = window.ejThumbnailPendiente;
-        const svg = thumbContainer.querySelector('svg');
-        if (svg) { svg.setAttribute('width','100%'); svg.setAttribute('height','100%'); svg.style.borderRadius='8px'; }
+    if (thumbContainer) {
+        const svgSource = window.ejThumbnailPendiente;
+        if (svgSource) {
+            thumbContainer.innerHTML = svgSource;
+            const svg = thumbContainer.querySelector('svg');
+            if (svg) { svg.setAttribute('width','100%'); svg.setAttribute('height','100%'); svg.style.borderRadius='8px'; svg.style.display='block'; }
+        }
     }
     // Vídeo
     const videoContainer = document.getElementById('ej-ficha-video');
@@ -1455,7 +1469,304 @@ function ejActualizarFichaMedia() {
 function ejExportarPDF() {
     const nombre = document.getElementById('ej-nombre')?.value?.trim();
     if (!nombre) { alert('Pon un nombre al ejercicio primero'); return; }
-    alert('Función PDF próximamente — se implementará con jsPDF');
+
+    const svgSource = window.ejThumbnailPendiente;
+    if (svgSource && !window._ejPdfThumbData) {
+        ejPrepararThumbParaPDF();
+        setTimeout(() => ejGenerarPDF(nombre), 600);
+    } else {
+        ejGenerarPDF(nombre);
+    }
+}
+
+function ejGenerarPDF(nombre) {
+    const { jsPDF } = jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const W = 210, H = 297;
+    const mL = 15, mR = 15;
+    const contentW = W - mL - mR;
+    let y = 0;
+
+    // === PALETA ===
+    const brand    = [37, 99, 235];
+    const brandDk  = [25, 70, 176];
+    const black    = [33, 37, 41];
+    const dark     = [55, 65, 81];
+    const gray     = [107, 114, 128];
+    const lightBg  = [248, 250, 252];
+    const tableBg  = [241, 245, 249];
+    const borderC  = [226, 232, 240];
+    const accentGreen = [22, 163, 74];
+    const accentAmber = [217, 119, 6];
+
+    const getValue = (id) => {
+        const el = document.getElementById(id);
+        return el ? (el.value || '').trim() : '';
+    };
+
+    // ======================================================
+    // HEADER — banda de color con marca
+    // ======================================================
+    doc.setFillColor(...brand);
+    doc.rect(0, 0, W, 28, 'F');
+
+    // Acento diagonal decorativo
+    doc.setFillColor(...brandDk);
+    doc.triangle(0, 28, 60, 28, 0, 18, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.setTextColor(255, 255, 255);
+    doc.text('TopLiderCoach', mL, 12);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(200, 220, 255);
+    doc.text('FICHA DE EJERCICIO', mL, 18);
+
+    // Fecha a la derecha
+    const hoy = new Date();
+    const fecha = hoy.getDate() + '/' + (hoy.getMonth() + 1) + '/' + hoy.getFullYear();
+    doc.setFontSize(8);
+    doc.setTextColor(180, 200, 255);
+    doc.text(fecha, W - mR, 12, { align: 'right' });
+
+    y = 34;
+
+    // ======================================================
+    // NOMBRE DEL EJERCICIO
+    // ======================================================
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.setTextColor(...black);
+    doc.text(nombre, mL, y);
+
+    // Badges inline
+    const dif = getValue('ej-dificultad');
+    const edad = getValue('ej-edad');
+    let badgeX = mL + doc.getTextWidth(nombre) + 4;
+
+    if (dif) {
+        const difColors = {'1':[22,163,74],'2':[22,163,74],'3':[217,119,6],'4':[234,88,12],'5':[220,38,38]};
+        const dc = difColors[dif] || gray;
+        doc.setFillColor(...dc);
+        doc.roundedRect(badgeX, y - 4.5, 18, 6, 1.5, 1.5, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7);
+        doc.setTextColor(255, 255, 255);
+        doc.text('Dif: ' + dif, badgeX + 9, y - 0.8, { align: 'center' });
+        badgeX += 21;
+    }
+    if (edad) {
+        doc.setFillColor(...tableBg);
+        doc.setDrawColor(...borderC);
+        doc.roundedRect(badgeX, y - 4.5, doc.getTextWidth(edad) * 0.55 + 8, 6, 1.5, 1.5, 'FD');
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(...dark);
+        doc.text(edad, badgeX + 4, y - 0.8);
+    }
+
+    y += 4;
+    doc.setDrawColor(...brand);
+    doc.setLineWidth(0.6);
+    doc.line(mL, y, mL + 40, y);
+    y += 6;
+
+    // ======================================================
+    // MINIATURA
+    // ======================================================
+    if (window._ejPdfThumbData) {
+        const thumbW = contentW;
+        const thumbH = thumbW * (500 / 800);
+        doc.setDrawColor(...borderC);
+        doc.setLineWidth(0.3);
+        doc.roundedRect(mL - 0.5, y - 0.5, thumbW + 1, thumbH + 1, 2, 2, 'S');
+        doc.addImage(window._ejPdfThumbData, 'PNG', mL, y, thumbW, thumbH);
+        y += thumbH + 3;
+    }
+
+    // ======================================================
+    // DATOS EN DOS COLUMNAS (key-value cards)
+    // ======================================================
+    const a = parseFloat(getValue('ej-ancho'));
+    const l = parseFloat(getValue('ej-largo'));
+    const j = parseFloat(getValue('ej-jugadores'));
+    const eii = (a && l && j) ? ((a * l) / j).toFixed(1) + ' m2/jug' : '';
+    const espacio = (a && l) ? a + ' x ' + l + ' m' : '';
+
+    const campos = [
+        { label: 'Categoria',    value: getValue('ej-categoria') },
+        { label: 'Edad',         value: getValue('ej-edad') },
+        { label: 'Tema',         value: getValue('ej-tema') },
+        { label: 'Fase de juego',value: getValue('ej-fase') },
+        { label: 'Duracion',     value: getValue('ej-duracion') ? getValue('ej-duracion') + ' min' : '' },
+        { label: 'Jugadores',    value: getValue('ej-jugadores') },
+        { label: 'Porteros',     value: getValue('ej-porteros') },
+        { label: 'Dificultad',   value: dif },
+        { label: 'Espacio',      value: espacio },
+        { label: 'Material',     value: getValue('ej-material') },
+        { label: 'EII',          value: eii }
+    ];
+
+    if (campos.length > 0) {
+        // Fondo card
+        const rows = Math.ceil(campos.length / 3);
+        const cardH = rows * 12 + 4;
+        doc.setFillColor(...lightBg);
+        doc.roundedRect(mL, y, contentW, cardH, 2, 2, 'F');
+
+        let cx = mL + 5;
+        let cy = y + 6;
+        const colW = (contentW - 10) / 3;
+
+        campos.forEach((c, i) => {
+            const col = i % 3;
+            const row = Math.floor(i / 3);
+            const px = mL + 5 + col * colW;
+            const py = y + 6 + row * 12;
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(7);
+            doc.setTextColor(...gray);
+            doc.text(c.label.toUpperCase(), px, py);
+
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(9);
+            doc.setTextColor(...black);
+            doc.text(c.value, px, py + 4.5);
+        });
+
+        y += cardH + 5;
+    }
+
+    // ======================================================
+    // SECCIONES DE TEXTO
+    // ======================================================
+    var sections = [
+        { t: 'Objetivos', v: getValue('ej-objetivos') || '—' },
+        { t: 'Descripcion / Desarrollo', v: getValue('ej-descripcion') || '—' },
+        { t: 'Variantes', v: getValue('ej-variantes') || '—' },
+        { t: 'Notas del entrenador', v: getValue('ej-notas') || '—' }
+    ];
+
+    var colW2 = (contentW - 6) / 2;
+    for (var si = 0; si < sections.length; si += 2) {
+        if (y > H - 30) { doc.addPage(); y = 15; }
+        for (var ci = 0; ci < 2; ci++) {
+            var sec = sections[si + ci];
+            if (!sec) break;
+            var sx = mL + ci * (colW2 + 6);
+            doc.setFillColor(...brand);
+            doc.rect(sx, y, 1, 5, 'F');
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(8);
+            doc.setTextColor(...brand);
+            doc.text(sec.t, sx + 3, y + 3.5);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+            doc.setTextColor(...dark);
+            var lines = doc.splitTextToSize(sec.v, colW2 - 6);
+            if (lines.length > 4) lines = lines.slice(0, 4);
+            doc.text(lines, sx + 3, y + 8);
+        }
+        var maxLines = 4;
+        y += 8 + maxLines * 3.5 + 4;
+    }
+
+    // ======================================================
+    // FOOTER
+    // ======================================================
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+
+        // Línea fina
+        doc.setDrawColor(...borderC);
+        doc.setLineWidth(0.2);
+        doc.line(mL, H - 12, W - mR, H - 12);
+
+        // Banda de color fina
+        doc.setFillColor(...brand);
+        doc.rect(0, H - 4, W, 4, 'F');
+
+        // Texto footer
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...gray);
+        doc.text('TopLiderCoach HUB  |  toplidercoach.com', mL, H - 7);
+        doc.text('Pag. ' + i + ' / ' + pageCount, W - mR, H - 7, { align: 'right' });
+    }
+
+    // ======================================================
+    // GUARDAR
+    // ======================================================
+    const filename = nombre.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_');
+    doc.save('Ejercicio_' + filename + '.pdf');
+}
+function ejComprimirThumbSVG(svgStr) {
+    var campo = '<rect width="800" height="500" fill="#1a6b30"/>'
+        + '<clipPath id="fc"><rect x="20" y="15" width="760" height="470" rx="1"/></clipPath>'
+        + '<g clip-path="url(#fc)">'
+        + '<rect x="20" y="15" width="63" height="470" fill="#207332"/>'
+        + '<rect x="83" y="15" width="64" height="470" fill="#1a6b30"/>'
+        + '<rect x="147" y="15" width="63" height="470" fill="#207332"/>'
+        + '<rect x="210" y="15" width="64" height="470" fill="#1a6b30"/>'
+        + '<rect x="274" y="15" width="63" height="470" fill="#207332"/>'
+        + '<rect x="337" y="15" width="63" height="470" fill="#1a6b30"/>'
+        + '<rect x="400" y="15" width="64" height="470" fill="#207332"/>'
+        + '<rect x="464" y="15" width="63" height="470" fill="#1a6b30"/>'
+        + '<rect x="527" y="15" width="63" height="470" fill="#207332"/>'
+        + '<rect x="590" y="15" width="64" height="470" fill="#1a6b30"/>'
+        + '<rect x="654" y="15" width="63" height="470" fill="#207332"/>'
+        + '<rect x="717" y="15" width="63" height="470" fill="#1a6b30"/>'
+        + '</g>'
+        + '<g fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+        + '<rect x="20" y="15" width="760" height="470" rx="1"/>'
+        + '<line x1="400" y1="15" x2="400" y2="485"/>'
+        + '<circle cx="400" cy="250" r="65"/>'
+        + '<rect x="20" y="133" width="108" height="234"/>'
+        + '<rect x="672" y="133" width="108" height="234"/>'
+        + '<rect x="20" y="195" width="40" height="110"/>'
+        + '<rect x="740" y="195" width="40" height="110"/>'
+        + '<rect x="10" y="220" width="10" height="60"/>'
+        + '<rect x="780" y="220" width="10" height="60"/>'
+        + '<path d="M128 199 A65 65 0 0 1 128 301"/>'
+        + '<path d="M672 199 A65 65 0 0 0 672 301"/>'
+        + '<path d="M20 22 A7 7 0 0 1 27 15"/>'
+        + '<path d="M773 15 A7 7 0 0 1 780 22"/>'
+        + '<path d="M780 478 A7 7 0 0 1 773 485"/>'
+        + '<path d="M27 485 A7 7 0 0 1 20 478"/>'
+        + '</g>'
+        + '<circle cx="400" cy="250" r="3.5" fill="#fff"/>'
++ '<circle cx="100" cy="250" r="3.5" fill="#fff"/>'
+        + '<circle cx="700" cy="250" r="3.5" fill="#fff"/>';
+    return svgStr
+        .replace(/<image[^>]*href="data:image\/webp;base64,[^"]*"[^>]*data-bg="1"[^>]*\/>/g, campo)
+        .replace(/<image[^>]*data-bg="1"[^>]*href="data:image\/webp;base64,[^"]*"[^>]*\/>/g, campo)
+        .substring(0, 50000);
+}
+function ejPrepararThumbParaPDF() {
+    const svgSource = window.ejThumbnailPendiente || (() => {
+        const el = document.getElementById('ej-svg');
+        return el ? new XMLSerializer().serializeToString(el) : null;
+    })();
+    if (!svgSource) return;
+    const parser = new DOMParser();
+    const clone = parser.parseFromString(svgSource, 'image/svg+xml').documentElement;
+    clone.setAttribute('width', 800);
+    clone.setAttribute('height', 500);
+    const svgData = new XMLSerializer().serializeToString(clone);
+    const canvas = document.createElement('canvas');
+    canvas.width = 800;
+    canvas.height = 500;
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.onload = () => {
+        ctx.drawImage(img, 0, 0, 800, 500);
+        window._ejPdfThumbData = canvas.toDataURL('image/png');
+    };
+    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
 }
 async function ejEliminarEjercicio() {
     if (!ejEditandoId) { alert('No hay ejercicio cargado para eliminar'); return; }
@@ -1558,7 +1869,7 @@ let thumbnailSvg = window.ejThumbnailPendiente || null;
             animFrames: ejP.animMode ? ejP.frames : [],
             animMode: ejP.animMode
         } : null,
-        thumbnail_svg: thumbnailSvg ? thumbnailSvg.substring(0, 50000) : null,
+        thumbnail_svg: thumbnailSvg ? ejComprimirThumbSVG(thumbnailSvg) : null,
         
         source: 'custom'
     };
@@ -1621,42 +1932,59 @@ function ejBuildBanco() {
     if (!root) return;
     root.innerHTML = `
     <div class="ej-banco-wrap">
-        <h3 class="ej-ficha-title">🗂 Banco de ejercicios</h3>
-        <div class="ej-banco-filters" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:12px">
-            <input type="text" id="ej-search" placeholder="🔍 Nombre..." oninput="ejBancoSearch()" style="grid-column:1/-1">
-            <select id="ej-filter-cat" onchange="ejBancoSearch()">
-                <option value="">Todas las categorías</option>
-                <option>Técnica individual</option><option>Posesión</option><option>Pressing</option>
-                <option>Ataque posicional</option><option>Defensa</option><option>Transiciones</option>
-                <option>Portería</option><option>Físico</option><option>Táctica</option>
-            </select>
-            <select id="ej-filter-edad" onchange="ejBancoSearch()">
-                <option value="">Todas las edades</option>
-                <option>Prebenjamín</option><option>Benjamín</option><option>Alevín</option>
-                <option>Infantil</option><option>Cadete</option><option>Juvenil</option><option>Senior</option>
-            </select>
-            <select id="ej-filter-dif" onchange="ejBancoSearch()">
-                <option value="">Todos los niveles</option>
-                <option value="basico">Básico</option>
-                <option value="medio">Medio</option>
-                <option value="avanzado">Avanzado</option>
-            </select>
-            <select id="ej-filter-fase" onchange="ejBancoSearch()">
-                <option value="">Todas las fases</option>
-                <option>Organización ofensiva</option><option>Organización defensiva</option>
-                <option>Transición ataque</option><option>Transición defensa</option>
-                <option>Balón parado</option>
-            </select>
-            <input type="number" id="ej-filter-jug" placeholder="👥 Nº jugadores" min="1" max="30" oninput="ejBancoSearch()" style="width:100%">
-            <input type="number" id="ej-filter-dur" placeholder="⏱ Duración (min)" min="1" oninput="ejBancoSearch()" style="width:100%">
+        <h3 class="ej-ficha-title" style="margin-bottom:12px">🗂 Banco de ejercicios</h3>
+        <div style="background:#0f172a;border:1px solid #1e3a5f;border-radius:10px;padding:12px 14px;margin-bottom:14px">
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+                <input type="text" id="ej-search" placeholder="🔍 Buscar por nombre..." oninput="ejBancoSearch()" style="flex:1">
+                <span id="ej-banco-count" style="font-size:11px;background:#1e3a5f;color:#93c5fd;padding:3px 10px;border-radius:6px;white-space:nowrap"></span>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                <select id="ej-filter-tema" onchange="ejBancoSearch()" style="padding:4px 8px;font-size:11px;background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:6px;cursor:pointer">
+                    <option value="">Tema ▾</option>
+                    <option>Calentamiento</option><option>Cambios de orientación</option><option>Centros laterales</option>
+                    <option>Contraataque</option><option>Defensa en bloque bajo</option><option>Defensa en inferioridad</option>
+                    <option>Duelos</option><option>Finalización</option><option>Físico-Técnico</option>
+                    <option>Juego de posición</option><option>Juego interior</option><option>Juegos Lúdicos</option>
+                    <option>Partidos</option><option>Porteros</option><option>Posesiones</option>
+                    <option>Presión</option><option>Press perdida</option><option>Progresión en el juego</option>
+                    <option>Rondos</option><option>Ruedas de pases</option><option>Salida de balón</option>
+                    <option>Tercer hombre</option><option>Trabajo táctico</option><option>Transiciones</option>
+                    <option>Técnica individual</option>
+                </select>
+                <select id="ej-filter-cat" onchange="ejBancoSearch()" style="padding:4px 8px;font-size:11px;background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:6px;cursor:pointer">
+                    <option value="">Categoría ▾</option>
+                    <option>Técnica individual</option><option>Posesión</option><option>Pressing</option>
+                    <option>Ataque posicional</option><option>Defensa</option><option>Transiciones</option>
+                    <option>Portería</option><option>Físico</option><option>Táctica</option>
+                </select>
+                <select id="ej-filter-edad" onchange="ejBancoSearch()" style="padding:4px 8px;font-size:11px;background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:6px;cursor:pointer">
+                    <option value="">Edad ▾</option>
+                    <option>Prebenjamín</option><option>Benjamín</option><option>Alevín</option>
+                    <option>Infantil</option><option>Cadete</option><option>Juvenil</option><option>Senior</option>
+                </select>
+                <select id="ej-filter-dif" onchange="ejBancoSearch()" style="padding:4px 8px;font-size:11px;background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:6px;cursor:pointer">
+                    <option value="">Dificultad ▾</option>
+                    <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                    <option value="4">4</option><option value="5">5</option>
+                </select>
+                <select id="ej-filter-fase" onchange="ejBancoSearch()" style="padding:4px 8px;font-size:11px;background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:6px;cursor:pointer">
+                    <option value="">Fase ▾</option>
+                    <option>Organización ofensiva</option><option>Organización defensiva</option>
+                    <option>Transición ataque</option><option>Transición defensa</option><option>Balón parado</option>
+                </select>
+                <input type="number" id="ej-filter-jug" placeholder="Jugadores" min="1" max="30" oninput="ejBancoSearch()" style="width:75px;padding:4px 8px;font-size:11px;background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:6px">
+                <input type="number" id="ej-filter-port" placeholder="Porteros" min="0" max="4" oninput="ejBancoSearch()" style="width:70px;padding:4px 8px;font-size:11px;background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:6px">
+                <input type="number" id="ej-filter-dur" placeholder="Min." min="1" oninput="ejBancoSearch()" style="width:55px;padding:4px 8px;font-size:11px;background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:6px">
+                <button onclick="ejLimpiarFiltros()" style="padding:4px 10px;font-size:11px;background:#334155;border:none;color:#94a3b8;border-radius:6px;cursor:pointer;white-space:nowrap">✕ Limpiar</button>
+            </div>
         </div>
-        <div id="ej-banco-grid" class="ej-banco-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+        
+        <div id="ej-banco-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;background:#0f172a;border:1px solid #1e3a5f;border-radius:10px;overflow:hidden">
             <div style="color:#9ca3af;padding:20px">Cargando ejercicios...</div>
         </div>
     </div>`;
     ejBancoLoad();
 }
-
 let ejBancoCache = [];
 let ejEditandoId = null;
 
@@ -1664,7 +1992,7 @@ async function ejBancoLoad() {
     try {
         const { data, error } = await supabaseClient
             .from('custom_exercises')
-            .select('id,name,category,age_group,difficulty,duration_min,players_count,game_phase,field_width,field_length,eii,objectives,description,variants,coach_notes,materials,thumbnail_svg,animation_url')
+            .select('id,name,category,age_group,difficulty,duration_min,players_count,game_phase,field_width,field_length,eii,objectives,description,variants,coach_notes,materials,thumbnail_svg,animation_url,tema,num_goalkeepers')
             .order('created_at', { ascending: false })
             .limit(50);
         if (error) throw error;
@@ -1677,59 +2005,117 @@ async function ejBancoLoad() {
     }
 }
 
+function ejLimpiarFiltros() {
+    ['ej-search','ej-filter-jug','ej-filter-port','ej-filter-dur'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = '';
+    });
+    ['ej-filter-tema','ej-filter-cat','ej-filter-edad','ej-filter-dif','ej-filter-fase'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.selectedIndex = 0;
+    });
+    ejBancoSearch();
+}
+ 
 function ejBancoSearch() {
     const q    = document.getElementById('ej-search')?.value?.toLowerCase() || '';
+    const tema = document.getElementById('ej-filter-tema')?.value || '';
     const cat  = document.getElementById('ej-filter-cat')?.value || '';
     const edad = document.getElementById('ej-filter-edad')?.value || '';
     const dif  = document.getElementById('ej-filter-dif')?.value || '';
     const fase = document.getElementById('ej-filter-fase')?.value || '';
     const jug  = parseInt(document.getElementById('ej-filter-jug')?.value) || 0;
+    const port = parseInt(document.getElementById('ej-filter-port')?.value) || 0;
     const dur  = parseInt(document.getElementById('ej-filter-dur')?.value) || 0;
     const filtered = ejBancoCache.filter(e =>
-        (!q    || e.name.toLowerCase().includes(q)) &&
+        (!q    || e.name?.toLowerCase().includes(q)) &&
+        (!tema || e.tema === tema) &&
         (!cat  || e.category === cat) &&
         (!edad || e.age_group === edad) &&
-        (!dif  || e.difficulty === dif) &&
+        (!dif  || String(e.difficulty) === dif) &&
         (!fase || e.game_phase === fase) &&
         (!jug  || e.players_count == jug) &&
+        (!port || e.num_goalkeepers == port) &&
         (!dur  || e.duration_min == dur)
     );
+    const countEl = document.getElementById('ej-banco-count');
+    if (countEl) countEl.textContent = filtered.length + ' ejercicio' + (filtered.length !== 1 ? 's' : '');
     ejBancoRender(filtered);
 }
 
 function ejBancoRender(list) {
     const grid = document.getElementById('ej-banco-grid');
     if (!grid) return;
-    if (!list.length) { grid.innerHTML = '<div style="color:#9ca3af;padding:20px">No hay ejercicios.</div>'; return; }
-    const difColor = { basico: '#22c55e', medio: '#eab308', avanzado: '#ef4444' };
-    grid.innerHTML = list.map(e => `
-    <div class="ej-card">
-        <div class="ej-card-head">
-            <span class="ej-card-name" style="font-size:12px">${e.name}</span>
-            ${e.difficulty ? `<span class="ej-tag" style="background:${difColor[e.difficulty]||'#6b7280'}20;color:${difColor[e.difficulty]||'#6b7280'};font-size:10px">${e.difficulty}</span>` : ''}
-        </div>
-        <div class="ej-card-meta" style="font-size:11px">
-            ${e.category ? `<span>📁 ${e.category}</span>` : ''}
-            ${e.duration_min ? `<span>⏱ ${e.duration_min}min</span>` : ''}
-            ${e.players_count ? `<span>👥 ${e.players_count}</span>` : ''}
-        </div>
-        ${e.thumbnail_url ? `
-           <div onclick="ejVerFicha('${e.id}')" title="Ver ficha"
-            style="width:100%;aspect-ratio:8/5;overflow:hidden;border-radius:6px;margin:6px 0;background:#0f4c2a;cursor:pointer;position:relative">
-            <img src="${e.thumbnail_url}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"/>
-        </div>` : e.thumbnail_svg ? `
-         <div onclick="ejVerFicha('${e.id}')" title="Ver ficha"
-             style="width:100%;aspect-ratio:8/5;overflow:hidden;border-radius:6px;margin:6px 0;background:#0f4c2a;cursor:pointer;position:relative">
-            ${e.thumbnail_svg}
-        </div>` : `
-         <div onclick="ejVerFicha('${e.id}')" style="width:100%;aspect-ratio:8/5;border-radius:6px;margin:6px 0;background:#1e3a5f;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#6b7280;font-size:11px">
-            sin dibujo
-        </div>`}
-        <div class="ej-card-actions" style="display:flex;gap:4px">
-            <button class="ej-card-btn" onclick="ejVerFicha('${e.id}')" style="flex:1">📋 Ver ficha</button>
-            <button class="ej-card-btn" onclick="ejBancoCargar('${e.id}')" style="flex:1;background:#1e3a5f;border-color:#2563eb;color:#93c5fd">✏️ Editar dibujo</button>
-        </div>
-    </div>`).join('');
+
+    var MAX = 100;
+    if (list.length > MAX) list = list.slice(0, MAX);
+    var countEl = document.getElementById('ej-banco-count');
+    if (countEl) countEl.textContent = list.length + ' ejercicio' + (list.length !== 1 ? 's' : '');
+
+    if (!list.length) {
+        grid.innerHTML = '<div style="color:#64748b;padding:30px;text-align:center;grid-column:1/-1">No hay ejercicios con estos filtros.</div>';
+        return;
+    }
+
+    var difColors = {'1':'#22c55e','2':'#22c55e','3':'#eab308','4':'#f97316','5':'#ef4444'};
+    var html = '';
+
+    for (var idx = 0; idx < list.length; idx++) {
+        var e = list[idx];
+        var difCol = difColors[e.difficulty] || '#6b7280';
+        var tags = [];
+        if (e.tema) tags.push(e.tema);
+        if (e.age_group) tags.push(e.age_group);
+        if (e.duration_min) tags.push(e.duration_min + 'min');
+        if (e.players_count) tags.push(e.players_count + ' jug');
+        var borderR = (idx % 3 !== 2) ? 'border-right:1px solid #1e3a5f;' : '';
+        var tagsHTML = '';
+        for (var t = 0; t < tags.length; t++) {
+            tagsHTML += '<span style="font-size:10px;color:#94a3b8;background:#1e293b;padding:1px 6px;border-radius:4px">' + tags[t] + '</span>';
+        }
+
+        var thumbHTML;
+        if (e.thumbnail_url) {
+            thumbHTML = '<img src="' + e.thumbnail_url + '" style="width:100%;height:100%;object-fit:cover;display:block" loading="lazy"/>';
+        } else if (e.thumbnail_svg) {
+            thumbHTML = '<img data-svg-idx="' + idx + '" style="width:100%;height:100%;object-fit:cover;display:block;background:#0f4c2a" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"/>';
+        } else {
+            thumbHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#475569;font-size:11px">sin dibujo</div>';
+        }
+
+        html += '<div style="padding:12px;' + borderR + 'border-bottom:1px solid #1e3a5f;min-width:0;overflow:hidden">'
+            + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px">'
+            + '<span style="font-size:13px;font-weight:600;color:#e2e8f0;line-height:1.3;flex:1;margin-right:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + e.name + '</span>'
+            + (e.difficulty ? '<span style="font-size:10px;background:' + difCol + '20;color:' + difCol + ';padding:1px 7px;border-radius:4px;flex-shrink:0">' + e.difficulty + '</span>' : '')
+            + '</div>'
+            + '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">' + tagsHTML + '</div>'
+            + '<div onclick="ejVerFicha(\'' + e.id + '\')" style="width:100%;aspect-ratio:8/5;overflow:hidden;border-radius:6px;margin-bottom:8px;background:#0f4c2a;cursor:pointer">'
+            + thumbHTML
+            + '</div>'
+            + '<div style="display:flex;gap:4px">'
+            + '<button onclick="ejVerFicha(\'' + e.id + '\')" style="flex:1;padding:5px;font-size:11px;background:#1e293b;border:1px solid #334155;color:#93c5fd;border-radius:6px;cursor:pointer">Ver ficha</button>'
+            + '<button onclick="ejBancoCargar(\'' + e.id + '\')" style="flex:1;padding:5px;font-size:11px;background:#1e293b;border:1px solid #334155;color:#cbd5e1;border-radius:6px;cursor:pointer">Editar dibujo</button>'
+            + '</div>'
+            + '</div>';
+    }
+
+    grid.innerHTML = html;
+
+    // Convertir SVGs a Blob URLs (fiable con cualquier tamaño)
+    setTimeout(function() {
+        var imgs = grid.querySelectorAll('img[data-svg-idx]');
+        for (var i = 0; i < imgs.length; i++) {
+            var img = imgs[i];
+            var svgIdx = parseInt(img.getAttribute('data-svg-idx'));
+            var ex = list[svgIdx];
+            if (ex && ex.thumbnail_svg) {
+                try {
+                    var blob = new Blob([ex.thumbnail_svg], {type: 'image/svg+xml'});
+                    img.src = URL.createObjectURL(blob);
+                } catch(err) {
+                    console.warn('Error creando blob para thumbnail:', err);
+                }
+            }
+        }
+    }, 100);
 }
 async function ejVerFicha(id) {
     try {
@@ -1758,7 +2144,7 @@ async function ejVerFicha(id) {
         if (data.thumbnail_svg) window.ejThumbnailPendiente = data.thumbnail_svg;
         ejP._lastVideoUrl = data.animation_url || null;
         ejShowTab('ficha', document.querySelector('[onclick*="\'ficha\'"]'));
-        setTimeout(() => ejActualizarFichaMedia(), 300);
+        setTimeout(() => { ejActualizarFichaMedia(); ejPrepararThumbParaPDF(); }, 300);
     } catch(err) {
         alert('Error al cargar: ' + err.message);
     }

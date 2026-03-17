@@ -493,7 +493,8 @@ function ejSvgPointerDown(e) {
         ejSaveHistory();
         const id = ejP.nextId++;
         ejP.equipment.push({ id, x: pos.x, y: pos.y, eqType: ejP.selectedEquipmentType, scale: 0.5, rotation: 0 });
-        ejP.selectedId = id;
+        ejP.selectedId = null;
+        ejP.activeTool = 'select';
 ejP.expandedSection = 'actions';
 ejRenderSVG();
 ejRenderToolbar();
@@ -2513,7 +2514,7 @@ function ejFrameAnimate(now) {
     if (!ejP.isPlaying) return;
     const dt = now - ejP._animLastTime;
     ejP._animLastTime = now;
-    ejP._animProgress += dt / ejP.playSpeed;
+    ejP._animProgress += dt / (ejP.playSpeed * 0.7);
 
     if (ejP._animProgress >= 1) {
         // Pasar al siguiente frame
@@ -2732,6 +2733,8 @@ async function ejExportarAnimacionMP4() {
 
     const msg = document.getElementById('ej-anim-msg');
     ejP._exportingVideo = true; ejRenderTimeline();
+    var progDiv = document.getElementById('ej-anim-msg');
+    if (progDiv) progDiv.innerHTML = '<span style="color:#f97316;font-weight:600">⏳ Generando vídeo MP4... no toques nada, puede tardar hasta 1 minuto</span>';
 
     const svg = document.getElementById('ej-svg');
     const W = ejP.svgW;
@@ -2786,8 +2789,8 @@ async function ejExportarAnimacionMP4() {
     const FPS = 30;
     const frameDuration = ejP.playSpeed;
     const framesPerTransition = Math.round((frameDuration / 1000) * FPS * 2);
-    const holdFrames = Math.round(0.15 * FPS); // pausa mínima
-    const holdMid = 0; // sin pausa entre frames intermedios
+    const holdFrames = 0;
+    const holdMid = 0;
 
     for (let i = 0; i < ejP.frames.length; i++) {
         // Mostrar keyframe
@@ -2880,11 +2883,9 @@ async function ejExportarAnimacionMP4() {
         }
     }
 
-    // Mantener último frame
-    for (let h = 0; h < holdFrames; h++) {
-        await renderSVGToCanvas();
-        await new Promise(r => setTimeout(r, 1000 / FPS));
-    }
+    // Frame final
+    await renderSVGToCanvas();
+    await new Promise(r => setTimeout(r, 200));
 
     console.log('Animación renderizada, parando grabación...'); // Parar grabación y esperar a que termine
     recorder.onerror = (e) => { console.error('Recorder error:', e); }; const recordingDone = new Promise(resolve => { recorder.onstop = () => { console.log('Recorder parado OK'); resolve(); }; });
@@ -2902,6 +2903,8 @@ async function ejExportarAnimacionMP4() {
 
     const blob = new Blob(chunks, { type: 'video/webm' }); console.log('Blob creado, tamaño:', blob.size, 'bytes');
    console.log('Iniciando conversión a base64...');
+    var progDiv2 = document.getElementById('ej-anim-msg');
+    if (progDiv2) progDiv2.innerHTML = '<span style="color:#3b82f6;font-weight:600">📤 Subiendo al servidor y convirtiendo a MP4...</span>';
     try {
         const base64 = await new Promise((resolve, reject) => {
             const rd = new FileReader();
@@ -2972,4 +2975,4 @@ function ejShowTab(tab, btn) {
 // =============================================
 // REGISTRO DEL MÓDULO
 // =============================================
-registrarSubTab('planificador', 'ejercicios', ejInit);
+registrarModulo('pizarra', ejInit);

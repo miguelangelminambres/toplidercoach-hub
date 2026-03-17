@@ -623,3 +623,7 @@
                 grid-template-columns: 1fr repeat(3, 1fr) !important;
             }
         }
+        .main-tab.pizarra.active {
+    color: #ea580c;
+    border-bottom-color: #ea580c;
+}

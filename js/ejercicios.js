@@ -772,7 +772,7 @@ function ejElegirModo(modo) {
     // Mostrar toolbar
     var tb = document.getElementById('ej-toolbar');
     if (tb) tb.style.display = '';
-    ejP.expandedSection = 'players';
+    ejP.expandedSection = '';
     ejRenderToolbar();
 }
 function ejNuevaPizarra() {
@@ -1088,15 +1088,10 @@ function ejRenderToolbar() {
     const actionsOpen = ejP.expandedSection === 'actions';
 
     tb.innerHTML = `
-    <!-- BOTÓN MODO ANIMACIÓN -->
-    <button class="ej-btn-tool${ejP.animMode?' active':''}" onclick="ejToggleAnimMode()" title="Activar/desactivar modo animación" style="background:${ejP.animMode?'#7c3aed':'#1e293b'};border-color:${ejP.animMode?'#a855f7':'#334155'};margin-bottom:6px;width:100%">
-        🎬 ${ejP.animMode ? 'Modo Animación ON' : 'Modo Animación'}
-    </button>
-    <!-- HERRAMIENTA SELECCIONAR -->
-    <button class="ej-btn-tool${t==='select'?' active':''}" onclick="ejSetTool('select')" title="Seleccionar (S)">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M4 0L4 20L9 15H16L4 0Z"/></svg>
-        Seleccionar
-    </button>
+  <!-- BOTÓN MODO ANIMACIÓN (solo visible en modo animado) -->
+    ${ejP.animMode ? `<button class="ej-btn-tool active" onclick="ejToggleAnimMode()" title="Desactivar animación" style="background:#7c3aed;border-color:#a855f7;margin-bottom:6px;width:100%">
+        🎬 Modo Animación ON
+    </button>` : ''}
 
     <!-- SECCIÓN JUGADORES -->
     ${sectionHeader('players','⚽','Jugadores')}
@@ -1149,7 +1144,7 @@ function ejRenderToolbar() {
                     }).join('')}
                 </div>
             </div>` : ''}
-            <button class="ej-btn-tool${t==='player'&&!ejP._plantillaMode?' active':''}" onclick="ejSetTool('player');ejP._addingRival=false;ejP._plantillaMode=false;ejRenderToolbar()">
+            <button class="ej-btn-tool${t==='player'&&!ejP._addingRival&&!ejP._plantillaMode?' active':''}" onclick="ejSetTool('player');ejP._addingRival=false;ejP._plantillaMode=false;ejRenderToolbar()">
                 + Jugador (mi equipo)
             </button>
             <button class="ej-btn-tool${t==='player'&&ejP._addingRival?' active':''}" onclick="ejSetTool('player');ejP._addingRival=true;ejRenderToolbar()" style="border-color:#ef4444">
@@ -1169,19 +1164,41 @@ function ejRenderToolbar() {
                 ).join('')
             }</div>` : ''}
         </div>
+        ${selPlayer ? `
+        <div class="ej-selected-block">
+            <div style="font-size:11px;color:#9ca3af;margin-bottom:4px">Jugador seleccionado</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <label style="font-size:11px;color:#9ca3af">Nº camiseta:</label>
+                <input type="text" value="${selPlayer.number||''}" maxlength="3"
+                    onchange="ejChangePlayerNumber(this.value)"
+                    style="width:50px;padding:4px 6px;background:#0f172a;border:1px solid #334155;color:#fff;border-radius:6px;font-size:14px;font-weight:700;text-align:center"/>
+                <label style="font-size:11px;color:#9ca3af;margin-left:4px">
+                    <input type="checkbox" ${selPlayer.showNumber?'checked':''} onchange="ejTogglePlayerNumber(this.checked)"> Ver nº
+                </label>
+            </div>
+            <label style="font-size:11px;color:#9ca3af">Cambiar color:</label>
+            ${colorSwatches(selPlayer.color, true, true, 'ejChangePlayerColor')}
+        </div>` : ''}
     </div>` : ''}
 
     <!-- SECCIÓN DIBUJO -->
     ${sectionHeader('draw','✏️','Dibujo')}
-    ${drawOpen ? `
+   
+         ${drawOpen ? `
     <div class="ej-section-body">
         <div class="ej-field-btns">
-           ${['full','half','halfDown','blank'].map(f=>`<button class="ej-btn-sm${ejP.fieldType===f?' active':''}" onclick="ejSetField('${f}')">${f==='full'?'Completo':f==='half'?'Medio ↑':f==='halfDown'?'Medio ↓':'Libre'}</button>`).join('')}
-           <div style="display:flex;gap:4px;margin-top:6px">
+            ${['full','half','halfDown','blank'].map(f=>`<button class="ej-btn-sm${ejP.fieldType===f?' active':''}" onclick="ejSetField('${f}')">${f==='full'?'Completo':f==='half'?'Medio ↑':f==='halfDown'?'Medio ↓':'Libre'}</button>`).join('')}
+        </div>
+        <div style="display:flex;gap:4px;margin-top:6px">
             ${['#1a6b30','#1a8540','#2d8a4e','#0f4c2a','#1e3a5f','#0a1628','#2c2c2c'].map(c =>
                 '<div onclick="ejSetFieldColor(\''+c+'\')" style="width:22px;height:22px;border-radius:50%;background:'+c+';cursor:pointer;border:2px solid '+(ejP.fieldColor===c?'#fff':'transparent')+'"></div>'
             ).join('')}
         </div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid #334155">
+            <button class="ej-btn-tool${t==='select'?' active':''}" onclick="ejSetTool('select')" title="Seleccionar">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M4 0L4 20L9 15H16L4 0Z"/></svg>
+                Seleccionar
+            </button>
         </div>
         <div class="ej-draw-tools">
             ${[
@@ -1202,8 +1219,11 @@ function ejRenderToolbar() {
         <div class="ej-line-colors">
             ${EJ_LINE_COLORS.map(c=>`<div class="ej-lcolor${ejP.lineColor===c.c?' active':''}" style="background:${c.c}" title="${c.n}" onclick="ejP.lineColor='${c.c}';ejRenderToolbar()"></div>`).join('')}
         </div>
+        <div class="ej-actions-row" style="margin-top:8px;padding-top:8px;border-top:1px solid #334155">
+            <button class="ej-act-btn undo" onclick="ejUndo()" title="Deshacer (Ctrl+Z)">↩ Deshacer</button>
+            <button class="ej-act-btn redo" onclick="ejRedo()" title="Rehacer (Ctrl+Y)">↪ Rehacer</button>
+        </div>
     </div>` : ''}
-
     <!-- SECCIÓN MATERIAL -->
     ${sectionHeader('material','🏅','Material')}
     ${ejP.expandedSection === 'material' ? `
@@ -1220,63 +1240,12 @@ function ejRenderToolbar() {
     </div>` : ''}
 
 
-    <!-- SECCIÓN ACCIONES / SELECCIONADO -->
-    ${sectionHeader('actions','🎯','Acciones')}
-    ${actionsOpen ? `
-    <div class="ej-section-body">
-        ${selPlayer ? `
-        <div class="ej-selected-block">
-            <div style="font-size:11px;color:#9ca3af;margin-bottom:4px">Jugador seleccionado</div>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-                <label style="font-size:11px;color:#9ca3af">Nº camiseta:</label>
-                <input type="text" value="${selPlayer.number||''}" maxlength="3"
-                    onchange="ejChangePlayerNumber(this.value)"
-                    style="width:50px;padding:4px 6px;background:#0f172a;border:1px solid #334155;color:#fff;border-radius:6px;font-size:14px;font-weight:700;text-align:center"/>
-                <label style="font-size:11px;color:#9ca3af;margin-left:4px">
-                    <input type="checkbox" ${selPlayer.showNumber?'checked':''} onchange="ejTogglePlayerNumber(this.checked)"> Ver nº
-                </label>
-            </div>
-            <label style="font-size:11px;color:#9ca3af">Cambiar color:</label>
-            ${colorSwatches(selPlayer.color, true, true, 'ejChangePlayerColor')}
-        </div>` : ''}
-        ${selEquipment ? `
-        <div class="ej-selected-block">
-            <div style="font-size:11px;color:#9ca3af;margin-bottom:4px">Material seleccionado: <strong style="color:#fff">${EJ_EQUIPMENT_TYPES.find(e=>e.key===selEquipment.eqType)?.name||''}</strong></div>
-<div class="ej-size-row">
-                <button class="ej-act-btn orange" onclick="ejChangeEquipmentSize('down')">− Menor</button>
-                <button class="ej-act-btn green"  onclick="ejChangeEquipmentSize('up')">+ Mayor</button>
-            </div>
-            <div style="margin-top:6px">
-                <div style="font-size:10px;color:#9ca3af;text-transform:uppercase;margin-bottom:4px">Rotación</div>
-                <div class="ej-size-row" style="justify-content:center;gap:3px">
-                    <button class="ej-act-btn gray" onclick="ejRotateEquipment(-45)">−45°</button>
-                    <button class="ej-act-btn gray" onclick="ejRotateEquipment(-10)">−10°</button>
-                    <button class="ej-act-btn gray" onclick="ejRotateEquipment(10)">+10°</button>
-                    <button class="ej-act-btn gray" onclick="ejRotateEquipment(45)">+45°</button>
-                </div>
-                <input type="range" min="0" max="359" value="${selEquipment.rotation||0}"
-                    oninput="ejRotateEquipment(parseInt(this.value)-(${selEquipment.rotation||0}))"
-                    style="width:100%;margin-top:6px;accent-color:#a855f7"/>
-                <div style="text-align:center;font-size:10px;color:#9ca3af;margin-top:2px">${selEquipment.rotation||0}°</div>
-            </div>
-        </div>` : ''}
-        ${selLine ? `
-        <div class="ej-selected-block">
-            <div style="font-size:11px;color:#9ca3af;margin-bottom:4px">Línea/forma seleccionada</div>
-            <label style="font-size:11px;color:#9ca3af">Cambiar color:</label>
-            <div class="ej-line-colors">
-                ${EJ_LINE_COLORS.map(c=>`<div class="ej-lcolor${(selLine.color)===c.c?' active':''}" style="background:${c.c}" title="${c.n}" onclick="ejChangeLineColor('${c.c}')"></div>`).join('')}
-            </div>
-        </div>` : ''}
-        <div class="ej-actions-row">
-            <button class="ej-act-btn undo" onclick="ejUndo()" title="Deshacer (Ctrl+Z)">↩ Deshacer</button>
-            <button class="ej-act-btn redo" onclick="ejRedo()" title="Rehacer (Ctrl+Y)">↪ Rehacer</button>
-        </div>
-        <button class="ej-act-btn red full" onclick="ejDelete()" ${!sel?'disabled':''} style="width:100%;margin-top:4px">🗑 Eliminar seleccionado</button>
-        <button class="ej-act-btn gray full" onclick="ejClearAll()" style="width:100%;margin-top:4px">🧹 Limpiar todo</button>
-        <button class="ej-act-btn purple full" onclick="ejCapturarParaFicha()" style="width:100%;margin-top:4px;background:#7c3aed">📋 Usar en ficha</button>
-        <button class="ej-act-btn green full" onclick="ejExportPNG()" style="width:100%;margin-top:8px">📥 Exportar PNG</button>
-    </div>` : ''}
+    <!-- BOTONES PRINCIPALES -->
+    <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px">
+        <button class="ej-act-btn purple full" onclick="ejCapturarParaFicha()" style="width:100%;padding:10px;background:#7c3aed;border:none;color:#fff;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">📋 Guardar ejercicio</button>
+        <button class="ej-act-btn green full" onclick="ejExportPNG()" style="width:100%;padding:8px;background:#0f172a;border:1px solid #334155;color:#94a3b8;border-radius:8px;cursor:pointer;font-size:12px">📥 Exportar PNG</button>
+        <button class="ej-act-btn red full" onclick="ejDelete()" ${!sel?'disabled':''} style="width:100%;padding:8px;background:#7f1d1d;border:1px solid #dc2626;color:#fca5a5;border-radius:8px;cursor:pointer;font-size:12px">🗑 Eliminar seleccionado</button>
+    </div>
     `;
 }
 

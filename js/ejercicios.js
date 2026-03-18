@@ -69,6 +69,7 @@ const EJ_FIELD_IMAGES = {
 // ---- ESTADO DE LA PIZARRA ----
 const ejP = {
     fieldType: 'full',
+    fieldColor: '#1a6b30',
     svgW: 800, svgH: 500,
 
     activeTool: 'select',
@@ -186,9 +187,8 @@ function ejRenderSVG() {
     defs += '</defs>';
 
     // Campo
-    const fieldSrc = EJ_FIELD_IMAGES[ejP.fieldType] || EJ_FIELD_IMAGES.full;
     let html = defs;
-    html += `<image href="${fieldSrc}" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="xMidYMid slice" data-bg="1"/>`;
+    html += ejGetFieldSVG(ejP.fieldType, ejP.fieldColor);
 
     // Formas
     for (const s of ejP.shapes) {
@@ -815,7 +815,69 @@ function ejSetTool(tool) {
     ejP._addingRival = false;
     ejRenderToolbar();
 }
+function ejGetFieldSVG(type, color) {
+    var c1 = color, c2 = ejLightenColor(color, 12);
+    var W = 800, H = 500;
+    var s = '';
+    // Fondo + franjas
+    s += '<rect width="'+W+'" height="'+H+'" fill="'+c1+'"/>';
+    for (var i = 0; i < 12; i++) {
+        s += '<rect x="'+(20+i*63.3)+'" y="15" width="63" height="470" fill="'+(i%2===0?c2:c1)+'"/>';
+    }
+    // Líneas blancas según tipo
+    var L = 'fill="none" stroke="#fff" stroke-width="2"';
+    s += '<g '+L+' stroke-linecap="round" stroke-linejoin="round">';
+    s += '<rect x="20" y="15" width="760" height="470" rx="1"/>';
+    if (type === 'full') {
+        s += '<line x1="400" y1="15" x2="400" y2="485"/>';
+        s += '<circle cx="400" cy="250" r="65"/>';
+        s += '<rect x="20" y="133" width="108" height="234"/>';
+        s += '<rect x="672" y="133" width="108" height="234"/>';
+        s += '<rect x="20" y="195" width="40" height="110"/>';
+        s += '<rect x="740" y="195" width="40" height="110"/>';
+        s += '<rect x="10" y="220" width="10" height="60"/>';
+        s += '<rect x="780" y="220" width="10" height="60"/>';
+        s += '<path d="M128 199 A65 65 0 0 1 128 301"/>';
+        s += '<path d="M672 199 A65 65 0 0 0 672 301"/>';
+        s += '<path d="M20 22 A7 7 0 0 1 27 15"/><path d="M773 15 A7 7 0 0 1 780 22"/>';
+        s += '<path d="M780 478 A7 7 0 0 1 773 485"/><path d="M27 485 A7 7 0 0 1 20 478"/>';
+        s += '</g><circle cx="400" cy="250" r="3.5" fill="#fff"/>';
+        s += '<circle cx="100" cy="250" r="3.5" fill="#fff"/><circle cx="700" cy="250" r="3.5" fill="#fff"/>';
+    } else if (type === 'half') {
+        s += '<rect x="359" y="2" width="82" height="13"/>';
+        s += '<rect x="175" y="15" width="450" height="148"/>';
+        s += '<rect x="298" y="15" width="204" height="50"/>';
+        s += '<path d="M319 163 A102 82 0 0 0 481 163"/>';
+        s += '<path d="M298 485 A102 82 0 0 1 502 485"/>';
+        s += '<path d="M20 22 A7 7 0 0 1 27 15"/><path d="M773 15 A7 7 0 0 1 780 22"/>';
+        s += '</g><circle cx="400" cy="113" r="3.5" fill="#fff"/><circle cx="400" cy="485" r="3.5" fill="#fff"/>';
+    } else if (type === 'halfDown') {
+        s += '<rect x="359" y="485" width="82" height="13"/>';
+        s += '<rect x="175" y="337" width="450" height="148"/>';
+        s += '<rect x="298" y="435" width="204" height="50"/>';
+        s += '<path d="M319 337 A102 82 0 0 1 481 337"/>';
+        s += '<path d="M298 15 A102 82 0 0 0 502 15"/>';
+        s += '<path d="M27 485 A7 7 0 0 1 20 478"/><path d="M780 478 A7 7 0 0 1 773 485"/>';
+        s += '</g><circle cx="400" cy="387" r="3.5" fill="#fff"/><circle cx="400" cy="15" r="3.5" fill="#fff"/>';
+    } else {
+        s += '</g>';
+    }
+    return s;
+}
 
+function ejLightenColor(hex, pct) {
+    var r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+    r = Math.min(255, r + Math.round(r * pct / 100));
+    g = Math.min(255, g + Math.round(g * pct / 100));
+    b = Math.min(255, b + Math.round(b * pct / 100));
+    return '#' + [r,g,b].map(x => x.toString(16).padStart(2,'0')).join('');
+}
+
+function ejSetFieldColor(color) {
+    ejP.fieldColor = color;
+    ejRenderSVG();
+    ejRenderToolbar();
+}
 function ejSetField(type) {
     ejP.fieldType = type;
     ejRenderSVG();
@@ -1115,6 +1177,11 @@ function ejRenderToolbar() {
     <div class="ej-section-body">
         <div class="ej-field-btns">
            ${['full','half','halfDown','blank'].map(f=>`<button class="ej-btn-sm${ejP.fieldType===f?' active':''}" onclick="ejSetField('${f}')">${f==='full'?'Completo':f==='half'?'Medio ↑':f==='halfDown'?'Medio ↓':'Libre'}</button>`).join('')}
+           <div style="display:flex;gap:4px;margin-top:6px">
+            ${['#1a6b30','#1a8540','#2d8a4e','#0f4c2a','#1e3a5f','#0a1628','#2c2c2c'].map(c =>
+                '<div onclick="ejSetFieldColor(\''+c+'\')" style="width:22px;height:22px;border-radius:50%;background:'+c+';cursor:pointer;border:2px solid '+(ejP.fieldColor===c?'#fff':'transparent')+'"></div>'
+            ).join('')}
+        </div>
         </div>
         <div class="ej-draw-tools">
             ${[

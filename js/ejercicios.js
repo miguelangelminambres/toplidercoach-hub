@@ -114,7 +114,7 @@ nextId: 1,
     currentFrame: 0,
     isPlaying: false,
     playSpeed: 800,
-    _animId: null, _exportingVideo: false, _lastVideoUrl: null
+    _animId: null, _exportingVideo: false, _lastVideoUrl: null, _videoDesactualizado: false
 };
 
 // =============================================
@@ -122,6 +122,7 @@ nextId: 1,
 // =============================================
 function ejSaveHistory() {
     if (ejP.isUndoRedo) return;
+    if (ejP.animMode) ejP._videoDesactualizado = true;
     const snap = {
         players: JSON.stringify(ejP.players),
         lines:   JSON.stringify(ejP.lines),
@@ -192,6 +193,7 @@ function ejRenderSVG() {
 
     // Formas
     for (const s of ejP.shapes) {
+        if (ejP.animMode && s.fromFrame !== undefined && (ejP.currentFrame < s.fromFrame || (s.toFrame !== undefined && ejP.currentFrame >= s.toFrame))) continue;
         const sel = s.id === ejP.selectedId;
         const sw = s.strokeWidth || 3;
         const dash = s.dashed ? '10 5' : 'none';
@@ -232,6 +234,7 @@ function ejRenderSVG() {
 
     // Líneas y flechas
     for (const l of ejP.lines) {
+        if (ejP.animMode && l.fromFrame !== undefined && (ejP.currentFrame < l.fromFrame || (l.toFrame !== undefined && ejP.currentFrame >= l.toFrame))) continue;
         const sel = l.id === ejP.selectedId;
         const sw = l.strokeWidth || 3;
         const dash = l.dashed ? '10 5' : 'none';
@@ -718,7 +721,8 @@ function ejSvgPointerUp(e) {
                         frame.undoStack = frame.undoStack || [];
                         frame.undoStack.push({ type: 'traj', trajId: newLine.id });
                     }
-                } else {
+} else {
+                    newLine.fromFrame = ejP.currentFrame;
                     if (newLine.type === 'rect' || newLine.type === 'ellipse') ejP.shapes.push(newLine);
                     else ejP.lines.push(newLine);
                     ejSaveHistory();
@@ -744,6 +748,28 @@ function ejDelete() {
     if (!ejP.selectedId) return;
     ejSaveHistory();
     const id = ejP.selectedId;
+    
+    // En modo animación, las formas/líneas con fromFrame no se borran, se les pone toFrame
+    if (ejP.animMode) {
+        var shape = ejP.shapes.find(s => s.id === id && s.fromFrame !== undefined);
+        var line = ejP.lines.find(l => l.id === id && l.fromFrame !== undefined);
+        if (shape) {
+            shape.toFrame = ejP.currentFrame;
+            ejP.selectedId = null;
+            ejRenderSVG();
+            ejRenderToolbar();
+            return;
+        }
+        if (line) {
+            line.toFrame = ejP.currentFrame;
+            ejP.selectedId = null;
+            ejRenderSVG();
+            ejRenderToolbar();
+            return;
+        }
+    }
+    
+    // Borrado normal (sin fromFrame o modo estático)
     ejP.players = ejP.players.filter(p => p.id !== id);
     ejP.lines   = ejP.lines.filter(l => l.id !== id);
     ejP.shapes  = ejP.shapes.filter(s => s.id !== id);
@@ -794,8 +820,9 @@ function ejNuevaPizarra() {
     window._ejPdfThumbData = null;
     window.ejThumbnailPendiente = null;
     ejEditandoId = null;
-    const bar = document.getElementById('ej-timeline-bar');
-    if (bar) bar.style.display = 'none';
+    // Limpiar toolbar para que no queden restos
+    var tb = document.getElementById('ej-toolbar');
+    if (tb) tb.style.display = 'none';
     const lbl = document.getElementById('ej-pizarra-nombre-label');
     if (lbl) lbl.textContent = 'Pizarra libre';
     ejRenderSVG();
@@ -995,6 +1022,7 @@ function ejChangeLineColor(color) {
 function ejCapturarParaFicha() {
     const svgEl = document.getElementById('ej-svg');
     if (!svgEl) { alert('No hay pizarra para capturar'); return; }
+    
     // Limpiar datos del ejercicio anterior si es pizarra libre
     const lbl = document.getElementById('ej-pizarra-nombre-label');
     if (!ejEditandoId || (lbl && lbl.textContent === 'Pizarra libre')) {
@@ -1004,10 +1032,26 @@ function ejCapturarParaFicha() {
         ejLimpiarFicha();
         ejBuildFicha();
     }
+    
+    // Capturar SVG limpio (sin fantasmas ni trayectorias)
+    var prevSelected = ejP.selectedId;
+    var prevExporting = ejP._exporting;
+    ejP.selectedId = null;
+    ejP._exporting = true;
+    ejRenderSVG();
+    
     window.ejThumbnailPendiente = new XMLSerializer().serializeToString(svgEl);
+    
+    // Restaurar estado
+    ejP.selectedId = prevSelected;
+    ejP._exporting = prevExporting || false;
+    ejRenderSVG();
+    
     ejPrepararThumbParaPDF();
+    
     // Cambiar a la pestaña Ficha
     ejShowTab('ficha', document.querySelector('[onclick*="\'ficha\'"]'));
+    
     // Actualizar miniatura y vídeo en la ficha
     setTimeout(() => {
         ejActualizarFichaMedia();
@@ -1092,9 +1136,9 @@ function ejRenderToolbar() {
 
     tb.innerHTML = `
   <!-- BOTÓN MODO ANIMACIÓN (solo visible en modo animado) -->
-    ${ejP.animMode ? `<button class="ej-btn-tool active" onclick="ejToggleAnimMode()" title="Desactivar animación" style="background:#7c3aed;border-color:#a855f7;margin-bottom:6px;width:100%">
+${ejP.animMode ? `<div style="background:#7c3aed;border:1px solid #a855f7;margin-bottom:6px;width:100%;padding:8px;border-radius:6px;text-align:center;color:#fff;font-size:12px;font-weight:600">
         🎬 Modo Animación ON
-    </button>` : ''}
+    </div>` : ''}
 
     <!-- SECCIÓN JUGADORES -->
     ${sectionHeader('players','⚽','Jugadores')}
@@ -1185,7 +1229,7 @@ function ejRenderToolbar() {
     </div>` : ''}
 
     <!-- SECCIÓN DIBUJO -->
-    ${sectionHeader('draw','✏️','Dibujo')}
+    ${sectionHeader('draw','✏️','Dibujo y Campos')}
    
          ${drawOpen ? `
     <div class="ej-section-body">
@@ -1261,7 +1305,7 @@ function ejRenderToolbar() {
 
     <!-- BOTONES PRINCIPALES -->
     <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px">
-        <button class="ej-act-btn purple full" onclick="ejCapturarParaFicha()" style="width:100%;padding:10px;background:#7c3aed;border:none;color:#fff;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">📋 Guardar ejercicio</button>
+        ${ejP.animMode && ejEditandoId ? '' : '<button class="ej-act-btn purple full" onclick="ejCapturarParaFicha()" style="width:100%;padding:10px;background:#7c3aed;border:none;color:#fff;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">📋 Guardar ejercicio</button>'}
         <button class="ej-act-btn green full" onclick="ejExportPNG()" style="width:100%;padding:8px;background:#0f172a;border:1px solid #334155;color:#94a3b8;border-radius:8px;cursor:pointer;font-size:12px">📥 Exportar PNG</button>
         <button class="ej-act-btn red full" onclick="ejDelete()" ${!sel?'disabled':''} style="width:100%;padding:8px;background:#7f1d1d;border:1px solid #dc2626;color:#fca5a5;border-radius:8px;cursor:pointer;font-size:12px">🗑 Eliminar seleccionado</button>
     </div>
@@ -1384,6 +1428,7 @@ function ejBuildFicha() {
                 <div class="ej-field">
                     <label>Nombre del ejercicio *</label>
                     <input type="text" id="ej-nombre" placeholder="Ej: Rondo 4x1">
+                    <div id="ej-nombre-lock-msg" style="display:none;font-size:10px;color:#64748b;margin-top:2px">🔒 El nombre no se puede cambiar</div>
                 </div>
                 <div class="ej-field">
                     <label>Duración (min)</label>
@@ -1526,6 +1571,7 @@ function ejBuildFicha() {
 
         <!-- BOTONES -->
         <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-wrap:wrap">
+        <button onclick="ejEditarDibujo()" style="padding:9px 16px;background:#3b82f6;border:none;color:#fff;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600" id="ej-btn-editar-dibujo">✏️ Editar dibujo</button>
             <button class="ej-btn-save" onclick="ejGuardarEjercicio()" style="padding:9px 22px">💾 Guardar ejercicio</button>
             <button class="ej-btn-cancel" onclick="ejLimpiarFicha()" style="padding:9px 16px">✕ Limpiar</button>
             <button onclick="ejExportarPDF()" style="padding:9px 16px;background:#7c3aed;border:none;color:#fff;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">📄 Exportar PDF</button>
@@ -1940,6 +1986,70 @@ async function ejSubirThumbnail(ejercicioId) {
         return null;
     }
 }
+async function ejEditarDibujo() {
+    if (!ejEditandoId) {
+        alert('Primero guarda el ejercicio para poder editar el dibujo.');
+        return;
+    }
+    try {
+        var res = await supabaseClient.from('custom_exercises').select('*').eq('id', ejEditandoId).single();
+        if (res.error) throw res.error;
+        var data = res.data;
+        if (!data.board_data) {
+            // No hay dibujo, abrir pizarra con selector de modo
+            var overlay = document.getElementById('ej-modo-overlay');
+            if (overlay) overlay.style.display = 'flex';
+            var tb = document.getElementById('ej-toolbar');
+            if (tb) tb.style.display = 'none';
+            ejShowTab('pizarra', document.querySelector('[onclick*="pizarra"]'));
+            return;
+        }
+        // Cargar dibujo
+        ejP.players   = data.board_data.players || [];
+        ejP.lines     = data.board_data.lines   || [];
+        ejP.shapes    = data.board_data.shapes  || [];
+        ejP.texts     = data.board_data.texts   || [];
+        ejP.equipment = data.board_data.equipment || [];
+        ejP.fieldType = data.board_data.fieldType || 'full';
+        ejP.selectedId = null;
+        ejP._lastVideoUrl = data.animation_url || null;
+        
+        // Ocultar overlay y mostrar toolbar
+        var overlay = document.getElementById('ej-modo-overlay');
+        if (overlay) overlay.style.display = 'none';
+        var tb = document.getElementById('ej-toolbar');
+        if (tb) tb.style.display = '';
+        
+        // Activar modo correcto
+        if (data.board_data.animMode) {
+            ejP.animMode = true;
+            if (data.board_data.animFrames && data.board_data.animFrames.length > 0) {
+                ejP.frames = data.board_data.animFrames;
+                ejP.currentFrame = 0;
+                ejFrameRestore(ejP.frames[0]);
+            }
+            var bar = document.getElementById('ej-timeline-bar');
+            if (bar) bar.style.display = 'block';
+            ejRenderTimeline();
+        } else {
+            ejP.animMode = false;
+            ejP.frames = [];
+            ejP.currentFrame = 0;
+            var bar = document.getElementById('ej-timeline-bar');
+            if (bar) bar.style.display = 'none';
+        }
+        
+        // Mostrar nombre en topbar
+        var lbl = document.getElementById('ej-pizarra-nombre-label');
+        if (lbl) lbl.textContent = data.name;
+        
+        ejRenderSVG();
+        ejRenderToolbar();
+        ejShowTab('pizarra', document.querySelector('[onclick*="pizarra"]'));
+    } catch(err) {
+        alert('Error al cargar dibujo: ' + err.message);
+    }
+}
 async function ejGuardarEjercicio() {
     const nombre = document.getElementById('ej-nombre')?.value?.trim();
     if (!nombre) { alert('El nombre del ejercicio es obligatorio'); return; }
@@ -2024,8 +2134,8 @@ let thumbnailSvg = window.ejThumbnailPendiente || null;
             if (idx >= 0) ejBancoCache[idx] = { ...ejBancoCache[idx], ...res[0] };
             else ejBancoCache.unshift(res[0]);
         }
-        if (msg) msg.innerHTML = `<span style="color:#22c55e">✅ Ejercicio ${ejEditandoId ? 'actualizado' : 'guardado'} correctamente</span>`;
-        setTimeout(() => { if (msg) msg.innerHTML = ''; }, 3000);
+        var videoAviso = ejP.animMode ? '<br><span style="color:#f97316">⚠️ Si has hecho cambios en la animación, pulsa MP4 en la pizarra para actualizar el vídeo.</span>' : '';
+        setTimeout(() => { if (msg) msg.innerHTML = ''; }, 6000);
     } catch(err){
         console.error(err);
         if (msg) msg.innerHTML = `<span style="color:#ef4444">❌ Error: ${err.message}</span>`;
@@ -2045,6 +2155,10 @@ function ejLimpiarFicha() {
     });
     const eii = document.getElementById('ej-eii-display');
     if (eii) eii.textContent = '';
+    var nombreInput = document.getElementById('ej-nombre');
+    if (nombreInput) { nombreInput.readOnly = false; nombreInput.style.background = ''; nombreInput.style.color = ''; }
+    var lockMsg = document.getElementById('ej-nombre-lock-msg');
+    if (lockMsg) lockMsg.style.display = 'none';
 }
 
 // =============================================
@@ -2249,6 +2363,10 @@ async function ejVerFicha(id) {
         ejEditandoId = data.id;
         const set = (fid, val) => { const el = document.getElementById(fid); if (el && val) el.value = val; };
         set('ej-nombre', data.name);
+        var nombreInput = document.getElementById('ej-nombre');
+        if (nombreInput) { nombreInput.readOnly = true; nombreInput.style.background = '#1e293b'; nombreInput.style.color = '#64748b'; }
+        var lockMsg = document.getElementById('ej-nombre-lock-msg');
+        if (lockMsg) lockMsg.style.display = 'block';
         set('ej-categoria', data.category);
         set('ej-edad', data.age_group);
         set('ej-duracion', data.duration_min);
@@ -2324,24 +2442,9 @@ async function ejBancoCargar(id) {
         ejP._lastVideoUrl = data.animation_url || null;
         setTimeout(() => ejActualizarFichaMedia(), 500);
 
-        // Cambiar a pestaña pizarra
-        // Ocultar overlay de selección de modo
-            var overlay = document.getElementById('ej-modo-overlay');
-            if (overlay) overlay.style.display = 'none';
-            // Mostrar toolbar
-            var tb = document.getElementById('ej-toolbar');
-            if (tb) tb.style.display = '';
-            // Activar modo correcto
-            if (data.board_data.animMode && !ejP.animMode) {
-                ejP.animMode = true;
-            } else if (!data.board_data.animMode && ejP.animMode) {
-                ejP.animMode = false;
-                ejP.frames = [];
-                ejP.currentFrame = 0;
-                var tlBar = document.getElementById('ej-timeline-bar');
-                if (tlBar) tlBar.style.display = 'none';
-            }
-        ejShowTab('pizarra', document.querySelector('[onclick*="pizarra"]'));
+     
+        ejShowTab('ficha', document.querySelector('[onclick*="\'ficha\'"]'));
+        setTimeout(() => { ejActualizarFichaMedia(); ejPrepararThumbParaPDF(); }, 300);
         // Mostrar barra con nombre del ejercicio cargado
         const bar = document.getElementById('ej-pizarra-topbar');
         const lbl = document.getElementById('ej-pizarra-nombre-label');
@@ -2533,6 +2636,7 @@ function ejFrameSaveCurrent() {
 // Añade un nuevo frame (clona posiciones del frame actual)
 function ejFrameAdd() {
     if (!ejP.animMode) return;
+    if (ejP.animMode) ejP._videoDesactualizado = true;
     ejFrameSaveCurrent();
     // Aplicar trayectorias: mover elementos a su destino
     const cf = ejP.frames[ejP.currentFrame];
@@ -2778,7 +2882,7 @@ function ejRenderTimeline() {
             <button onclick="ejFrameSetSpeed(400)" style="background:${ejP.playSpeed<800?'#1e3a5f':'#0f172a'};border:1px solid #334155;color:#9ca3af;padding:3px 6px;border-radius:4px;cursor:pointer;font-size:10px">2x</button>
         </div>
         <span style="color:#64748b;font-size:11px;white-space:nowrap">Frame ${cur+1}/${total}</span>
-        <button onclick="ejExportarAnimacionMP4()" style="background:#f97316;border:none;color:#fff;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600" title="Exportar animación como GIF">${ejP._exportingVideo ? '⏳ Generando...' : '🎬 MP4'}</button>
+        ${ejEditandoId ? `<button onclick="ejGuardarYExportar()" style="background:#22c55e;border:none;color:#fff;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600">${ejP._exportingVideo ? '⏳ Generando...' : '💾 Guardar cambios'}</button>` : `<button onclick="ejExportarAnimacionMP4()" style="background:#f97316;border:none;color:#fff;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600">${ejP._exportingVideo ? '⏳ Generando...' : '🎬 MP4'}</button>`}
     </div>
     <div id="ej-anim-msg" style="font-size:11px;color:#9ca3af;margin-top:4px;text-align:center">${ejP._exportingVideo ? '⏳ Generando vídeo... (no toques nada)' : ejP._lastVideoUrl ? '<span style="color:#22c55e">✅ Vídeo MP4 guardado</span> — <a href="'+ejP._lastVideoUrl+'" target="_blank" style="color:#93c5fd;text-decoration:underline">Ver vídeo ▶</a> · <a href="https://toplidercoach.com/wp-content/uploads/ejercicios/download-video.php?url='+encodeURIComponent(ejP._lastVideoUrl)+'" target="_blank" style="color:#f97316;text-decoration:underline">📥 Descargar</a>' : ''}</div>`;
 }
@@ -2832,6 +2936,68 @@ function ejColocarJugadorPlantilla(idx) {
     ejP.activeTool = 'player';
     ejP._plantillaMode = true;
     ejRenderToolbar();
+}async function ejGuardarYExportar() {
+    if (!ejEditandoId) {
+        alert('Guarda el ejercicio primero desde la Ficha.');
+        return;
+    }
+    if (ejP._exportingVideo) return;
+    
+    // 1. Capturar miniatura limpia
+    var prevSelected = ejP.selectedId;
+    var prevExporting = ejP._exporting;
+    ejP.selectedId = null;
+    ejP._exporting = true;
+    ejRenderSVG();
+    var svgEl = document.getElementById('ej-svg');
+    var thumbnailSvg = new XMLSerializer().serializeToString(svgEl);
+    ejP.selectedId = prevSelected;
+    ejP._exporting = prevExporting || false;
+    ejRenderSVG();
+    
+    if (thumbnailSvg) {
+        thumbnailSvg = thumbnailSvg.replace(/width="[^"]*"/, 'width="100%"').replace(/height="[^"]*"/, 'height="100%"');
+    }
+    
+    // 2. Guardar board_data + miniatura en Supabase
+    var msgEl = document.getElementById('ej-anim-msg');
+    if (msgEl) msgEl.innerHTML = '<span style="color:#3b82f6">💾 Guardando ejercicio...</span>';
+    
+    try {
+        ejFrameSaveCurrent();
+        var updateData = {
+            board_data: {
+                players: ejP.players, lines: ejP.lines,
+                shapes: ejP.shapes, texts: ejP.texts,
+                equipment: ejP.equipment,
+                fieldType: ejP.fieldType,
+                animFrames: ejP.frames,
+                animMode: ejP.animMode
+            },
+            thumbnail_svg: thumbnailSvg ? ejComprimirThumbSVG(thumbnailSvg) : null
+        };
+        var res = await supabaseClient.from('custom_exercises').update(updateData).eq('id', ejEditandoId).select();
+        if (res.error) throw res.error;
+        
+        // Actualizar caché
+        if (res.data && res.data[0]) {
+            var idx = ejBancoCache.findIndex(x => x.id === ejEditandoId);
+            if (idx >= 0) ejBancoCache[idx] = { ...ejBancoCache[idx], ...res.data[0] };
+        }
+        
+        if (msgEl) msgEl.innerHTML = '<span style="color:#22c55e">✅ Ejercicio guardado. Generando vídeo...</span>';
+        
+        // 3. Exportar MP4
+        await ejExportarAnimacionMP4();
+        
+        // 4. Actualizar ficha con nuevo vídeo
+        window.ejThumbnailPendiente = thumbnailSvg;
+        ejPrepararThumbParaPDF();
+        setTimeout(function() { ejActualizarFichaMedia(); }, 500);
+        
+    } catch(err) {
+        if (msgEl) msgEl.innerHTML = '<span style="color:#ef4444">❌ Error: ' + err.message + '</span>';
+    }
 }
 async function ejExportarAnimacionMP4() {
     if (!ejP.animMode || ejP.frames.length < 2) {
@@ -2839,14 +3005,8 @@ async function ejExportarAnimacionMP4() {
         return;
     }
     if (!ejEditandoId) {
-        const lbl = document.getElementById('ej-pizarra-nombre-label');
-        const ejercicioActual = ejBancoCache.find(x => x.name === lbl?.textContent);
-        if (ejercicioActual) {
-            ejEditandoId = ejercicioActual.id;
-        } else {
-            alert('Guarda el ejercicio primero desde la Ficha.');
-            return;
-        }
+        alert('Guarda el ejercicio primero desde la Ficha antes de exportar vídeo.');
+        return;
     }
 
     const msg = document.getElementById('ej-anim-msg');
@@ -2906,7 +3066,7 @@ async function ejExportarAnimacionMP4() {
 
     const FPS = 30;
     const frameDuration = ejP.playSpeed;
-    const framesPerTransition = Math.round((frameDuration / 1000) * FPS * 2);
+    const framesPerTransition = Math.max(8, Math.round((frameDuration / 1000) * FPS * 0.5));
     const holdFrames = 0;
     const holdMid = 0;
 
@@ -3042,6 +3202,7 @@ async function ejExportarAnimacionMP4() {
             const idx = ejBancoCache.findIndex(x => x.id === ejEditandoId);
             if (idx >= 0) ejBancoCache[idx].animation_url = data.url;
             ejP._exportingVideo = false; ejP._lastVideoUrl = data.url; ejRenderTimeline(); const msgFinal = document.getElementById('ej-anim-msg'); if (msgFinal) msgFinal.innerHTML = '✅ Vídeo MP4 guardado — <a href="' + data.url + '" target="_blank" style="color:#93c5fd;text-decoration:underline">Ver vídeo ▶</a>';
+            ejP._videoDesactualizado = false;
         } else {
             ejP._exportingVideo = false; ejRenderTimeline(); const msgErr = document.getElementById('ej-anim-msg'); if (msgErr) msgErr.textContent = '❌ Error: ' + (data.error || 'desconocido');
         }

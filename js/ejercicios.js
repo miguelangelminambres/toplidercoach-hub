@@ -85,6 +85,8 @@ const ejP = {
     lineColor: '#ffffff',
     lineDashed: false,
     lineWidth: 3,
+    shapeFill: false,
+    shapeFillOpacity: 0.3,
 
     players: [],
     lines: [],
@@ -288,9 +290,11 @@ function ejRenderSVG() {
         if (t.type === 'line' || t.type === 'arrow') {
             html += `<line x1="${t.x1}" y1="${t.y1}" x2="${t.x2}" y2="${t.y2}" stroke="${ejP.lineColor}" stroke-width="${sw}" stroke-dasharray="${dash}" opacity="0.7"/>`;
         } else if (t.type === 'rect') {
-            html += `<rect x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}" fill="none" stroke="${ejP.lineColor}" stroke-width="${sw}" stroke-dasharray="${dash}" opacity="0.7"/>`;
+            var prevFill = ejP.shapeFill ? ejHexToRgba(ejP.lineColor, ejP.shapeFillOpacity) : 'none';
+            html += `<rect x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}" fill="${prevFill}" stroke="${ejP.lineColor}" stroke-width="${sw}" stroke-dasharray="${dash}" opacity="0.7"/>`;
         } else if (t.type === 'ellipse') {
-            html += `<ellipse cx="${t.cx}" cy="${t.cy}" rx="${t.rx}" ry="${t.ry}" fill="none" stroke="${ejP.lineColor}" stroke-width="${sw}" stroke-dasharray="${dash}" opacity="0.7"/>`;
+            var prevFill = ejP.shapeFill ? ejHexToRgba(ejP.lineColor, ejP.shapeFillOpacity) : 'none';
+            html += `<ellipse cx="${t.cx}" cy="${t.cy}" rx="${t.rx}" ry="${t.ry}" fill="${prevFill}" stroke="${ejP.lineColor}" stroke-width="${sw}" stroke-dasharray="${dash}" opacity="0.7"/>`;
 } else if (t.type === 'freehand' && t.points.length > 1) {
             const d = t.points.map((p,i)=>`${i===0?'M':'L'}${p.x} ${p.y}`).join(' ');
             html += `<path d="${d}" stroke="${ejP.lineColor}" stroke-width="${sw}" fill="none" stroke-linecap="round" opacity="0.7"/>`;
@@ -701,9 +705,11 @@ function ejSvgPointerUp(e) {
         if (ejP.activeTool === 'pencil' && t && t.points && t.points.length > 2) {
             newLine = { id, type: 'freehand', points: [...t.points], color, strokeWidth: sw, dashed };
         } else if (ejP.activeTool === 'rect' && t && t.w > 5 && t.h > 5) {
-            newLine = { id, type: 'rect', x: t.x, y: t.y, w: t.w, h: t.h, color, fill: 'none', strokeWidth: sw, dashed };
+            var shapeFillVal = ejP.shapeFill ? ejHexToRgba(color, ejP.shapeFillOpacity) : 'none';
+            newLine = { id, type: 'rect', x: t.x, y: t.y, w: t.w, h: t.h, color, fill: shapeFillVal, strokeWidth: sw, dashed };
         } else if (ejP.activeTool === 'ellipse' && t && t.rx > 5 && t.ry > 5) {
-            newLine = { id, type: 'ellipse', cx: t.cx, cy: t.cy, rx: t.rx, ry: t.ry, color, fill: 'none', strokeWidth: sw, dashed };
+            var shapeFillVal = ejP.shapeFill ? ejHexToRgba(color, ejP.shapeFillOpacity) : 'none';
+            newLine = { id, type: 'ellipse', cx: t.cx, cy: t.cy, rx: t.rx, ry: t.ry, color, fill: shapeFillVal, strokeWidth: sw, dashed };
         } else if (ejP.activeTool === 'curved' && t) {
             newLine = { id, type: 'curved', x1: t.x1, y1: t.y1, x2: t.x2, y2: t.y2,
                 cx: t.cx ?? (t.x1+t.x2)/2, cy: t.cy ?? (t.y1+t.y2)/2 - 40,
@@ -865,6 +871,10 @@ function ejSetTool(tool) {
     ejP.activeTool = tool;
     ejP._addingRival = false;
     ejRenderToolbar();
+}
+function ejHexToRgba(hex, opacity) {
+    var r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+    return 'rgba('+r+','+g+','+b+','+opacity+')';
 }
 function ejGetFieldSVG(type, color) {
     var c1 = color, c2 = ejLightenColor(color, 12);
@@ -1288,6 +1298,13 @@ ${ejP.animMode ? `<div style="background:#7c3aed;border:1px solid #a855f7;margin
         <div class="ej-draw-opts">
             <span>Grosor: <input type="range" min="1" max="10" value="${ejP.lineWidth}" oninput="ejP.lineWidth=+this.value" style="width:80px;vertical-align:middle;accent-color:#22c55e"></span>
             <label><input type="checkbox" ${ejP.lineDashed?'checked':''} onchange="ejP.lineDashed=this.checked;ejRenderToolbar()"> Discontinua</label>
+        </div>
+        <div class="ej-draw-opts" style="margin-top:6px;padding-top:6px;border-top:1px solid #1e293b">
+            <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:#9ca3af">
+                <input type="checkbox" ${ejP.shapeFill?'checked':''} onchange="ejP.shapeFill=this.checked;ejRenderToolbar()">
+                <span style="color:${ejP.shapeFill?'#22c55e':'#9ca3af'};font-weight:${ejP.shapeFill?'600':'400'}">🎨 Relleno zona</span>
+            </label>
+            ${ejP.shapeFill ? '<div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font-size:10px;color:#64748b">Opacidad:</span><input type="range" min="10" max="70" value="'+Math.round(ejP.shapeFillOpacity*100)+'" oninput="ejP.shapeFillOpacity=this.value/100;ejRenderToolbar()" style="width:80px;accent-color:#22c55e"><span style="font-size:10px;color:#94a3b8;min-width:28px">'+Math.round(ejP.shapeFillOpacity*100)+'%</span></div>' : ''}
         </div>
         <label style="font-size:11px;color:#9ca3af">Color de línea:</label>
         <div class="ej-line-colors">

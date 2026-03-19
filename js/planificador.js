@@ -354,7 +354,7 @@ registrarSubTab('planificador', 'calendario', cargarCalendarioUnificado);
                 }
             } catch (error) {
                 console.error('Error cargando ejercicio:', error);
-                alert('Error al cargar el ejercicio');
+                showToast('Error al cargar el ejercicio');
             }
         }
         
@@ -424,12 +424,12 @@ sesion = { nombre: '', fecha: fechaHoy, calentamiento: [], principal: [], enfria
             const notas = document.getElementById('sesion-notas').value.trim();
             
             if (!nombre) {
-                alert('El nombre de la sesion es obligatorio');
+                showToast('El nombre de la sesion es obligatorio');
                 return;
             }
             
             if (sesion.calentamiento.length === 0 && sesion.principal.length === 0 && sesion.enfriamiento.length === 0) {
-                alert('Anade al menos un ejercicio a la sesion');
+                showToast('Anade al menos un ejercicio a la sesion');
                 return;
             }
             
@@ -497,11 +497,11 @@ if (!sesionEditandoId) {
     }
 }
 
-alert(sesionEditandoId ? 'Sesión actualizada correctamente' : 'Sesión guardada correctamente');
+showToast(sesionEditandoId ? 'Sesión actualizada correctamente' : 'Sesión guardada correctamente');
                 limpiarSesion();
                 
             } catch (error) {
-                alert('Error al guardar: ' + error.message);
+                showToast('Error al guardar: ' + error.message);
             }
         }
         
@@ -672,12 +672,12 @@ alert(sesionEditandoId ? 'Sesión actualizada correctamente' : 'Sesión guardada
                 
             } catch (error) {
                 console.error('Error al cargar sesion:', error);
-                alert('Error al cargar sesion');
+                showToast('Error al cargar sesion');
             }
         }
         
         async function eliminarSesion(id) {
-            if (!confirm('¿Eliminar esta sesion?')) return;
+            if (!await showConfirm('¿Eliminar esta sesion?')) return;
             
             await supabaseClient.from('training_sessions').delete().eq('id', id);
             cargarMisSesiones();

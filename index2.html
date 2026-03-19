@@ -4899,7 +4899,7 @@ function abrirSelectorJugador(posIndex, posNombre) {
     });
     
     if (disponibles.length === 0) {
-        alert('No hay jugadores disponibles');
+        showToast('No hay jugadores disponibles');
         return;
     }
     
@@ -5171,7 +5171,7 @@ function limpiarFormularioAnalisis() {
 
 async function guardarAnalisis() {
     if (!partidoSeleccionadoAnalisis) {
-        alert('Selecciona un partido primero');
+        showToast('Selecciona un partido primero');
         return;
     }
     
@@ -5239,9 +5239,9 @@ async function guardarAnalisis() {
     }
     
     if (error) {
-        alert('Error al guardar: ' + error.message);
+        showToast('Error al guardar: ' + error.message);
     } else {
-        alert('✅ Análisis guardado correctamente');
+        showToast('✅ Análisis guardado correctamente');
     }
 }
 
@@ -5299,7 +5299,7 @@ async function cargarHistorialRival(nombreRival) {
 
 async function generarPDFAnalisis() {
     if (!partidoSeleccionadoAnalisis) {
-        alert('Selecciona un partido primero');
+        showToast('Selecciona un partido primero');
         return;
     }
     
@@ -6156,7 +6156,7 @@ async function generarPDFAnalisis() {
                 }
             } catch (error) {
                 console.error('Error cargando ejercicio:', error);
-                alert('Error al cargar el ejercicio');
+                showToast('Error al cargar el ejercicio');
             }
         }
         
@@ -6223,12 +6223,12 @@ async function generarPDFAnalisis() {
             const notas = document.getElementById('sesion-notas').value.trim();
             
             if (!nombre) {
-                alert('El nombre de la sesion es obligatorio');
+                showToast('El nombre de la sesion es obligatorio');
                 return;
             }
             
             if (sesion.calentamiento.length === 0 && sesion.principal.length === 0 && sesion.enfriamiento.length === 0) {
-                alert('Anade al menos un ejercicio a la sesion');
+                showToast('Anade al menos un ejercicio a la sesion');
                 return;
             }
             
@@ -6256,11 +6256,11 @@ async function generarPDFAnalisis() {
                 
                 if (error) throw error;
                 
-                alert('Sesion guardada correctamente');
+                showToast('Sesion guardada correctamente');
                 limpiarSesion();
                 
             } catch (error) {
-                alert('Error al guardar: ' + error.message);
+                showToast('Error al guardar: ' + error.message);
             }
         }
         
@@ -6370,7 +6370,7 @@ async function generarPDFAnalisis() {
                 document.querySelector('.planificador-subtabs .sub-tab').click();
                 
             } catch (error) {
-                alert('Error al cargar sesion');
+                showToast('Error al cargar sesion');
             }
         }
         
@@ -6920,7 +6920,7 @@ if (p.titulares && Array.isArray(p.titulares)) {
         async function verPartido(partidoId) {
     const { data: p } = await supabase.from('matches').select('*').eq('id', partidoId).single();
     if (!p) {
-        alert('Partido no encontrado');
+        showToast('Partido no encontrado');
         return;
     }
     
@@ -7217,7 +7217,7 @@ function renderizarConvocatoria() {
         titularesPartido.splice(idx, 1);
     } else {
         if (titularesPartido.length >= formato) {
-            alert(`Máximo ${formato} titulares para este formato`);
+            showToast(`Máximo ${formato} titulares para este formato`);
             return;
         }
         titularesPartido.push(spId);
@@ -7252,7 +7252,7 @@ function renderizarConvocatoria() {
             const fecha = document.getElementById('partido-fecha').value;
             
             if (!rival || !fecha) {
-                alert('Rival y fecha son obligatorios');
+                showToast('Rival y fecha son obligatorios');
                 return;
             }
             
@@ -7312,14 +7312,14 @@ function renderizarConvocatoria() {
     
     if (resultado.error) {
         console.error('Error Supabase:', resultado.error);
-        alert('Error: ' + resultado.error.message);
+        showToast('Error: ' + resultado.error.message);
         return;
     }
                 
                 cerrarModalPartido();
                 cargarPartidos();
             } catch (error) {
-                alert('Error al guardar: ' + error.message);
+                showToast('Error al guardar: ' + error.message);
             }
         }
         
@@ -7337,7 +7337,7 @@ function renderizarConvocatoria() {
     const { data: p } = await supabase.from('matches').select('*').eq('id', partidoId).single();
     
     if (!p) {
-        alert('Partido no encontrado');
+        showToast('Partido no encontrado');
         return;
     }
     
@@ -7409,7 +7409,7 @@ function renderizarConvocatoria() {
     }).eq('id', partidoId);
     
     if (errorPartido) {
-        alert('Error al guardar resultado: ' + errorPartido.message);
+        showToast('Error al guardar resultado: ' + errorPartido.message);
         return;
     }
     
@@ -7467,9 +7467,9 @@ function renderizarConvocatoria() {
     
     if (errores.length > 0) {
         console.error('Errores al guardar stats:', errores);
-        alert('Algunos datos no se guardaron correctamente');
+        showToast('Algunos datos no se guardaron correctamente');
     } else {
-        alert('Resultado y estadísticas guardados correctamente');
+        showToast('Resultado y estadísticas guardados correctamente');
     }
     
     cerrarModalResultado();
@@ -7578,7 +7578,7 @@ async function abrirFichaJugador(playerId) {
         .single();
     
     if (!jugador) {
-        alert('Jugador no encontrado');
+        showToast('Jugador no encontrado');
         return;
     }
     
@@ -8507,7 +8507,7 @@ async function dibujarJugadorCardCompacta(doc, jugador, x, y, ancho, alto, color
         function previsualizarEscudo(event) {
             const file = event.target.files[0];
             if (!file) return;
-            if (file.size > 2 * 1024 * 1024) { alert('Maximo 2MB'); return; }
+            if (file.size > 2 * 1024 * 1024) { showToast('Maximo 2MB'); return; }
             
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -8520,7 +8520,7 @@ async function dibujarJugadorCardCompacta(doc, jugador, x, y, ancho, alto, color
         
         async function guardarClub() {
             const nombre = document.getElementById('club-nombre').value.trim();
-            if (!nombre) { alert('El nombre es obligatorio'); return; }
+            if (!nombre) { showToast('El nombre es obligatorio'); return; }
             
             let logoUrl = clubData?.logo_url;
             const escudoInput = document.getElementById('escudo-input');
@@ -8551,7 +8551,7 @@ async function dibujarJugadorCardCompacta(doc, jugador, x, y, ancho, alto, color
                 document.getElementById('club-badge').innerHTML = `<img src="${logoUrl}" alt=""><span>${nombre}</span>`;
             }
             
-            alert('Club guardado');
+            showToast('Club guardado');
         }
         
         // ========== MI CLUB: TEMPORADAS ==========
@@ -8587,7 +8587,7 @@ async function dibujarJugadorCardCompacta(doc, jugador, x, y, ancho, alto, color
         
         async function crearTemporada() {
             const nombre = document.getElementById('nueva-temp-nombre').value.trim();
-            if (!nombre) { alert('El nombre es obligatorio'); return; }
+            if (!nombre) { showToast('El nombre es obligatorio'); return; }
             
             await supabase.from('seasons').insert({
                 club_id: clubId,
@@ -8601,7 +8601,7 @@ async function dibujarJugadorCardCompacta(doc, jugador, x, y, ancho, alto, color
             document.getElementById('nueva-temp-inicio').value = '';
             document.getElementById('nueva-temp-fin').value = '';
             
-            alert('Temporada creada');
+            showToast('Temporada creada');
             cargarTemporadas();
         }
         
@@ -8612,7 +8612,7 @@ async function dibujarJugadorCardCompacta(doc, jugador, x, y, ancho, alto, color
             await supabase.from('seasons').update({ is_active: true }).eq('id', tempId);
             
             seasonId = tempId;
-            alert('Temporada activada');
+            showToast('Temporada activada');
             cargarTemporadas();
         }
         
@@ -8827,7 +8827,7 @@ function cargarEscudoRival(url) {
             const posicion = document.getElementById('jugador-posicion').value;
             
             if (!nombre || !dorsal || !posicion) {
-                alert('Nombre, dorsal y posicion son obligatorios');
+                showToast('Nombre, dorsal y posicion son obligatorios');
                 return;
             }
             
@@ -8874,7 +8874,7 @@ function cargarEscudoRival(url) {
             
             cerrarModalJugador();
             cargarPlantilla();
-            alert('Jugador guardado');
+            showToast('Jugador guardado');
         }
         
         async function eliminarJugadorDePlantilla(spId) {

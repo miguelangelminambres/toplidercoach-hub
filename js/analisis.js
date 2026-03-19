@@ -345,7 +345,7 @@ function abrirSelectorJugador(posIndex, posNombre) {
     });
     
     if (disponibles.length === 0) {
-        alert('No hay jugadores disponibles');
+        showToast('No hay jugadores disponibles');
         return;
     }
     
@@ -618,7 +618,7 @@ function limpiarFormularioAnalisis() {
 
 async function guardarAnalisis() {
     if (!partidoSeleccionadoAnalisis) {
-        alert('Selecciona un partido primero');
+        showToast('Selecciona un partido primero');
         return;
     }
     
@@ -686,9 +686,9 @@ async function guardarAnalisis() {
     }
     
     if (error) {
-        alert('Error al guardar: ' + error.message);
+        showToast('Error al guardar: ' + error.message);
     } else {
-        alert('✅ Análisis guardado correctamente');
+        showToast('✅ Análisis guardado correctamente');
     }
 }
 
@@ -746,7 +746,7 @@ async function cargarHistorialRival(nombreRival) {
 
 async function generarPDFAnalisis() {
     if (!partidoSeleccionadoAnalisis) {
-        alert('Selecciona un partido primero');
+        showToast('Selecciona un partido primero');
         return;
     }
     

@@ -271,3 +271,45 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.key === 'Enter') login();
     });
 });
+// ---- Toast universal (reemplazo de alert) ----
+function showToast(msg, type = 'success', duration = 3000) {
+    const t = document.createElement('div');
+    t.textContent = msg;
+    Object.assign(t.style, {
+        position:'fixed', bottom:'30px', left:'50%', transform:'translateX(-50%)',
+        padding:'12px 24px', borderRadius:'8px', color:'#fff', fontSize:'14px',
+        fontWeight:'500', zIndex:'99999', opacity:'0', transition:'opacity 0.3s',
+        background: type==='error' ? '#ef4444' : type==='warning' ? '#f59e0b' : '#22c55e',
+        boxShadow:'0 4px 12px rgba(0,0,0,0.3)'
+    });
+    document.body.appendChild(t);
+    requestAnimationFrame(() => t.style.opacity = '1');
+    setTimeout(() => { t.style.opacity='0'; setTimeout(() => t.remove(), 300); }, duration);
+}
+// ---- Confirm personalizado (reemplazo de confirm) ----
+function showConfirm(msg) {
+    return new Promise(resolve => {
+        const overlay = document.createElement('div');
+        Object.assign(overlay.style, {
+            position:'fixed', top:'0', left:'0', width:'100%', height:'100%',
+            background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center',
+            justifyContent:'center', zIndex:'99999'
+        });
+        const box = document.createElement('div');
+        Object.assign(box.style, {
+            background:'#1e293b', borderRadius:'12px', padding:'24px',
+            maxWidth:'400px', width:'90%', color:'#fff', textAlign:'center',
+            boxShadow:'0 8px 24px rgba(0,0,0,0.4)'
+        });
+        box.innerHTML = '<p style="margin:0 0 20px;font-size:15px;">' + msg + '</p>' +
+            '<div style="display:flex;gap:12px;justify-content:center">' +
+            '<button id="cf-cancel" style="padding:8px 24px;border-radius:6px;border:1px solid #475569;background:transparent;color:#fff;cursor:pointer">Cancelar</button>' +
+            '<button id="cf-ok" style="padding:8px 24px;border-radius:6px;border:none;background:#3b82f6;color:#fff;cursor:pointer;font-weight:600">Aceptar</button>' +
+            '</div>';
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+        box.querySelector('#cf-ok').onclick = () => { overlay.remove(); resolve(true); };
+        box.querySelector('#cf-cancel').onclick = () => { overlay.remove(); resolve(false); };
+        overlay.onclick = (e) => { if(e.target === overlay) { overlay.remove(); resolve(false); } };
+    });
+}

@@ -29,7 +29,7 @@ registrarSubTab('config', 'datos', cargarDatosClub);
         function previsualizarEscudo(event) {
             const file = event.target.files[0];
             if (!file) return;
-            if (file.size > 2 * 1024 * 1024) { alert('Maximo 2MB'); return; }
+            if (file.size > 2 * 1024 * 1024) { showToast('Maximo 2MB'); return; }
             
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -42,7 +42,7 @@ registrarSubTab('config', 'datos', cargarDatosClub);
         
         async function guardarClub() {
             const nombre = document.getElementById('club-nombre').value.trim();
-            if (!nombre) { alert('El nombre es obligatorio'); return; }
+            if (!nombre) { showToast('El nombre es obligatorio'); return; }
             
             let logoUrl = clubData?.logo_url;
             const escudoInput = document.getElementById('escudo-input');
@@ -73,7 +73,7 @@ registrarSubTab('config', 'datos', cargarDatosClub);
                 document.getElementById('club-badge').innerHTML = `<img src="${logoUrl}" alt=""><span>${nombre}</span>`;
             }
             
-            alert('Club guardado');
+            showToast('Club guardado');
         }
         
         // ========== MI CLUB: TEMPORADAS ==========
@@ -134,7 +134,7 @@ registrarSubTab('config', 'datos', cargarDatosClub);
         
         async function guardarEdicionTemporada(tempId) {
             const nombre = document.getElementById('temp-edit-nombre-' + tempId).value.trim();
-            if (!nombre) { alert('El nombre es obligatorio'); return; }
+            if (!nombre) { showToast('El nombre es obligatorio'); return; }
             
             const { error } = await supabaseClient.from('seasons').update({
                 name: nombre,
@@ -142,7 +142,7 @@ registrarSubTab('config', 'datos', cargarDatosClub);
                 end_date: document.getElementById('temp-edit-fin-' + tempId).value || null
             }).eq('id', tempId);
             
-            if (error) { alert('Error: ' + error.message); return; }
+            if (error) { showToast('Error: ' + error.message); return; }
             
             cargarTemporadas();
             cargarSelectorTemporadas();
@@ -150,7 +150,7 @@ registrarSubTab('config', 'datos', cargarDatosClub);
         
         async function eliminarTemporada(tempId, nombre, isActive) {
             if (isActive) {
-                alert('No se puede eliminar la temporada activa. Activa otra temporada primero.');
+                showToast('No se puede eliminar la temporada activa. Activa otra temporada primero.');
                 return;
             }
             
@@ -158,7 +158,7 @@ registrarSubTab('config', 'datos', cargarDatosClub);
             
             if (confirmacion === null) return;
             if (confirmacion.trim() !== nombre.trim()) {
-                alert('El nombre no coincide. Eliminación cancelada.');
+                showToast('El nombre no coincide. Eliminación cancelada.');
                 return;
             }
             
@@ -178,17 +178,17 @@ registrarSubTab('config', 'datos', cargarDatosClub);
                 // Eliminar la temporada
                 await supabaseClient.from('seasons').delete().eq('id', tempId);
                 
-                alert('Temporada eliminada correctamente.');
+                showToast('Temporada eliminada correctamente.');
                 cargarTemporadas();
                 cargarSelectorTemporadas();
             } catch (err) {
-                alert('Error al eliminar: ' + err.message);
+                showToast('Error al eliminar: ' + err.message);
             }
         }
 
         async function crearTemporada() {
             const nombre = document.getElementById('nueva-temp-nombre').value.trim();
-            if (!nombre) { alert('El nombre es obligatorio'); return; }
+            if (!nombre) { showToast('El nombre es obligatorio'); return; }
             
             await supabaseClient.from('seasons').insert({
                 club_id: clubId,
@@ -202,18 +202,18 @@ registrarSubTab('config', 'datos', cargarDatosClub);
             document.getElementById('nueva-temp-inicio').value = '';
             document.getElementById('nueva-temp-fin').value = '';
             
-            alert('Temporada creada');
+            showToast('Temporada creada');
             cargarTemporadas();
         }
         
         async function activarTemporada(tempId) {
-            if (!confirm('Activar esta temporada?')) return;
+            if (!await showConfirm('Activar esta temporada?')) return;
             
             await supabaseClient.from('seasons').update({ is_active: false }).eq('club_id', clubId);
             await supabaseClient.from('seasons').update({ is_active: true }).eq('id', tempId);
             
             seasonId = tempId;
-            alert('Temporada activada');
+            showToast('Temporada activada');
             cargarTemporadas();
         }
         
@@ -459,7 +459,7 @@ return `
             const posicion = document.getElementById('jugador-posicion').value;
             
             if (!nombre || !dorsal || !posicion) {
-                alert('Nombre, dorsal y posicion son obligatorios');
+                showToast('Nombre, dorsal y posicion son obligatorios');
                 return;
             }
             
@@ -508,11 +508,11 @@ return `
             
             cerrarModalJugador();
             cargarPlantilla();
-            alert('Jugador guardado');
+            showToast('Jugador guardado');
         }
         
         async function eliminarJugadorDePlantilla(spId) {
-            if (!confirm('Eliminar este jugador de la plantilla?')) return;
+            if (!await showConfirm('Eliminar este jugador de la plantilla?')) return;
             await supabaseClient.from('season_players').delete().eq('id', spId);
             cargarPlantilla();
         }
@@ -540,14 +540,14 @@ async function generarPDFPlantilla() {
     document.querySelectorAll('.campo-pdf-check:checked').forEach(cb => campos.push(cb.value));
     
     if (campos.length === 0) {
-        alert('Selecciona al menos un campo');
+        showToast('Selecciona al menos un campo');
         return;
     }
     
     const orientacion = document.querySelector('input[name="pdf-orientacion"]:checked').value;
     
     const tempId = document.getElementById('plantilla-temporada').value;
-    if (!tempId) { alert('Selecciona una temporada'); return; }
+    if (!tempId) { showToast('Selecciona una temporada'); return; }
     
     const { data, error } = await supabaseClient
         .from('season_players')
@@ -556,7 +556,7 @@ async function generarPDFPlantilla() {
         .order('shirt_number');
     
     if (error || !data || data.length === 0) {
-        alert('No hay jugadores en la plantilla');
+        showToast('No hay jugadores en la plantilla');
         return;
     }
     

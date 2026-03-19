@@ -55,12 +55,12 @@ async function cargarAsistenciaRango() {
     const fechaFin = getFechaFin();
     
     if (!fechaInicio || !fechaFin) {
-        alert('Selecciona fecha de inicio y fin');
+        showToast('Selecciona fecha de inicio y fin');
         return;
     }
     
     if (fechaInicio > fechaFin) {
-        alert('La fecha de inicio no puede ser posterior a la fecha fin');
+        showToast('La fecha de inicio no puede ser posterior a la fecha fin');
         return;
     }
     
@@ -330,11 +330,11 @@ async function guardarAsistenciaSesion() {
         await supabaseClient.from('asistencia_sesiones').delete().eq('sesion_id', sesionAsistenciaActual);
         const { error } = await supabaseClient.from('asistencia_sesiones').insert(registros);
         if (error) throw error;
-        alert('Asistencia guardada correctamente');
+        showToast('Asistencia guardada correctamente');
         cerrarModalAsistenciaSesion();
     } catch (error) {
         console.error('Error guardando asistencia:', error);
-        alert('Error al guardar: ' + error.message);
+        showToast('Error al guardar: ' + error.message);
     }
 }
 
@@ -383,7 +383,7 @@ async function verDetalleJugador(jugadorId, nombreJugador) {
         document.body.insertAdjacentHTML('beforeend', modalHTML);
     } catch (error) {
         console.error('Error:', error);
-        alert('Error al cargar detalle');
+        showToast('Error al cargar detalle');
     }
 }
 
@@ -394,7 +394,7 @@ async function generarPDFJugador(jugadorId) {
     
     try {
         const { data: jugador } = await supabaseClient.from('players').select('*').eq('id', jugadorId).single();
-        if (!jugador) { alert('Jugador no encontrado'); return; }
+        if (!jugador) { showToast('Jugador no encontrado'); return; }
         
         const { data: clubInfo } = await supabaseClient.from('clubs').select('*').eq('wp_user_id', usuario.id).single();
         const { data: sesiones } = await supabaseClient
@@ -545,7 +545,7 @@ async function generarPDFJugador(jugadorId) {
         doc.save(`Informe_${jugador.name.replace(/\s/g,'_')}_${fechaInicio}_${fechaFin}.pdf`);
     } catch (error) {
         console.error('Error generando PDF:', error);
-        alert('Error al generar el PDF: ' + error.message);
+        showToast('Error al generar el PDF: ' + error.message);
     }
 }
 
@@ -553,7 +553,7 @@ async function generarPDFJugador(jugadorId) {
 async function generarPDFPlantillaGeneral() {
     const fechaInicio = getFechaInicio();
     const fechaFin = getFechaFin();
-    if (!fechaInicio || !fechaFin) { alert('Selecciona fechas primero'); return; }
+    if (!fechaInicio || !fechaFin) { showToast('Selecciona fechas primero'); return; }
     
     try {
         const { data: clubInfo } = await supabaseClient.from('clubs').select('*').eq('wp_user_id', usuario.id).single();
@@ -566,7 +566,7 @@ async function generarPDFPlantillaGeneral() {
             .order('session_date', { ascending: true });
         
         const totalSesiones = sesiones ? sesiones.length : 0;
-        if (totalSesiones === 0) { alert('No hay sesiones en el periodo seleccionado'); return; }
+        if (totalSesiones === 0) { showToast('No hay sesiones en el periodo seleccionado'); return; }
         
         // Jugadores plantilla
         let currentSeasonId = seasonId;
@@ -575,7 +575,7 @@ async function generarPDFPlantillaGeneral() {
                 .from('seasons').select('id').eq('club_id', clubInfo.id).eq('is_active', true).single();
             currentSeasonId = tempData?.id;
         }
-        if (!currentSeasonId) { alert('No hay temporada activa'); return; }
+        if (!currentSeasonId) { showToast('No hay temporada activa'); return; }
         
         const { data: spData } = await supabaseClient
             .from('season_players')
@@ -588,7 +588,7 @@ async function generarPDFPlantillaGeneral() {
             position: sp.players.position, shirt_number: sp.shirt_number
         }));
         
-        if (jugadores.length === 0) { alert('No hay jugadores en la plantilla'); return; }
+        if (jugadores.length === 0) { showToast('No hay jugadores en la plantilla'); return; }
         
         // Asistencias
         const sesionIds = sesiones.map(s => s.id);
@@ -748,6 +748,6 @@ async function generarPDFPlantillaGeneral() {
         
     } catch (error) {
         console.error('Error generando PDF general:', error);
-        alert('Error al generar PDF: ' + error.message);
+        showToast('Error al generar PDF: ' + error.message);
     }
 }

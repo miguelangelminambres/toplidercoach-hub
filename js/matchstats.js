@@ -351,7 +351,7 @@ if (p.titulares && Array.isArray(p.titulares)) {
         async function verPartido(partidoId) {
     const { data: p } = await supabaseClient.from('matches').select('*').eq('id', partidoId).single();
     if (!p) {
-        alert('Partido no encontrado');
+        showToast('Partido no encontrado');
         return;
     }
     
@@ -862,7 +862,7 @@ function renderizarConvocatoria() {
                 // Si no hay slot vacío, buscar el primer slot libre
                 const idxLibre = slotsTitularesMap.findIndex(s => s === null);
                 if (idxLibre === -1) {
-                    alert('No hay posiciones vacías. Primero quita un titular del campo.');
+                    showToast('No hay posiciones vacías. Primero quita un titular del campo.');
                     return;
                 }
                 slotVacioIdx = idxLibre;
@@ -870,7 +870,7 @@ function renderizarConvocatoria() {
             
             const formato = parseInt(document.getElementById('partido-formato').value) || 11;
             if (titularesPartido.length >= formato && slotsTitularesMap[slotVacioIdx] !== null) {
-                alert(`Máximo ${formato} titulares para este formato`);
+                showToast(`Máximo ${formato} titulares para este formato`);
                 return;
             }
             
@@ -896,7 +896,7 @@ function renderizarConvocatoria() {
         if (slotIdx > -1) slotsTitularesMap[slotIdx] = null;
     } else {
         if (titularesPartido.length >= formato) {
-            alert(`Máximo ${formato} titulares para este formato`);
+            showToast(`Máximo ${formato} titulares para este formato`);
             return;
         }
         titularesPartido.push(spId);
@@ -936,7 +936,7 @@ function renderizarConvocatoria() {
             const fecha = document.getElementById('partido-fecha').value;
             
             if (!rival || !fecha) {
-                alert('Rival y fecha son obligatorios');
+                showToast('Rival y fecha son obligatorios');
                 return;
             }
             
@@ -1007,19 +1007,19 @@ function renderizarConvocatoria() {
     
     if (resultado.error) {
         console.error('Error Supabase:', resultado.error);
-        alert('Error: ' + resultado.error.message);
+        showToast('Error: ' + resultado.error.message);
         return;
     }
                 
                 cerrarModalPartido();
                 cargarPartidos();
             } catch (error) {
-                alert('Error al guardar: ' + error.message);
+                showToast('Error al guardar: ' + error.message);
             }
         }
         
         async function eliminarPartido(id) {
-            if (!confirm('¿Eliminar este partido?')) return;
+            if (!await showConfirm('¿Eliminar este partido?')) return;
             await supabaseClient.from('match_player_stats').delete().eq('match_id', id);
             await supabaseClient.from('matches').delete().eq('id', id);
             cargarPartidos();
@@ -1032,7 +1032,7 @@ function renderizarConvocatoria() {
     const { data: p } = await supabaseClient.from('matches').select('*').eq('id', partidoId).single();
     
     if (!p) {
-        alert('Partido no encontrado');
+        showToast('Partido no encontrado');
         return;
     }
     
@@ -1104,7 +1104,7 @@ function renderizarConvocatoria() {
     }).eq('id', partidoId);
     
     if (errorPartido) {
-        alert('Error al guardar resultado: ' + errorPartido.message);
+        showToast('Error al guardar resultado: ' + errorPartido.message);
         return;
     }
     
@@ -1162,9 +1162,9 @@ function renderizarConvocatoria() {
     
     if (errores.length > 0) {
         console.error('Errores al guardar stats:', errores);
-        alert('Algunos datos no se guardaron correctamente');
+        showToast('Algunos datos no se guardaron correctamente');
     } else {
-        alert('Resultado y estadísticas guardados correctamente');
+        showToast('Resultado y estadísticas guardados correctamente');
     }
     
     cerrarModalResultado();
@@ -1273,7 +1273,7 @@ async function abrirFichaJugador(playerId) {
         .single();
     
     if (!jugador) {
-        alert('Jugador no encontrado');
+        showToast('Jugador no encontrado');
         return;
     }
     

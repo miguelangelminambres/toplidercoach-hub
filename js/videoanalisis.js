@@ -192,7 +192,7 @@ function vaSetupVideoEvents() {
   vaVideo.addEventListener("click", () => { if (!va.drawMode) vaTogglePlay(); });
   vaVideo.addEventListener("error", () => {
     console.error("❌ Error al cargar el vídeo:", vaVideo.error);
-    alert("No se puede reproducir este vídeo.\nPrueba a convertirlo a MP4 (H.264).");
+    showToast("No se puede reproducir este vídeo.\nPrueba a convertirlo a MP4 (H.264).");
   });
 
   // Sync canvas on resize
@@ -1410,7 +1410,7 @@ function vaInterpolateTrack(track, time) {
 // ─── Track Connections ───────────────────────────────────────
 
 function vaAddConnection() {
-  if (va.tracks.length < 2) { alert("Necesitas al menos 2 jugadores para conectar."); return; }
+  if (va.tracks.length < 2) { showToast("Necesitas al menos 2 jugadores para conectar."); return; }
   const names = va.tracks.map((t, i) => (i + 1) + ". " + t.label).join("\n");
   const a = parseInt(prompt("Conectar DESDE jugador nº:\n" + names)) - 1;
   if (isNaN(a) || a < 0 || a >= va.tracks.length) return;

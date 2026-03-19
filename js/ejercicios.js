@@ -830,6 +830,7 @@ function ejNuevaPizarra() {
     var overlay = document.getElementById('ej-modo-overlay');
     if (overlay) overlay.style.display = 'flex';
     ejRenderToolbar();
+    });
 }
 function ejClearAll() {
     if (!confirm('¿Borrar toda la pizarra?')) return;
@@ -1956,6 +1957,7 @@ async function ejEliminarDesdeBanco(id) {
     } catch(err) {
         ejToast('Error: ' + err.message, 'error');
     }
+    });
 }
 async function ejEliminarEjercicio() {
     if (!ejEditandoId) { ejToast('No hay ejercicio cargado para eliminar', 'warning'); return; }
@@ -1973,6 +1975,7 @@ async function ejEliminarEjercicio() {
     } catch(err) {
         ejToast('Error al eliminar: ' + err.message, 'error');
     }
+    });
 }
 function ejCalcEII() {
     const a = parseFloat(document.getElementById('ej-ancho')?.value);
@@ -2592,9 +2595,10 @@ function ejAbrirModal(id) {
             overlay.remove();
             ejBancoCache = ejBancoCache.filter(x => x.id !== e.id);
             ejBancoRender(ejBancoCache);
-        } catch(err) {
-            ejToast('Error al eliminar: ' + err.message, 'error');
-        }
+            } catch(err) {
+                ejToast('Error al eliminar: ' + err.message, 'error');
+            }
+        });
     });
 }
 // =============================================
@@ -2688,6 +2692,7 @@ function ejFrameDeleteLast() {
     ejFrameRestore(ejP.frames[ejP.currentFrame]);
     ejRenderSVG();
     ejRenderTimeline();
+    });
 }
 function ejFrameUndoTraj() {
     if (!ejP.animMode) return;

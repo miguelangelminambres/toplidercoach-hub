@@ -1976,8 +1976,8 @@ async function ejEliminarEjercicio() {
     } catch(err) {
         ejToast('Error al eliminar: ' + err.message, 'error');
     }
-}
 });
+}
 function ejCalcEII() {
     const a = parseFloat(document.getElementById('ej-ancho')?.value);
     const l = parseFloat(document.getElementById('ej-largo')?.value);

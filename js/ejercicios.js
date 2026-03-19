@@ -867,6 +867,12 @@ function ejSetTool(tool) {
 }
 function ejGetFieldSVG(type, color) {
     var c1 = color, c2 = ejLightenColor(color, 12);
+    // Detectar si el fondo es claro → líneas negras
+    var r = parseInt(color.slice(1,3),16), g = parseInt(color.slice(3,5),16), b = parseInt(color.slice(5,7),16);
+    var brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    var lineCol = brightness > 160 ? '#222' : '#fff';
+    var dotCol = brightness > 160 ? '#333' : '#fff';
+    if (color === '#ffffff') { c2 = '#f0f0f0'; }
     var W = 800, H = 500;
     var s = '';
     // Fondo + franjas
@@ -874,8 +880,8 @@ function ejGetFieldSVG(type, color) {
     for (var i = 0; i < 12; i++) {
         s += '<rect x="'+(20+i*63.3)+'" y="15" width="63" height="470" fill="'+(i%2===0?c2:c1)+'"/>';
     }
-    // Líneas blancas según tipo
-    var L = 'fill="none" stroke="#fff" stroke-width="2"';
+    // Líneas según tipo
+    var L = 'fill="none" stroke="'+lineCol+'" stroke-width="2"';
     s += '<g '+L+' stroke-linecap="round" stroke-linejoin="round">';
     s += '<rect x="20" y="15" width="760" height="470" rx="1"/>';
     if (type === 'full') {
@@ -891,8 +897,8 @@ function ejGetFieldSVG(type, color) {
         s += '<path d="M672 199 A65 65 0 0 0 672 301"/>';
         s += '<path d="M20 22 A7 7 0 0 1 27 15"/><path d="M773 15 A7 7 0 0 1 780 22"/>';
         s += '<path d="M780 478 A7 7 0 0 1 773 485"/><path d="M27 485 A7 7 0 0 1 20 478"/>';
-        s += '</g><circle cx="400" cy="250" r="3.5" fill="#fff"/>';
-        s += '<circle cx="100" cy="250" r="3.5" fill="#fff"/><circle cx="700" cy="250" r="3.5" fill="#fff"/>';
+        s += '</g><circle cx="400" cy="250" r="3.5" fill="'+dotCol+'"/>';
+        s += '<circle cx="100" cy="250" r="3.5" fill="'+dotCol+'"/><circle cx="700" cy="250" r="3.5" fill="'+dotCol+'"/>';
     } else if (type === 'half') {
         s += '<rect x="359" y="2" width="82" height="13"/>';
         s += '<rect x="175" y="15" width="450" height="148"/>';
@@ -900,7 +906,7 @@ function ejGetFieldSVG(type, color) {
         s += '<path d="M319 163 A102 82 0 0 0 481 163"/>';
         s += '<path d="M298 485 A102 82 0 0 1 502 485"/>';
         s += '<path d="M20 22 A7 7 0 0 1 27 15"/><path d="M773 15 A7 7 0 0 1 780 22"/>';
-        s += '</g><circle cx="400" cy="113" r="3.5" fill="#fff"/><circle cx="400" cy="485" r="3.5" fill="#fff"/>';
+        s += '</g><circle cx="400" cy="113" r="3.5" fill="'+dotCol+'"/><circle cx="400" cy="485" r="3.5" fill="'+dotCol+'"/>';
     } else if (type === 'halfDown') {
         s += '<rect x="359" y="485" width="82" height="13"/>';
         s += '<rect x="175" y="337" width="450" height="148"/>';
@@ -908,7 +914,7 @@ function ejGetFieldSVG(type, color) {
         s += '<path d="M319 337 A102 82 0 0 1 481 337"/>';
         s += '<path d="M298 15 A102 82 0 0 0 502 15"/>';
         s += '<path d="M27 485 A7 7 0 0 1 20 478"/><path d="M780 478 A7 7 0 0 1 773 485"/>';
-        s += '</g><circle cx="400" cy="387" r="3.5" fill="#fff"/><circle cx="400" cy="15" r="3.5" fill="#fff"/>';
+        s += '</g><circle cx="400" cy="387" r="3.5" fill="'+dotCol+'"/><circle cx="400" cy="15" r="3.5" fill="'+dotCol+'"/>';
     } else {
         s += '</g>';
     }
@@ -1257,8 +1263,8 @@ ${ejP.animMode ? `<div style="background:#7c3aed;border:1px solid #a855f7;margin
             ${['full','half','halfDown','blank'].map(f=>`<button class="ej-btn-sm${ejP.fieldType===f?' active':''}" onclick="ejSetField('${f}')">${f==='full'?'Completo':f==='half'?'Medio ↑':f==='halfDown'?'Medio ↓':'Libre'}</button>`).join('')}
         </div>
         <div style="display:flex;gap:4px;margin-top:6px">
-            ${['#1a6b30','#1a8540','#2d8a4e','#0f4c2a','#1e3a5f','#0a1628','#2c2c2c'].map(c =>
-                '<div onclick="ejSetFieldColor(\''+c+'\')" style="width:22px;height:22px;border-radius:50%;background:'+c+';cursor:pointer;border:2px solid '+(ejP.fieldColor===c?'#fff':'transparent')+'"></div>'
+            ${['#1a6b30','#1a8540','#2d8a4e','#0f4c2a','#1e3a5f','#0a1628','#2c2c2c','#ffffff'].map(c =>
+                '<div onclick="ejSetFieldColor(\''+c+'\')" style="width:22px;height:22px;border-radius:50%;background:'+c+';cursor:pointer;border:2px solid '+(ejP.fieldColor===c?(c==='#ffffff'?'#3b82f6':'#fff'):'transparent')+(c==='#ffffff'?';box-shadow:inset 0 0 0 1px #cbd5e1':'')+'"></div>'
             ).join('')}
         </div>
         <div style="margin-top:8px;padding-top:8px;border-top:1px solid #334155">

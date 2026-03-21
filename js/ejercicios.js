@@ -55,7 +55,19 @@ const EJ_EQUIPMENT_TYPES = [
     { key: 'goalSmall',  name: 'Portería S',     w: 55, h: 46 },
     { key: 'goalMedium', name: 'Portería M',     w: 60, h: 50 },
     { key: 'goalLarge',  name: 'Portería L',     w: 65, h: 55 },
-    { key: 'manikin',    name: 'Maniquí',        w: 34, h: 48 }
+    { key: 'manikin',    name: 'Maniquí',        w: 34, h: 48 },
+    { key: 'ladder',     name: 'Escalera',       w: 50, h: 55 },
+    { key: 'ringRed',    name: 'Aro Rojo',       w: 44, h: 44 },
+    { key: 'ringGreen',  name: 'Aro Verde',      w: 44, h: 44 },
+    { key: 'hurdle',     name: 'Valla',          w: 48, h: 42 },
+    { key: 'discBlue',   name: 'Disco Azul',     w: 32, h: 32 },
+    { key: 'discRed',    name: 'Disco Rojo',     w: 32, h: 32 },
+    { key: 'rubberBand', name: 'Banda Elástica', w: 48, h: 30 },
+    { key: 'bench',      name: 'Banco',          w: 55, h: 40 },
+    { key: 'benchPress', name: 'Press Banca',    w: 50, h: 50 },
+    { key: 'dumbbell',   name: 'Mancuerna',      w: 44, h: 44 },
+    { key: 'fitball',    name: 'Fitball',        w: 44, h: 44 },
+    { key: 'bosu',       name: 'Bosu',           w: 50, h: 36 }
 ];
 
 // ---- IMÁGENES DEL CAMPO ----
@@ -2277,10 +2289,11 @@ async function ejBancoLoad() {
         const { data, error } = await supabaseClient
             .from('custom_exercises')
             .select('id,name,category,age_group,difficulty,duration_min,players_count,game_phase,field_width,field_length,eii,objectives,description,variants,coach_notes,materials,thumbnail_svg,animation_url,tema,num_goalkeepers')
+            .eq('coach_id', window.ejCoachId)
             .order('created_at', { ascending: false })
             .limit(50);
         if (error) throw error;
-        ejEditandoId = data.id;
+        ejEditandoId = null;
         ejBancoCache = data || [];
         ejBancoRender(ejBancoCache);
     } catch(err) {
@@ -3291,8 +3304,9 @@ function ejInit() {
     if (!root) return;
 
     // Extraer club/coach del contexto global si existe
-    window.ejClubId  = window.currentClubId  || null;
-    window.ejCoachId = window.currentCoachId || null;
+    var _hubUser = JSON.parse(localStorage.getItem('hub_user') || '{}');
+    window.ejCoachId = _hubUser.id || null;
+    window.ejClubId  = window.currentClubId || null;
 
     root.innerHTML = `
     <div class="ej-module">

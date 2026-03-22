@@ -2290,6 +2290,7 @@ async function ejBancoLoad() {
             .from('custom_exercises')
             .select('id,name,category,age_group,difficulty,duration_min,players_count,game_phase,field_width,field_length,eii,objectives,description,variants,coach_notes,materials,thumbnail_svg,animation_url,tema,num_goalkeepers')
             
+            .eq('coach_id', window.ejCoachId)
             .order('created_at', { ascending: false })
             .limit(50);
         if (error) throw error;

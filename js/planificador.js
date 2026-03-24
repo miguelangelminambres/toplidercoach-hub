@@ -1190,7 +1190,7 @@ async function cargarMisEjerciciosBiblioteca() {
         const { data, error } = await supabaseClient
             .from('custom_exercises')
             .select('id, name, category, tema, difficulty, duration_min, players_count, thumbnail_svg')
-            .eq('coach_id', window.currentCoachId)
+            .eq('club_id', clubId)
             .order('created_at', { ascending: false })
             .limit(50);
         

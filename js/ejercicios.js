@@ -526,7 +526,7 @@ function ejSvgPointerDown(e) {
     if (ejP.activeTool === 'equipment' && isBackground) {
         ejSaveHistory();
         const id = ejP.nextId++;
-        ejP.equipment.push({ id, x: pos.x, y: pos.y, eqType: ejP.selectedEquipmentType, scale: 0.5, rotation: 0 });
+        ejP.equipment.push({ id, x: pos.x, y: pos.y, eqType: ejP.selectedEquipmentType, scale: (ejP.selectedEquipmentType === 'ball' || ejP.selectedEquipmentType === 'cone') ? 0.20 : 0.5, rotation: 0 });
 ejP.selectedId = id;
         ejP.activeTool = 'select';
         ejP.expandedSection = 'material';

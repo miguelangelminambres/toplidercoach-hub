@@ -170,7 +170,7 @@ function crearGraficoGoles(f,c) {
 
 // ========== ENTRENAMIENTOS ==========
 async function cargarDatosEntrenamientosDashboard() {
-    const now=new Date(),ini=new Date(now.getFullYear(),now.getMonth(),1).toISOString().split('T')[0],fin=new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().split('T')[0];
+    const now=new Date(),ini=new Date(now.getFullYear(),now.getMonth(),1).toLocaleDateString('en-CA'),fin=new Date(now.getFullYear(),now.getMonth()+1,0).toLocaleDateString('en-CA');
     const{data:ses}=await supabaseClient.from('training_sessions').select('id').eq('club_id',clubId).gte('session_date',ini).lte('session_date',fin);
     const n=ses?.length||0;document.getElementById('dash-sesiones').textContent=n;
     if(n===0){document.getElementById('dash-asistencia-media').textContent='-';document.getElementById('dash-wellness-medio').textContent='-';return;}
@@ -181,7 +181,7 @@ async function cargarDatosEntrenamientosDashboard() {
 
 // ========== PRÓXIMOS EVENTOS ==========
 async function cargarProximosEventos() {
-    const c=document.getElementById('dash-proximos-eventos');const hoy=new Date().toISOString().split('T')[0];
+    const c=document.getElementById('dash-proximos-eventos');const n=new Date();const hoy=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');
     const{data:pa}=await supabaseClient.from('matches').select('*').eq('club_id',clubId).gte('match_date',hoy).is('result',null).order('match_date').limit(3);
     const{data:se}=await supabaseClient.from('training_sessions').select('*').eq('club_id',clubId).gte('session_date',hoy).order('session_date').limit(3);
     const ev=[];
@@ -189,7 +189,7 @@ async function cargarProximosEventos() {
     (se||[]).forEach(s=>ev.push({tipo:'sesion',fecha:s.session_date,titulo:s.name,sub:s.objective||'Entrenamiento',hora:s.hora_inicio||''}));
     ev.sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
     if(ev.length===0){c.innerHTML='<div class="sin-datos"><div class="icono">📅</div><p>No hay eventos próximos</p></div>';return;}
-    c.innerHTML=ev.slice(0,5).map(e=>{const f=new Date(e.fecha);return`<div class="evento-item ${e.tipo}"><div class="evento-fecha"><div class="dia">${f.getDate()}</div><div class="mes">${f.toLocaleDateString('es-ES',{month:'short'}).toUpperCase()}</div></div><div class="evento-info"><div class="titulo">${e.titulo}</div><div class="subtitulo">${e.sub}${e.hora?' - '+e.hora:''}</div></div><div class="evento-tipo ${e.tipo}">${e.tipo==='partido'?'⚽':'🏃'}</div></div>`;}).join('');
+    c.innerHTML=ev.slice(0,5).map(e=>{const f=new Date(e.fecha+'T12:00:00');return`<div class="evento-item ${e.tipo}"><div class="evento-fecha"><div class="dia">${f.getDate()}</div><div class="mes">${f.toLocaleDateString('es-ES',{month:'short'}).toUpperCase()}</div></div><div class="evento-info"><div class="titulo">${e.titulo}</div><div class="subtitulo">${e.sub}${e.hora?' - '+e.hora:''}</div></div><div class="evento-tipo ${e.tipo}">${e.tipo==='partido'?'⚽':'🏃'}</div></div>`;}).join('');
 }
 
 // ========== ALERTAS WELLNESS ==========

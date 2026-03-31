@@ -1378,6 +1378,7 @@ async function abrirFichaJugador(playerId) {
         }).join('');
     }
     
+    cargarRadares(playerId);
     document.getElementById('modal-ficha-jugador').style.display = 'flex';
 }
 
@@ -1466,3 +1467,505 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+// ========== SISTEMA DE RADARES — VALORACIONES JUGADOR ==========
+// Pegar en matchstats.js ANTES de la ultima linea (registrarSubTab o similar)
+
+var _radarCharts = {};
+var _radarCategorias = null;
+var _radarRatings = {};
+var _radarPlayerId = null;
+
+async function cargarRadares(playerId) {
+    _radarPlayerId = playerId;
+    var container = document.getElementById('ficha-radares');
+    if (!container) return;
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:#9ca3af">Cargando valoraciones...</div>';
+
+    // Destruir charts anteriores
+    Object.keys(_radarCharts).forEach(function(k) {
+        if (_radarCharts[k]) { _radarCharts[k].destroy(); delete _radarCharts[k]; }
+    });
+
+    try {
+        // Cargar categorias del club
+        var { data: club } = await supabaseClient.from('clubs').select('rating_categories').eq('id', clubId).single();
+        _radarCategorias = (club && club.rating_categories) ? club.rating_categories : { groups: [], categories: [] };
+        if (!_radarCategorias.groups) _radarCategorias.groups = [];
+        if (!_radarCategorias.categories) _radarCategorias.categories = [];
+
+        // Cargar ratings del jugador
+        var { data: jugador } = await supabaseClient.from('players').select('ratings').eq('id', playerId).single();
+        _radarRatings = (jugador && jugador.ratings) ? jugador.ratings : {};
+
+        renderRadares();
+    } catch (e) {
+        container.innerHTML = '<div style="color:#ef4444;padding:20px">Error: ' + e.message + '</div>';
+    }
+}
+
+function renderRadares() {
+    var container = document.getElementById('ficha-radares');
+    if (!container) return;
+
+    var groups = _radarCategorias.groups || [];
+    var cats = _radarCategorias.categories || [];
+
+    if (!groups.length) {
+        container.innerHTML = '<div style="text-align:center;padding:20px;color:#9ca3af">Sin categorias configuradas. <a href="#" onclick="abrirGestionCategorias();return false" style="color:#7c3aed">Configurar</a></div>';
+        return;
+    }
+
+    var h = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">';
+    h += '<h4 style="font-size:14px;color:#374151;margin:0">Valoraciones del Jugador</h4>';
+    h += '<button onclick="abrirGestionCategorias()" style="padding:4px 12px;background:#f3f4f6;border:1px solid #d1d5db;border-radius:6px;cursor:pointer;font-size:12px;color:#6b7280">Gestionar categorias</button>';
+    h += '</div>';
+
+    h += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:24px;margin-top:12px">';
+
+    groups.forEach(function(g) {
+        var groupCats = cats.filter(function(c) { return c.group === g.id; });
+        if (!groupCats.length) return;
+
+        h += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px">';
+        h += '<h5 style="margin:0 0 12px;font-size:13px;font-weight:700;color:#374151;text-align:center;text-transform:uppercase;letter-spacing:0.5px">' + escHTML(g.label) + '</h5>';
+        h += '<div style="max-width:280px;margin:0 auto"><canvas id="radar-chart-' + g.id + '" width="280" height="280"></canvas></div>';
+
+        // Sliders
+        h += '<div style="margin-top:14px">';
+        groupCats.forEach(function(c) {
+            var val = _radarRatings[c.name] || 0;
+            h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">';
+            h += '<span style="font-size:11px;color:#6b7280;min-width:90px;text-align:right">' + escHTML(c.name) + '</span>';
+            h += '<input type="range" min="0" max="100" value="' + val + '" data-cat="' + escHTML(c.name) + '" data-group="' + g.id + '" oninput="actualizarSliderRadar(this)" style="flex:1;accent-color:' + (g.color || '#7c3aed').replace(/[\d.]+\)$/, '1)') + '">';
+            h += '<span id="radar-val-' + slugify(c.name) + '" style="font-size:12px;font-weight:700;color:#374151;min-width:28px;text-align:center">' + val + '</span>';
+            h += '</div>';
+        });
+        h += '</div></div>';
+    });
+
+    h += '</div>';
+
+    // Boton comparativa
+    h += '<div style="text-align:center;margin-top:16px"><button onclick="guardarValoraciones()" style="padding:8px 20px;background:linear-gradient(135deg,#7c3aed,#6d28d9);border:none;color:#fff;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;margin-right:10px">Guardar valoraciones</button><button onclick="abrirComparativaJugadores()" style="padding:6px 16px;background:#f3f4f6;border:1px solid #d1d5db;border-radius:6px;cursor:pointer;font-size:12px;color:#6b7280">Comparar con otro jugador</button></div>';
+
+    container.innerHTML = h;
+
+    // Renderizar charts
+    setTimeout(function() {
+        groups.forEach(function(g) {
+            var groupCats = cats.filter(function(c) { return c.group === g.id; });
+            if (!groupCats.length) return;
+            renderRadarChart(g, groupCats);
+        });
+    }, 100);
+}
+
+function renderRadarChart(group, groupCats) {
+    var canvas = document.getElementById('radar-chart-' + group.id);
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+
+    var labels = groupCats.map(function(c) { return c.name; });
+    var values = groupCats.map(function(c) { return _radarRatings[c.name] || 0; });
+    var color = group.color || 'rgba(168,85,247,0.5)';
+    var borderColor = color.replace(/[\d.]+\)$/, '1)');
+    var bgColor = color.replace(/[\d.]+\)$/, '0.25)');
+
+    if (_radarCharts[group.id]) _radarCharts[group.id].destroy();
+
+    _radarCharts[group.id] = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: group.label,
+                data: values,
+                backgroundColor: bgColor,
+                borderColor: borderColor,
+                borderWidth: 2,
+                pointRadius: 4,
+                pointBackgroundColor: borderColor,
+                pointBorderColor: '#fff',
+                pointBorderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                r: {
+                    min: 0,
+                    max: 100,
+                    ticks: { stepSize: 20, font: { size: 9 }, backdropColor: 'transparent', color: '#9ca3af' },
+                    grid: { color: 'rgba(0,0,0,0.08)' },
+                    angleLines: { color: 'rgba(0,0,0,0.08)' },
+                    pointLabels: { font: { size: 11, weight: '600' }, color: '#374151' }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) { return ctx.label + ': ' + ctx.raw; }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function actualizarSliderRadar(el) {
+    var cat = el.getAttribute('data-cat');
+    var groupId = el.getAttribute('data-group');
+    var val = parseInt(el.value);
+
+    // Actualizar label
+    var label = document.getElementById('radar-val-' + slugify(cat));
+    if (label) label.textContent = val;
+
+    // Actualizar datos internos
+    _radarRatings[cat] = val;
+
+    // Actualizar chart
+    var chart = _radarCharts[groupId];
+    if (chart) {
+        var cats = (_radarCategorias.categories || []).filter(function(c) { return c.group === groupId; });
+        var idx = -1;
+        for (var i = 0; i < cats.length; i++) { if (cats[i].name === cat) { idx = i; break; } }
+        if (idx >= 0 && chart.data.datasets[0]) {
+            chart.data.datasets[0].data[idx] = val;
+            chart.update('none');
+        }
+    }
+}
+
+async function guardarValoraciones() {
+    if (!_radarPlayerId) { showToast('Sin jugador seleccionado'); return; }
+    try {
+        var { error } = await supabaseClient.from('players').update({ ratings: _radarRatings }).eq('id', _radarPlayerId);
+        if (error) throw error;
+        showToast('Valoraciones guardadas');
+    } catch (e) {
+        showToast('Error: ' + e.message);
+    }
+}
+
+// ========== GESTION DE CATEGORIAS ==========
+
+function abrirGestionCategorias() {
+    var prev = document.getElementById('modal-gestion-cats');
+    if (prev) prev.remove();
+
+    var ov = document.createElement('div');
+    ov.id = 'modal-gestion-cats';
+    ov.className = 'modal-overlay';
+    ov.style.display = 'flex';
+    ov.style.zIndex = '10001';
+    ov.onclick = function(e) { if (e.target === ov) ov.remove(); };
+
+    renderGestionCategorias(ov);
+    document.body.appendChild(ov);
+}
+
+function renderGestionCategorias(ov) {
+    if (!ov) ov = document.getElementById('modal-gestion-cats');
+    if (!ov) return;
+
+    var groups = _radarCategorias.groups || [];
+    var cats = _radarCategorias.categories || [];
+
+    var h = '<div class="modal-content" style="max-width:600px;max-height:85vh;overflow-y:auto" onclick="event.stopPropagation()">';
+    h += '<div class="modal-header"><h3>Gestionar categorias de valoracion</h3><button class="modal-close" onclick="document.getElementById(\'modal-gestion-cats\').remove()">&times;</button></div>';
+    h += '<div class="modal-body">';
+
+    // Info limites
+    h += '<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#0369a1">Max 5 grupos, max 10 categorias por grupo. Escala 0-100.</div>';
+
+    // Grupos
+    groups.forEach(function(g, gi) {
+        var gCats = cats.filter(function(c) { return c.group === g.id; });
+        h += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:12px">';
+        h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">';
+        h += '<input type="text" value="' + escHTML(g.label) + '" onchange="catCambiarGrupoLabel(' + gi + ',this.value)" style="flex:1;padding:6px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-weight:700">';
+        h += '<input type="color" value="' + rgbaToHex(g.color || 'rgba(168,85,247,0.5)') + '" onchange="catCambiarGrupoColor(' + gi + ',this.value)" style="width:32px;height:32px;border:none;cursor:pointer;border-radius:4px">';
+        h += '<button onclick="catEliminarGrupo(' + gi + ')" style="padding:4px 8px;background:#fef2f2;border:1px solid #fecaca;color:#dc2626;border-radius:4px;cursor:pointer;font-size:11px">Eliminar</button>';
+        h += '</div>';
+
+        // Categorias del grupo
+        gCats.forEach(function(c, ci) {
+            var catIdx = cats.indexOf(c);
+            h += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;padding:4px 8px;background:#fff;border:1px solid #e2e8f0;border-radius:6px">';
+            h += '<span style="font-size:12px;color:#374151;flex:1">' + escHTML(c.name) + '</span>';
+            h += '<button onclick="catEliminarCategoria(' + catIdx + ')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:14px">x</button>';
+            h += '</div>';
+        });
+
+        // Anadir categoria
+        if (gCats.length < 10) {
+            h += '<div style="display:flex;gap:6px;margin-top:8px">';
+            h += '<input type="text" id="cat-nueva-' + g.id + '" placeholder="Nueva categoria..." style="flex:1;padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px">';
+            h += '<button onclick="catAgregarCategoria(\'' + g.id + '\')" style="padding:5px 12px;background:#7c3aed;border:none;color:#fff;border-radius:6px;cursor:pointer;font-size:12px">+ Anadir</button>';
+            h += '</div>';
+        } else {
+            h += '<div style="font-size:11px;color:#9ca3af;margin-top:4px">Limite alcanzado (10)</div>';
+        }
+
+        h += '</div>';
+    });
+
+    // Boton anadir grupo
+    if (groups.length < 5) {
+        h += '<div style="display:flex;gap:6px;margin-bottom:16px">';
+        h += '<input type="text" id="cat-nuevo-grupo" placeholder="Nombre del nuevo grupo..." style="flex:1;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px">';
+        h += '<button onclick="catAgregarGrupo()" style="padding:8px 16px;background:#374151;border:none;color:#fff;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">+ Grupo</button>';
+        h += '</div>';
+    } else {
+        h += '<div style="font-size:12px;color:#9ca3af;margin-bottom:16px">Limite de grupos alcanzado (5)</div>';
+    }
+
+    h += '<div style="display:flex;justify-content:flex-end"><button onclick="catGuardar()" style="padding:8px 20px;background:linear-gradient(135deg,#7c3aed,#6d28d9);border:none;color:#fff;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">Guardar cambios</button></div>';
+    h += '</div></div>';
+
+    ov.innerHTML = h;
+}
+
+function catCambiarGrupoLabel(gi, val) {
+    if (_radarCategorias.groups[gi]) _radarCategorias.groups[gi].label = val.trim();
+}
+
+function catCambiarGrupoColor(gi, hex) {
+    if (_radarCategorias.groups[gi]) {
+        var r = parseInt(hex.substr(1, 2), 16), g = parseInt(hex.substr(3, 2), 16), b = parseInt(hex.substr(5, 2), 16);
+        _radarCategorias.groups[gi].color = 'rgba(' + r + ',' + g + ',' + b + ',0.5)';
+    }
+}
+
+function catEliminarGrupo(gi) {
+    var g = _radarCategorias.groups[gi];
+    if (!g) return;
+    _radarCategorias.categories = _radarCategorias.categories.filter(function(c) { return c.group !== g.id; });
+    _radarCategorias.groups.splice(gi, 1);
+    renderGestionCategorias();
+}
+
+function catEliminarCategoria(idx) {
+    _radarCategorias.categories.splice(idx, 1);
+    renderGestionCategorias();
+}
+
+function catAgregarCategoria(groupId) {
+    var input = document.getElementById('cat-nueva-' + groupId);
+    if (!input) return;
+    var name = input.value.trim();
+    if (!name) { showToast('Escribe un nombre'); return; }
+
+    var exists = _radarCategorias.categories.some(function(c) { return c.name.toLowerCase() === name.toLowerCase() && c.group === groupId; });
+    if (exists) { showToast('Ya existe'); return; }
+
+    _radarCategorias.categories.push({ name: name, group: groupId });
+    renderGestionCategorias();
+}
+
+function catAgregarGrupo() {
+    var input = document.getElementById('cat-nuevo-grupo');
+    if (!input) return;
+    var label = input.value.trim();
+    if (!label) { showToast('Escribe un nombre'); return; }
+
+    var id = label.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 20);
+    var exists = _radarCategorias.groups.some(function(g) { return g.id === id; });
+    if (exists) id = id + '_' + Date.now();
+
+    var colors = ['rgba(168,85,247,0.5)', 'rgba(59,130,246,0.5)', 'rgba(34,197,94,0.5)', 'rgba(245,158,11,0.5)', 'rgba(239,68,68,0.5)'];
+    var color = colors[_radarCategorias.groups.length % colors.length];
+
+    _radarCategorias.groups.push({ id: id, label: label, color: color });
+    renderGestionCategorias();
+}
+
+async function catGuardar() {
+    try {
+        var { error } = await supabaseClient.from('clubs').update({ rating_categories: _radarCategorias }).eq('id', clubId);
+        if (error) throw error;
+        showToast('Categorias guardadas');
+        var ov = document.getElementById('modal-gestion-cats');
+        if (ov) ov.remove();
+        renderRadares();
+    } catch (e) {
+        showToast('Error: ' + e.message);
+    }
+}
+
+// ========== COMPARATIVA JUGADORES ==========
+
+async function abrirComparativaJugadores() {
+    if (!_radarPlayerId || !_radarCategorias) { showToast('Abre la ficha de un jugador primero'); return; }
+
+    // Cargar plantilla
+    var jugadores = [];
+    try {
+        var { data } = await supabaseClient.from('season_players').select('id,shirt_number,players(id,name,position,ratings,photo_url)').eq('season_id', seasonId).order('shirt_number', { ascending: true });
+        jugadores = (data || []).filter(function(sp) { return sp.players && sp.players.id !== _radarPlayerId; });
+    } catch (e) { showToast('Error cargando jugadores'); return; }
+
+    var prev = document.getElementById('modal-comparar');
+    if (prev) prev.remove();
+
+    var ov = document.createElement('div');
+    ov.id = 'modal-comparar';
+    ov.className = 'modal-overlay';
+    ov.style.display = 'flex';
+    ov.style.zIndex = '10001';
+    ov.onclick = function(e) { if (e.target === ov) ov.remove(); };
+
+    var h = '<div class="modal-content" style="max-width:800px;max-height:90vh;overflow-y:auto" onclick="event.stopPropagation()">';
+    h += '<div class="modal-header"><h3>Comparar jugadores</h3><button class="modal-close" onclick="document.getElementById(\'modal-comparar\').remove()">&times;</button></div>';
+    h += '<div class="modal-body">';
+    h += '<div style="margin-bottom:16px"><label style="font-size:13px;color:#6b7280;display:block;margin-bottom:6px">Selecciona jugador para comparar:</label>';
+    h += '<select id="comparar-select" onchange="ejecutarComparativa()" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px">';
+    h += '<option value="">-- Elige jugador --</option>';
+    jugadores.forEach(function(sp) {
+        h += '<option value="' + sp.players.id + '">' + (sp.shirt_number ? '#' + sp.shirt_number + ' ' : '') + escHTML(sp.players.name) + ' (' + (sp.players.position || '?') + ')</option>';
+    });
+    h += '</select></div>';
+    h += '<div id="comparar-radares"></div>';
+    h += '</div></div>';
+
+    ov.innerHTML = h;
+    document.body.appendChild(ov);
+
+    // Guardar datos de los jugadores en window para acceso rapido
+    window._compJugadores = jugadores;
+}
+
+async function ejecutarComparativa() {
+    var select = document.getElementById('comparar-select');
+    var container = document.getElementById('comparar-radares');
+    if (!select || !container) return;
+
+    var otroId = select.value;
+    if (!otroId) { container.innerHTML = ''; return; }
+
+    // Destruir charts de comparativa anteriores
+    Object.keys(_radarCharts).forEach(function(k) {
+        if (k.indexOf('comp_') === 0 && _radarCharts[k]) { _radarCharts[k].destroy(); delete _radarCharts[k]; }
+    });
+
+    // Cargar ratings del otro jugador
+    var otroRatings = {};
+    var otroNombre = '';
+    try {
+        var { data: otro } = await supabaseClient.from('players').select('name,ratings').eq('id', otroId).single();
+        if (otro) { otroRatings = otro.ratings || {}; otroNombre = otro.name; }
+    } catch (e) { return; }
+
+    // Nombre del jugador actual
+    var miNombre = document.getElementById('ficha-nombre')?.textContent || 'Jugador 1';
+
+    var groups = _radarCategorias.groups || [];
+    var cats = _radarCategorias.categories || [];
+
+    var h = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;margin-top:16px">';
+
+    groups.forEach(function(g) {
+        var groupCats = cats.filter(function(c) { return c.group === g.id; });
+        if (!groupCats.length) return;
+
+        h += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px">';
+        h += '<h5 style="margin:0 0 8px;font-size:13px;font-weight:700;color:#374151;text-align:center;text-transform:uppercase">' + escHTML(g.label) + '</h5>';
+        h += '<div style="display:flex;justify-content:center;gap:16px;margin-bottom:8px;font-size:11px">';
+        h += '<span style="color:' + (g.color || 'rgba(168,85,247,0.5)').replace(/[\d.]+\)$/, '1)') + ';font-weight:700">' + escHTML(miNombre) + '</span>';
+        h += '<span style="color:rgba(239,68,68,1);font-weight:700">' + escHTML(otroNombre) + '</span>';
+        h += '</div>';
+        h += '<div style="max-width:300px;margin:0 auto"><canvas id="radar-comp-' + g.id + '" width="300" height="300"></canvas></div>';
+        h += '</div>';
+    });
+
+    h += '</div>';
+    container.innerHTML = h;
+
+    // Renderizar charts comparativos
+    setTimeout(function() {
+        groups.forEach(function(g) {
+            var groupCats = cats.filter(function(c) { return c.group === g.id; });
+            if (!groupCats.length) return;
+
+            var canvas = document.getElementById('radar-comp-' + g.id);
+            if (!canvas) return;
+
+            var labels = groupCats.map(function(c) { return c.name; });
+            var val1 = groupCats.map(function(c) { return _radarRatings[c.name] || 0; });
+            var val2 = groupCats.map(function(c) { return otroRatings[c.name] || 0; });
+
+            var color1 = g.color || 'rgba(168,85,247,0.5)';
+            var border1 = color1.replace(/[\d.]+\)$/, '1)');
+            var bg1 = color1.replace(/[\d.]+\)$/, '0.2)');
+
+            var color2 = 'rgba(239,68,68,0.5)';
+            var border2 = 'rgba(239,68,68,1)';
+            var bg2 = 'rgba(239,68,68,0.15)';
+
+            _radarCharts['comp_' + g.id] = new Chart(canvas.getContext('2d'), {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: miNombre,
+                            data: val1,
+                            backgroundColor: bg1,
+                            borderColor: border1,
+                            borderWidth: 2,
+                            pointRadius: 4,
+                            pointBackgroundColor: border1,
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 1
+                        },
+                        {
+                            label: otroNombre,
+                            data: val2,
+                            backgroundColor: bg2,
+                            borderColor: border2,
+                            borderWidth: 2,
+                            pointRadius: 4,
+                            pointBackgroundColor: border2,
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        r: {
+                            min: 0, max: 100,
+                            ticks: { stepSize: 20, font: { size: 9 }, backdropColor: 'transparent', color: '#9ca3af' },
+                            grid: { color: 'rgba(0,0,0,0.08)' },
+                            angleLines: { color: 'rgba(0,0,0,0.08)' },
+                            pointLabels: { font: { size: 10, weight: '600' }, color: '#374151' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        });
+    }, 100);
+}
+
+// ========== UTILIDADES RADAR ==========
+
+function escHTML(s) { return s ? String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') : ''; }
+
+function slugify(s) { return s ? s.toLowerCase().replace(/[^a-z0-9]/g, '_') : ''; }
+
+function rgbaToHex(rgba) {
+    var m = rgba.match(/[\d.]+/g);
+    if (!m || m.length < 3) return '#7c3aed';
+    var r = parseInt(m[0]).toString(16).padStart(2, '0');
+    var g = parseInt(m[1]).toString(16).padStart(2, '0');
+    var b = parseInt(m[2]).toString(16).padStart(2, '0');
+    return '#' + r + g + b;
+}

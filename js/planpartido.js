@@ -61,11 +61,196 @@ function ppModalMediaModo(oid,m){var u=document.getElementById(oid+'-url-area'),
 
 // === ALINEACION VISUAL ===
 function ppParseFormacion(str){if(!str)return null;var nums=str.split('-').map(Number);if(nums.length<3)return null;var all=[];for(var i=0;i<nums.length;i++){var yP=i===0?88:88-(i*(73/(nums.length-1)));for(var j=0;j<nums[i];j++){var c=nums[i];var xP=c===1?50:c===2?35+j*30:c===3?22+j*28:c===4?14+j*24:10+j*(80/(c-1));all.push({slotId:i+'_'+j,x:xP,y:yP,lineIdx:i})}}return all}
-function ppRenderCampo(slots,lineup,jug,size){var dot=size==='big'?44:32;var fs=size==='big'?18:13;var ns=size==='big'?12:9;var bw=size==='big'?3:2;var click=size!=='big';var h='<div style="position:relative;width:100%;max-width:'+(size==='big'?600:500)+'px;margin:0 auto;aspect-ratio:68/105;background:linear-gradient(to bottom,#1a6b37,#1d7a3e,#1a6b37);border:'+bw+'px solid rgba(255,255,255,0.3);border-radius:8px;overflow:hidden"><div style="position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(255,255,255,0.25)"></div><div style="position:absolute;top:50%;left:50%;width:80px;height:80px;border:1px solid rgba(255,255,255,0.25);border-radius:50%;transform:translate(-50%,-50%)"></div><div style="position:absolute;top:0;left:50%;width:120px;height:40px;border:1px solid rgba(255,255,255,0.2);border-bottom:1px solid rgba(255,255,255,0.25);transform:translateX(-50%);border-top:none"></div><div style="position:absolute;bottom:0;left:50%;width:120px;height:40px;border:1px solid rgba(255,255,255,0.2);border-top:1px solid rgba(255,255,255,0.25);transform:translateX(-50%);border-bottom:none"></div>';slots.forEach(function(s){var pi=lineup[s.slotId];var p=(pi!==undefined&&pi!==null&&jug[pi])?jug[pi]:null;var gk=s.lineIdx===0;var bg=p?(gk?'#f59e0b':'#3b82f6'):'rgba(255,255,255,0.15)';var bc=p?(gk?'#fbbf24':'#60a5fa'):'rgba(255,255,255,0.3)';var num=p?(p.number||'?'):'+';var nom=p?p.name.split(' ').pop().substring(0,10):'';h+='<div'+(click?' onclick="ppAbrirSelectorSlot(\''+s.slotId+'\')"':'')+' style="position:absolute;left:'+s.x+'%;top:'+s.y+'%;transform:translate(-50%,-50%);'+(click?'cursor:pointer;':'')+'text-align:center;z-index:2"><div style="width:'+dot+'px;height:'+dot+'px;background:'+bg+';border:'+bw+'px solid '+bc+';border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:'+fs+'px;font-weight:700;color:#fff;margin:0 auto;box-shadow:0 2px 6px rgba(0,0,0,0.4)">'+num+'</div>'+(nom?'<div style="font-size:'+ns+'px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.8);margin-top:2px;font-weight:600;white-space:nowrap">'+ppEsc(nom)+'</div>':'')+'</div>'});return h+'</div>'}
-function ppRenderAlineacion(){var p=pp.planActual;if(!p||!p.rival_formation)return '<div style="padding:16px;background:#1e293b;border-radius:8px;text-align:center;color:#475569;font-size:12px;margin-top:12px">Selecciona formacion</div>';var s=ppParseFormacion(p.rival_formation);if(!s)return '';return '<div style="margin-top:16px"><h4 style="margin:0 0 10px;color:#e2e8f0;font-size:14px">⚽ Alineacion rival — '+p.rival_formation+'</h4>'+ppRenderCampo(s,(p.weekly_map&&p.weekly_map.rival_lineup)||{},p.rival_players||[],'normal')+'</div>'}
-function ppAbrirSelectorSlot(slotId){var jug=pp.planActual.rival_players||[];if(!jug.length){showToast('Añade jugadores primero');return}var lu=(pp.planActual.weekly_map&&pp.planActual.weekly_map.rival_lineup)||{};var asig={};Object.keys(lu).forEach(function(k){if(lu[k]!=null)asig[lu[k]]=true});var prev=document.getElementById('pp-slot-overlay');if(prev)prev.remove();var ov=document.createElement('div');ov.id='pp-slot-overlay';ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';ov.onclick=function(e){if(e.target===ov)ov.remove()};var h='<div style="background:#0f172a;border:1px solid #1e3a5f;border-radius:12px;max-width:360px;width:100%;padding:20px;max-height:70vh;overflow-y:auto"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><h4 style="margin:0;color:#e2e8f0;font-size:14px">Asignar jugador</h4><button onclick="document.getElementById(\'pp-slot-overlay\').remove()" style="background:none;border:none;color:#9ca3af;font-size:18px;cursor:pointer">✕</button></div><div onclick="ppAsignarSlot(\''+slotId+'\',null)" style="padding:10px;background:#1e293b;border:1px solid #334155;border-radius:8px;cursor:pointer;margin-bottom:6px;font-size:12px;color:#64748b;text-align:center">— Sin asignar —</div>';jug.forEach(function(j,idx){var ya=asig[idx]&&lu[slotId]!==idx;h+='<div onclick="'+(ya?'':'ppAsignarSlot(\''+slotId+'\','+idx+')')+'" style="display:flex;align-items:center;gap:10px;padding:10px;background:#1e293b;border:1px solid #334155;border-radius:8px;margin-bottom:4px;cursor:'+(ya?'not-allowed':'pointer')+';opacity:'+(ya?'.4':'1')+'"><div style="width:28px;height:28px;background:#0f172a;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#f59e0b">'+(j.number||'?')+'</div><div><div style="font-size:13px;color:#e2e8f0;font-weight:600">'+ppEsc(j.name)+'</div><div style="font-size:10px;color:#94a3b8">'+ppEsc(j.position||'')+'</div></div></div>'});ov.innerHTML=h+'</div>';document.body.appendChild(ov)}
-async function ppAsignarSlot(slotId,pi){var wm=pp.planActual.weekly_map||{};if(!wm.rival_lineup)wm.rival_lineup={};wm.rival_lineup[slotId]=pi;try{await supabaseClient.from('match_plans').update({weekly_map:wm,updated_at:new Date().toISOString()}).eq('id',pp.planActual.id);pp.planActual.weekly_map=wm;var ov=document.getElementById('pp-slot-overlay');if(ov)ov.remove();ppMostrarTab('scouting')}catch(e){showToast('Error: '+e.message)}}
+// ========== SQUAD BUILDER — REEMPLAZA FUNCIONES DE ALINEACION ==========
+// Sustituir en planpartido.js las funciones: ppRenderCampo, ppRenderAlineacion, ppAbrirSelectorSlot, ppAsignarSlot
+// Busca cada funcion antigua y reemplazala por la nueva version aqui
 
+// --- UTILIDAD: migrar formato viejo (valor unico) a nuevo (array) ---
+function ppMigrarLineup(lineup){
+    if(!lineup)return{};
+    var nuevo={};
+    Object.keys(lineup).forEach(function(k){
+        var v=lineup[k];
+        if(v===null||v===undefined){nuevo[k]=[]}
+        else if(Array.isArray(v)){nuevo[k]=v}
+        else{nuevo[k]=[v]}
+    });
+    return nuevo;
+}
+
+// --- RENDER CAMPO con listas de jugadores por posicion ---
+function ppShowTooltip(evt,idx){var jug=pp.planActual.rival_players||[];var j=jug[idx];if(!j)return;var prev=document.getElementById('pp-tooltip');if(prev)prev.remove();var t=document.createElement('div');t.id='pp-tooltip';var info=[];if(j.position)info.push(j.position);if(j.foot)info.push('Pie: '+j.foot);if(j.year)info.push('Nac: '+j.year);var stats=[];if(j.games)stats.push('PJ:'+j.games);if(j.minutes)stats.push(j.minutes+"'");if(j.goals)stats.push(j.goals+' gol'+(j.goals>1?'es':''));t.innerHTML='<div style="font-weight:700;font-size:13px;margin-bottom:4px;color:#f59e0b">'+(j.number?'#'+j.number+' ':'')+ppEsc(j.name)+'</div>'+(info.length?'<div style="font-size:11px;color:#94a3b8;margin-bottom:4px">'+ppEsc(info.join(' · '))+'</div>':'')+(stats.length?'<div style="font-size:11px;color:#60a5fa;margin-bottom:4px">'+stats.join(' · ')+'</div>':'')+(j.analysis?'<div style="font-size:11px;color:#cbd5e1;line-height:1.4;max-height:80px;overflow:hidden">'+ppEsc(j.analysis)+'</div>':'');t.style.cssText='position:fixed;z-index:99999;background:#0f172a;border:1px solid #1e3a5f;border-radius:10px;padding:10px 14px;max-width:260px;box-shadow:0 8px 24px rgba(0,0,0,0.6);pointer-events:none';var r=evt.target.getBoundingClientRect();t.style.left=Math.min(r.left,window.innerWidth-280)+'px';t.style.top=(r.top-10)+'px';t.style.transform='translateY(-100%)';document.body.appendChild(t)}
+function ppHideTooltip(){var t=document.getElementById('pp-tooltip');if(t)t.remove()}
+function ppRenderCampo(slots,lineup,jug,size){
+    var lu=ppMigrarLineup(lineup);
+    var click=size!=='big';
+    var bw=size==='big'?3:2;
+    var maxW=size==='big'?600:500;
+    var h='<div style="position:relative;width:100%;max-width:'+maxW+'px;margin:0 auto;aspect-ratio:68/105;background:linear-gradient(180deg,#15803d 0%,#16a34a 25%,#15803d 50%,#16a34a 75%,#15803d 100%);border:'+bw+'px solid rgba(255,255,255,0.4);border-radius:12px;overflow:visible;box-shadow:inset 0 0 40px rgba(0,0,0,0.15)">';
+    h+='<div style="position:absolute;top:50%;left:0;right:0;height:2px;background:rgba(255,255,255,0.35)"></div>';
+    h+='<div style="position:absolute;top:50%;left:50%;width:90px;height:90px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;transform:translate(-50%,-50%)"></div>';
+    h+='<div style="position:absolute;top:50%;left:50%;width:6px;height:6px;background:rgba(255,255,255,0.4);border-radius:50%;transform:translate(-50%,-50%)"></div>';
+    h+='<div style="position:absolute;top:0;left:50%;width:132px;height:44px;border:2px solid rgba(255,255,255,0.3);border-bottom:2px solid rgba(255,255,255,0.3);transform:translateX(-50%);border-top:none;border-radius:0 0 4px 4px"></div>';
+    h+='<div style="position:absolute;top:0;left:50%;width:60px;height:20px;border:2px solid rgba(255,255,255,0.25);transform:translateX(-50%);border-top:none;border-radius:0 0 4px 4px"></div>';
+    h+='<div style="position:absolute;bottom:0;left:50%;width:132px;height:44px;border:2px solid rgba(255,255,255,0.3);border-top:2px solid rgba(255,255,255,0.3);transform:translateX(-50%);border-bottom:none;border-radius:4px 4px 0 0"></div>';
+    h+='<div style="position:absolute;bottom:0;left:50%;width:60px;height:20px;border:2px solid rgba(255,255,255,0.25);transform:translateX(-50%);border-bottom:none;border-radius:4px 4px 0 0"></div>';
+    slots.forEach(function(s){
+        var asignados=lu[s.slotId]||[];
+        var tieneJugadores=asignados.length>0;
+        var gk=s.lineIdx===0;
+        h+='<div style="position:absolute;left:'+s.x+'%;top:'+s.y+'%;transform:translate(-50%,-50%);text-align:center;z-index:2;min-width:70px">';
+        if(tieneJugadores){
+            h+='<div style="display:flex;flex-direction:column;align-items:center;gap:2px">';
+            asignados.forEach(function(pi){
+                var p=(pi!==undefined&&pi!==null&&jug[pi])?jug[pi]:null;
+                if(!p)return;
+                var bg=gk?'linear-gradient(135deg,#d97706,#b45309)':'linear-gradient(135deg,#2563eb,#1d4ed8)';
+                h+='<div'+(click?' onclick="ppAbrirSelectorSlot(\''+s.slotId+'\')"':'')+' onmouseenter="ppShowTooltip(event,'+pi+')" onmouseleave="ppHideTooltip()" style="background:'+bg+';padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;cursor:'+(click?'pointer':'default')+';border:1px solid rgba(255,255,255,0.25);max-width:100px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 8px rgba(0,0,0,0.4);letter-spacing:0.3px;transition:transform 0.15s;text-shadow:0 1px 2px rgba(0,0,0,0.3)" onmouseenter="this.style.transform=\'scale(1.08)\';ppShowTooltip(event,'+pi+')" onmouseleave="this.style.transform=\'scale(1)\';ppHideTooltip()">';
+                h+=(p.number?p.number+'. ':'')+ppEsc(p.name.split(' ').pop());
+                h+='</div>';
+            });
+            h+='</div>';
+        }else{
+            h+='<div'+(click?' onclick="ppAbrirSelectorSlot(\''+s.slotId+'\')"':'')+' style="width:34px;height:34px;background:rgba(255,255,255,0.12);border:2px dashed rgba(255,255,255,0.35);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:rgba(255,255,255,0.45);margin:0 auto;cursor:'+(click?'pointer':'default')+';transition:all 0.2s;box-shadow:0 2px 6px rgba(0,0,0,0.2)" onmouseenter="this.style.borderColor=\'rgba(255,255,255,0.7)\';this.style.background=\'rgba(255,255,255,0.2)\'" onmouseleave="this.style.borderColor=\'rgba(255,255,255,0.35)\';this.style.background=\'rgba(255,255,255,0.12)\'">+</div>';
+        }
+        h+='</div>';
+    });
+    return h+'</div>';
+}
+
+// --- RENDER ALINEACION (seccion scouting) ---
+function ppRenderAlineacion(){
+    var p=pp.planActual;
+    if(!p||!p.rival_formation)return '<div style="padding:16px;background:#1e293b;border-radius:8px;text-align:center;color:#475569;font-size:12px;margin-top:12px">Selecciona formacion</div>';
+    var s=ppParseFormacion(p.rival_formation);
+    if(!s)return '';
+    var lineup=ppMigrarLineup((p.weekly_map&&p.weekly_map.rival_lineup)||{});
+    return '<div style="margin-top:16px"><h4 style="margin:0 0 10px;color:#e2e8f0;font-size:14px">Alineacion rival — '+p.rival_formation+'</h4><p style="margin:0 0 10px;font-size:11px;color:#64748b">Haz clic en una posicion para asignar jugadores. Puedes poner varios jugadores por posicion.</p>'+ppRenderCampo(s,lineup,p.rival_players||[],'normal')+'</div>';
+}
+
+// --- SELECTOR MULTI-JUGADOR ---
+function ppAbrirSelectorSlot(slotId){
+    var jug=pp.planActual.rival_players||[];
+    if(!jug.length){showToast('Anade jugadores primero en la pestana Jugadores Rival');return}
+
+    var lu=ppMigrarLineup((pp.planActual.weekly_map&&pp.planActual.weekly_map.rival_lineup)||{});
+    var asignados=lu[slotId]||[];
+
+    var prev=document.getElementById('pp-slot-overlay');if(prev)prev.remove();
+    var ov=document.createElement('div');ov.id='pp-slot-overlay';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+    ov.onclick=function(e){if(e.target===ov)ov.remove()};
+
+    var h='<div style="background:#0f172a;border:1px solid #1e3a5f;border-radius:12px;max-width:380px;width:100%;padding:20px;max-height:75vh;overflow-y:auto">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><h4 style="margin:0;color:#e2e8f0;font-size:14px">Asignar jugadores a posicion</h4><button onclick="document.getElementById(\'pp-slot-overlay\').remove()" style="background:none;border:none;color:#9ca3af;font-size:18px;cursor:pointer">x</button></div>';
+    h+='<p style="margin:0 0 12px;font-size:11px;color:#64748b">Marca los jugadores que pueden jugar en esta posicion. Puedes seleccionar varios.</p>';
+
+    // Agrupar por linea
+    var lineas=[
+        {label:'Porteros',color:'#22c55e',poss:PP_LINEAS.porteros.posiciones},
+        {label:'Defensas',color:'#3b82f6',poss:PP_LINEAS.defensas.posiciones},
+        {label:'Medios',color:'#f59e0b',poss:PP_LINEAS.medios.posiciones},
+        {label:'Delanteros',color:'#ef4444',poss:PP_LINEAS.delanteros.posiciones}
+    ];
+
+    lineas.forEach(function(lin){
+        var jugLin=[];
+        jug.forEach(function(j,idx){if(lin.poss.indexOf(j.position)>=0)jugLin.push({j:j,idx:idx})});
+        if(!jugLin.length)return;
+
+        h+='<div style="margin-bottom:10px"><div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><div style="width:3px;height:14px;background:'+lin.color+';border-radius:2px"></div><span style="font-size:11px;font-weight:700;color:'+lin.color+';text-transform:uppercase">'+lin.label+'</span></div>';
+        jugLin.forEach(function(it){
+            var checked=asignados.indexOf(it.idx)>=0;
+            h+='<label style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:'+(checked?'#1e3a5f':'#1e293b')+';border:1px solid '+(checked?'#3b82f6':'#334155')+';border-radius:8px;margin-bottom:4px;cursor:pointer" onmouseenter="this.style.borderColor=\'#3b82f6\'" onmouseleave="this.style.borderColor=\''+(checked?'#3b82f6':'#334155')+'\'">';
+            h+='<input type="checkbox" data-idx="'+it.idx+'" '+(checked?'checked':'')+' style="accent-color:#3b82f6;width:16px;height:16px">';
+            h+='<div style="width:28px;height:28px;background:#0f172a;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#f59e0b;flex-shrink:0">'+(it.j.number||'?')+'</div>';
+            h+='<div><div style="font-size:13px;color:#e2e8f0;font-weight:600">'+ppEsc(it.j.name)+'</div><div style="font-size:10px;color:#94a3b8">'+ppEsc(it.j.position||'')+'</div></div>';
+            h+='</label>';
+        });
+        h+='</div>';
+    });
+
+    // Jugadores sin posicion asignada
+    var sinPos=[];
+    jug.forEach(function(j,idx){
+        var enLinea=false;
+        lineas.forEach(function(lin){if(lin.poss.indexOf(j.position)>=0)enLinea=true});
+        if(!enLinea)sinPos.push({j:j,idx:idx});
+    });
+    if(sinPos.length){
+        h+='<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:#9ca3af;margin-bottom:6px">OTROS</div>';
+        sinPos.forEach(function(it){
+            var checked=asignados.indexOf(it.idx)>=0;
+            h+='<label style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:'+(checked?'#1e3a5f':'#1e293b')+';border:1px solid '+(checked?'#3b82f6':'#334155')+';border-radius:8px;margin-bottom:4px;cursor:pointer">';
+            h+='<input type="checkbox" data-idx="'+it.idx+'" '+(checked?'checked':'')+' style="accent-color:#3b82f6;width:16px;height:16px">';
+            h+='<div style="width:28px;height:28px;background:#0f172a;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#f59e0b;flex-shrink:0">'+(it.j.number||'?')+'</div>';
+            h+='<div><div style="font-size:13px;color:#e2e8f0;font-weight:600">'+ppEsc(it.j.name)+'</div><div style="font-size:10px;color:#94a3b8">'+ppEsc(it.j.position||'Sin posicion')+'</div></div>';
+            h+='</label>';
+        });
+        h+='</div>';
+    }
+
+    h+='<div style="display:flex;gap:8px;margin-top:14px">';
+    h+='<button onclick="ppLimpiarSlot(\''+slotId+'\')" style="flex:1;padding:8px;background:#1e293b;border:1px solid #475569;color:#9ca3af;border-radius:6px;cursor:pointer;font-size:12px">Vaciar posicion</button>';
+    h+='<button onclick="ppGuardarSlotMulti(\''+slotId+'\')" style="flex:1;padding:8px;background:#3b82f6;border:none;color:#fff;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">Guardar</button>';
+    h+='</div></div>';
+
+    ov.innerHTML=h;
+    document.body.appendChild(ov);
+}
+
+// --- GUARDAR SELECCION MULTIPLE ---
+async function ppGuardarSlotMulti(slotId){
+    var ov=document.getElementById('pp-slot-overlay');
+    if(!ov)return;
+    var checks=ov.querySelectorAll('input[type="checkbox"][data-idx]');
+    var seleccionados=[];
+    checks.forEach(function(cb){
+        if(cb.checked)seleccionados.push(parseInt(cb.getAttribute('data-idx')));
+    });
+
+    var wm=pp.planActual.weekly_map||{};
+    var lu=ppMigrarLineup(wm.rival_lineup||{});
+    lu[slotId]=seleccionados;
+    wm.rival_lineup=lu;
+
+    try{
+        await supabaseClient.from('match_plans').update({weekly_map:wm,updated_at:new Date().toISOString()}).eq('id',pp.planActual.id);
+        pp.planActual.weekly_map=wm;
+        ov.remove();
+        ppMostrarTab('scouting');
+    }catch(e){showToast('Error: '+e.message)}
+}
+
+// --- LIMPIAR POSICION ---
+async function ppLimpiarSlot(slotId){
+    var wm=pp.planActual.weekly_map||{};
+    var lu=ppMigrarLineup(wm.rival_lineup||{});
+    lu[slotId]=[];
+    wm.rival_lineup=lu;
+
+    try{
+        await supabaseClient.from('match_plans').update({weekly_map:wm,updated_at:new Date().toISOString()}).eq('id',pp.planActual.id);
+        pp.planActual.weekly_map=wm;
+        var ov=document.getElementById('pp-slot-overlay');if(ov)ov.remove();
+        ppMostrarTab('scouting');
+    }catch(e){showToast('Error: '+e.message)}
+}
+
+// --- MANTENER ppAsignarSlot como legacy por si se usa en otro sitio ---
+async function ppAsignarSlot(slotId,pi){
+    var wm=pp.planActual.weekly_map||{};
+    var lu=ppMigrarLineup(wm.rival_lineup||{});
+    if(pi===null)lu[slotId]=[];
+    else{if(!lu[slotId])lu[slotId]=[];if(lu[slotId].indexOf(pi)<0)lu[slotId].push(pi)}
+    wm.rival_lineup=lu;
+    try{
+        await supabaseClient.from('match_plans').update({weekly_map:wm,updated_at:new Date().toISOString()}).eq('id',pp.planActual.id);
+        pp.planActual.weekly_map=wm;
+        var ov=document.getElementById('pp-slot-overlay');if(ov)ov.remove();
+        ppMostrarTab('scouting');
+    }catch(e){showToast('Error: '+e.message)}
+}
 // === INIT ===
 function ppMostrarGuia(){var prev=document.getElementById('pp-guia-overlay');if(prev)prev.remove();var ov=document.createElement('div');ov.id='pp-guia-overlay';ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';ov.onclick=function(e){if(e.target===ov)ov.remove()};ov.innerHTML='<div style="background:#0f172a;border:1px solid #1e3a5f;border-radius:16px;max-width:640px;width:100%;max-height:85vh;display:flex;flex-direction:column"><div style="padding:20px 24px;border-bottom:1px solid #1e3a5f;display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0;color:#f59e0b;font-size:18px">? Guia rapida — Plan de Partido</h3><button onclick="document.getElementById(\'pp-guia-overlay\').remove()" style="background:none;border:none;color:#9ca3af;font-size:22px;cursor:pointer">x</button></div><div style="flex:1;overflow-y:auto;padding:20px 24px;color:#e2e8f0;font-size:13px;line-height:1.7"><p style="color:#94a3b8;margin:0 0 16px">Prepara cada partido de forma organizada: scouting, tactica, ABPs y planificacion semanal.</p><div style="margin-bottom:18px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="width:6px;height:6px;background:#3b82f6;border-radius:50%"></div><span style="font-weight:700;color:#93c5fd">1. Selecciona partido</span></div><p style="margin:0 0 0 14px;color:#94a3b8">Elige un partido pendiente (sin resultado) del desplegable.</p></div><div style="margin-bottom:18px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="width:6px;height:6px;background:#22c55e;border-radius:50%"></div><span style="font-weight:700;color:#86efac">2. Scouting Rival</span></div><p style="margin:0 0 0 14px;color:#94a3b8">Formacion, estilo, puntos fuertes y debiles. Campo visual para asignar jugadores a posiciones.</p></div><div style="margin-bottom:18px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="width:6px;height:6px;background:#f59e0b;border-radius:50%"></div><span style="font-weight:700;color:#fcd34d">3. Jugadores Rival</span></div><p style="margin:0 0 0 14px;color:#94a3b8">Crea la plantilla rival con dorsal, posicion, estadisticas, analisis y archivos multimedia (video/imagen).</p></div><div style="margin-bottom:18px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="width:6px;height:6px;background:#ef4444;border-radius:50%"></div><span style="font-weight:700;color:#fca5a5">4. Fases del Juego Rival</span></div><p style="margin:0 0 0 14px;color:#94a3b8">6 fases predefinidas (ofensivas, defensivas, transiciones). Notas de texto + imagenes/videos por fase (max 8).</p></div><div style="margin-bottom:18px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="width:6px;height:6px;background:#a855f7;border-radius:50%"></div><span style="font-weight:700;color:#c4b5fd">5. Plan Tactico Propio</span></div><p style="margin:0 0 0 14px;color:#94a3b8">Tu plan de juego: ofensivo (verde), defensivo (azul), transiciones (dorado) y consignas (morado). Con imagenes/videos.</p></div><div style="margin-bottom:18px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="width:6px;height:6px;background:#ec4899;border-radius:50%"></div><span style="font-weight:700;color:#f9a8d4">6. ABPs</span></div><p style="margin:0 0 0 14px;color:#94a3b8">Acciones a balon parado ofensivas y defensivas. Roles, marcas, imagen tactica, sena, explicacion. PDF individual y resumen por jugador.</p></div><div style="margin-bottom:18px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="width:6px;height:6px;background:#06b6d4;border-radius:50%"></div><span style="font-weight:700;color:#67e8f9">7. Integracion en Semana</span></div><p style="margin:0 0 0 14px;color:#94a3b8">Mapa semanal MD-6 a MD. Orientaciones, objetivos por contenido, vinculacion de ejercicios (TopLiderCoach + propios). PDF semanal.</p></div><div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px;margin-bottom:12px"><div style="font-weight:700;color:#f59e0b;margin-bottom:6px">Salidas</div><p style="margin:0;color:#94a3b8"><span style="color:#c4b5fd;font-weight:600">PDF:</span> Documento completo con portada, escudos, scouting, jugadores, fases, plan tactico, ABPs y semana.<br><span style="color:#6ee7b7;font-weight:600">Charla:</span> Presentacion a pantalla completa para proyector. Flechas o barra espaciadora para navegar, Escape para salir.</p></div><div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px"><div style="font-weight:700;color:#f59e0b;margin-bottom:6px">Estados del plan</div><p style="margin:0;color:#94a3b8"><span style="color:#94a3b8">Borrador</span> → <span style="color:#4ade80">Listo</span> → <span style="color:#60a5fa">Presentado</span>. Solo informativos, no bloquean nada.</p></div></div></div>';document.body.appendChild(ov)}
 function initPlanPartido(){var r=document.getElementById('planpartido-root');if(!r)return;ppRenderMain();ppCargarPartidosPendientes();ppCargarPlantilla()}

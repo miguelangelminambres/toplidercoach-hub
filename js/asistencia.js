@@ -1,5 +1,5 @@
 // ========== ASISTENCIA.JS - TopLiderCoach HUB ==========
-// Asistencia por rango de fechas, bienestar, PDF individual y general
+// Asistencia por rango de fechas, filtro por temporada, bienestar, PDF individual y general
 
 function togglePanelAsistencia() {
     var tabPlanificador = document.querySelector('.main-tab.planificador');
@@ -17,13 +17,85 @@ registrarInit(function() {
     initFechasAsistencia();
 });
 
+// ========== CARGAR TEMPORADAS EN SELECTOR ==========
+async function cargarTemporadasAsistencia() {
+    const select = document.getElementById('asistencia-temporada');
+    if (!select) return;
+    
+    try {
+        const { data: clubInfo } = await supabaseClient
+            .from('clubs').select('id').eq('wp_user_id', usuario.id).single();
+        if (!clubInfo) return;
+        
+        const { data: temporadas } = await supabaseClient
+            .from('seasons')
+            .select('id, name, start_date, end_date, is_active')
+            .eq('club_id', clubInfo.id)
+            .order('start_date', { ascending: false });
+        
+        if (!temporadas || temporadas.length === 0) {
+            select.innerHTML = '<option value="">Sin temporadas</option>';
+            return;
+        }
+        
+        select.innerHTML = temporadas.map(t => {
+            const selected = t.is_active ? 'selected' : '';
+            return '<option value="' + t.id + '" data-start="' + (t.start_date || '') + '" data-end="' + (t.end_date || '') + '" ' + selected + '>' + t.name + (t.is_active ? ' (activa)' : '') + '</option>';
+        }).join('');
+        
+    } catch (e) {
+        console.warn('Error cargando temporadas asistencia:', e);
+    }
+}
+
+// ========== AL CAMBIAR TEMPORADA ==========
+function onTemporadaAsistenciaChange() {
+    const select = document.getElementById('asistencia-temporada');
+    if (!select) return;
+    
+    const option = select.options[select.selectedIndex];
+    if (!option) return;
+    
+    const startDate = option.getAttribute('data-start');
+    const endDate = option.getAttribute('data-end');
+    
+    const inputInicio = document.getElementById('asistencia-fecha-inicio');
+    const inputFin = document.getElementById('asistencia-fecha-fin');
+    
+    if (startDate && inputInicio) inputInicio.value = startDate;
+    if (endDate && inputFin) inputFin.value = endDate;
+    
+    cargarAsistenciaRango();
+}
+
+// ========== HELPER: obtener season_id seleccionada ==========
+function getAsistenciaSeasonId() {
+    const select = document.getElementById('asistencia-temporada');
+    return select ? select.value : null;
+}
+
 // ========== INICIALIZAR FECHAS (mes actual por defecto) ==========
-function initFechasAsistencia() {
+async function initFechasAsistencia() {
+    await cargarTemporadasAsistencia();
+    
     const inputInicio = document.getElementById('asistencia-fecha-inicio');
     const inputFin = document.getElementById('asistencia-fecha-fin');
     if (!inputInicio || !inputFin) return;
     
-    // Solo setear si están vacíos (para no pisar selección del usuario)
+    // Si hay temporada seleccionada, usar sus fechas
+    const select = document.getElementById('asistencia-temporada');
+    if (select && select.value) {
+        const option = select.options[select.selectedIndex];
+        const startDate = option ? option.getAttribute('data-start') : '';
+        const endDate = option ? option.getAttribute('data-end') : '';
+        if (startDate && endDate) {
+            inputInicio.value = startDate;
+            inputFin.value = endDate;
+            return;
+        }
+    }
+    
+    // Fallback: mes actual
     if (!inputInicio.value) {
         const hoy = new Date();
         const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
@@ -44,9 +116,9 @@ function getRangoTexto() {
     const ini = getFechaInicio();
     const fin = getFechaFin();
     if (!ini || !fin) return '';
-    const fIni = new Date(ini).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-    const fFin = new Date(fin).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-    return `${fIni} — ${fFin}`;
+    const fIni = new Date(ini + 'T12:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+    const fFin = new Date(fin + 'T12:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+    return fIni + ' — ' + fFin;
 }
 
 // ========== CARGAR ASISTENCIA POR RANGO ==========
@@ -72,14 +144,23 @@ async function cargarAsistenciaRango() {
             .from('clubs').select('id').eq('wp_user_id', usuario.id).single();
         if (!clubInfo) throw new Error('Club no encontrado');
         
-        // Sesiones en el rango
-        const { data: sesiones, error: errSes } = await supabaseClient
+        // Temporada seleccionada
+        var selectedSeasonId = getAsistenciaSeasonId();
+        
+        // Sesiones en el rango (filtradas por season_id si hay temporada seleccionada)
+        var querySesiones = supabaseClient
             .from('training_sessions')
             .select('id, session_date')
             .eq('club_id', clubInfo.id)
             .gte('session_date', fechaInicio)
             .lte('session_date', fechaFin)
             .order('session_date', { ascending: true });
+        
+        if (selectedSeasonId) {
+            querySesiones = querySesiones.eq('season_id', selectedSeasonId);
+        }
+        
+        const { data: sesiones, error: errSes } = await querySesiones;
         
         if (errSes) throw errSes;
         
@@ -93,8 +174,8 @@ async function cargarAsistenciaRango() {
             return;
         }
         
-        // Jugadores de la plantilla activa
-        let currentSeasonId = seasonId;
+        // Jugadores de la temporada seleccionada
+        var currentSeasonId = selectedSeasonId || seasonId;
         if (!currentSeasonId) {
             // Fallback: buscar temporada activa
             const { data: tempData } = await supabaseClient
@@ -206,7 +287,7 @@ async function abrirModalAsistenciaSesion(sesionId) {
             .from('training_sessions').select('*').eq('id', sesionId).single();
         
         document.getElementById('asistencia-sesion-nombre').textContent = sesion.name;
-        document.getElementById('asistencia-sesion-fecha').textContent = new Date(sesion.session_date).toLocaleDateString('es-ES');
+        document.getElementById('asistencia-sesion-fecha').textContent = new Date(sesion.session_date + 'T12:00:00').toLocaleDateString('es-ES');
         
         const jugadoresSesion = sesion.players || [];
         if (jugadoresSesion.length === 0) {
@@ -342,13 +423,21 @@ async function guardarAsistenciaSesion() {
 async function verDetalleJugador(jugadorId, nombreJugador) {
     const fechaInicio = getFechaInicio();
     const fechaFin = getFechaFin();
+    var selectedSeasonId = getAsistenciaSeasonId();
     
     try {
         const { data: clubInfo } = await supabaseClient.from('clubs').select('id').eq('wp_user_id', usuario.id).single();
-        const { data: sesiones } = await supabaseClient
+        
+        var queryDetalle = supabaseClient
             .from('training_sessions').select('id, name, session_date')
             .eq('club_id', clubInfo.id).gte('session_date', fechaInicio).lte('session_date', fechaFin)
             .order('session_date', { ascending: true });
+        
+        if (selectedSeasonId) {
+            queryDetalle = queryDetalle.eq('season_id', selectedSeasonId);
+        }
+        
+        const { data: sesiones } = await queryDetalle;
         
         const sesionIds = sesiones ? sesiones.map(s => s.id) : [];
         const { data: asistencias } = await supabaseClient
@@ -357,7 +446,7 @@ async function verDetalleJugador(jugadorId, nombreJugador) {
         let htmlHistorial = '';
         for (const sesion of sesiones || []) {
             const asist = asistencias ? asistencias.find(a => a.sesion_id === sesion.id) : null;
-            const fechaFormato = new Date(sesion.session_date).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+            const fechaFormato = new Date(sesion.session_date + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
             
             if (asist && asist.asistio === true) {
                 htmlHistorial += `<div class="historial-sesion-row asistio"><div><span class="historial-fecha">${fechaFormato}</span> - ${sesion.name}</div><div class="historial-datos"><span>✅ Asistió</span>${asist.peso ? `<span>⚖️ ${asist.peso}kg</span>` : ''}${asist.wellness ? `<span>💚 ${asist.wellness}/10</span>` : ''}${asist.estado_muscular ? `<span>💪 ${asist.estado_muscular}/10</span>` : ''}</div></div>`;
@@ -391,16 +480,24 @@ async function verDetalleJugador(jugadorId, nombreJugador) {
 async function generarPDFJugador(jugadorId) {
     const fechaInicio = getFechaInicio();
     const fechaFin = getFechaFin();
+    var selectedSeasonId = getAsistenciaSeasonId();
     
     try {
         const { data: jugador } = await supabaseClient.from('players').select('*').eq('id', jugadorId).single();
         if (!jugador) { showToast('Jugador no encontrado'); return; }
         
         const { data: clubInfo } = await supabaseClient.from('clubs').select('*').eq('wp_user_id', usuario.id).single();
-        const { data: sesiones } = await supabaseClient
+        
+        var queryPDF = supabaseClient
             .from('training_sessions').select('id, name, session_date')
             .eq('club_id', clubInfo.id).gte('session_date', fechaInicio).lte('session_date', fechaFin)
             .order('session_date', { ascending: true });
+        
+        if (selectedSeasonId) {
+            queryPDF = queryPDF.eq('season_id', selectedSeasonId);
+        }
+        
+        const { data: sesiones } = await queryPDF;
         
         const sesionIds = sesiones ? sesiones.map(s => s.id) : [];
         const { data: asistencias } = await supabaseClient
@@ -522,7 +619,7 @@ async function generarPDFJugador(jugadorId) {
         for (const sesion of sesiones || []) {
             if (y > 270) { doc.addPage(); y = 20; }
             const asist = asistencias ? asistencias.find(a => a.sesion_id === sesion.id) : null;
-            const fechaF = new Date(sesion.session_date).toLocaleDateString('es-ES', {day:'2-digit',month:'2-digit'});
+            const fechaF = new Date(sesion.session_date + 'T12:00:00').toLocaleDateString('es-ES', {day:'2-digit',month:'2-digit'});
             if (filaColor) { doc.setFillColor(248,250,252); doc.rect(12,y-3,186,9,'F'); }
             filaColor = !filaColor;
             doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(15,23,42);
@@ -554,22 +651,29 @@ async function generarPDFPlantillaGeneral() {
     const fechaInicio = getFechaInicio();
     const fechaFin = getFechaFin();
     if (!fechaInicio || !fechaFin) { showToast('Selecciona fechas primero'); return; }
+    var selectedSeasonId = getAsistenciaSeasonId();
     
     try {
         const { data: clubInfo } = await supabaseClient.from('clubs').select('*').eq('wp_user_id', usuario.id).single();
         if (!clubInfo) throw new Error('Club no encontrado');
         
-        // Sesiones
-        const { data: sesiones } = await supabaseClient
+        // Sesiones (filtradas por temporada si hay seleccionada)
+        var queryPDFGen = supabaseClient
             .from('training_sessions').select('id, name, session_date')
             .eq('club_id', clubInfo.id).gte('session_date', fechaInicio).lte('session_date', fechaFin)
             .order('session_date', { ascending: true });
         
+        if (selectedSeasonId) {
+            queryPDFGen = queryPDFGen.eq('season_id', selectedSeasonId);
+        }
+        
+        const { data: sesiones } = await queryPDFGen;
+        
         const totalSesiones = sesiones ? sesiones.length : 0;
         if (totalSesiones === 0) { showToast('No hay sesiones en el periodo seleccionado'); return; }
         
-        // Jugadores plantilla
-        let currentSeasonId = seasonId;
+        // Jugadores plantilla (de la temporada seleccionada)
+        var currentSeasonId = selectedSeasonId || seasonId;
         if (!currentSeasonId) {
             const { data: tempData } = await supabaseClient
                 .from('seasons').select('id').eq('club_id', clubInfo.id).eq('is_active', true).single();

@@ -445,6 +445,13 @@ function ejSvgPointerDown(e) {
         return;
     }
 
+    // Click en endpoint de línea (redimensionar)
+    if (target.dataset.ep) {
+        ejP.isDragging = true;
+        ejP._epDrag = target.dataset.ep;
+        return;
+    }
+
     // Click en punto de control de trayectoria curva (animación)
     if (target.dataset.trajCtrl) {
         ejP.isDragging = true;
@@ -637,10 +644,24 @@ if (snapElem) {
 function ejSvgPointerMove(e) {
     const pos = ejGetPos(e);
 
-    // Arrastrar punto de control de curva (línea normal)
+  // Arrastrar punto de control de curva
     if (ejP.isDragging && ejP._ctrlId) {
         const id = parseInt(ejP._ctrlId);
         ejP.lines = ejP.lines.map(l => l.id === id ? { ...l, cx: pos.x, cy: pos.y } : l);
+        ejRenderSVG();
+        return;
+    }
+
+    // Arrastrar endpoint de línea (redimensionar)
+    if (ejP.isDragging && ejP._epDrag) {
+        const parts = ejP._epDrag.split('-');
+        const id = parseInt(parts[0]);
+        const ep = parts[1];
+        ejP.lines = ejP.lines.map(l => {
+            if (l.id !== id) return l;
+            if (ep === '1') return { ...l, x1: pos.x, y1: pos.y };
+            return { ...l, x2: pos.x, y2: pos.y };
+        });
         ejRenderSVG();
         return;
     }
@@ -713,13 +734,14 @@ function ejSvgPointerUp(e) {
     const pos = ejGetPos(e);
 
     // Fin de arrastre
-    if (ejP.isDragging && ejP.selectedId) {
+    if (ejP.isDragging && (ejP.selectedId || ejP._epDrag)) {
         ejSaveHistory();
         if (ejP.animMode) ejFrameSaveCurrent();
     }
     ejP.isDragging = false;
     ejP._ctrlId = null;
     ejP._trajCtrlId = null;
+    ejP._epDrag = null;
 
     // Fin de dibujo
     if (ejP.isDrawing && ejP.drawStart) {

@@ -1706,15 +1706,22 @@ function ejActualizarFichaMedia() {
             thumbContainer.innerHTML = svgSource;
             const svg = thumbContainer.querySelector('svg');
             if (svg) { svg.setAttribute('width','100%'); svg.setAttribute('height','100%'); svg.style.borderRadius='8px'; svg.style.display='block'; }
+        } else {
+            thumbContainer.innerHTML = '<span style="color:#475569;font-size:11px">Dibuja en la pizarra y pulsa "Usar en ficha"</span>';
         }
     }
     // Vídeo
     const videoContainer = document.getElementById('ej-ficha-video');
     const videoBtns = document.getElementById('ej-ficha-video-btns');
     const url = ejP._lastVideoUrl;
-    if (videoContainer && url) {
-        videoContainer.innerHTML = '<video src="'+url+'" controls playsinline loop style="width:100%;height:100%;border-radius:8px;background:#000"></video>';
-        if (videoBtns) videoBtns.innerHTML = '<a href="https://toplidercoach.com/wp-content/uploads/ejercicios/download-video.php?url='+encodeURIComponent(url)+'" target="_blank" style="flex:1;padding:8px;background:#f97316;border:none;color:#fff;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;text-align:center;text-decoration:none">📥 Descargar MP4</a>';
+    if (videoContainer) {
+        if (url) {
+            videoContainer.innerHTML = '<video src="'+url+'" controls playsinline loop style="width:100%;height:100%;border-radius:8px;background:#000"></video>';
+            if (videoBtns) videoBtns.innerHTML = '<a href="https://toplidercoach.com/wp-content/uploads/ejercicios/download-video.php?url='+encodeURIComponent(url)+'" target="_blank" style="flex:1;padding:8px;background:#f97316;border:none;color:#fff;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;text-align:center;text-decoration:none">📥 Descargar MP4</a>';
+        } else {
+            videoContainer.innerHTML = '<span style="color:#475569;font-size:11px">Exporta MP4 desde la pizarra</span>';
+            if (videoBtns) videoBtns.innerHTML = '';
+        }
     }
 }
 
@@ -2195,7 +2202,7 @@ let thumbnailSvg = window.ejThumbnailPendiente || null;
         materials:   document.getElementById('ej-material')?.value || null,
         tema:        document.getElementById('ej-tema')?.value || null,
         num_goalkeepers: parseInt(document.getElementById('ej-porteros')?.value) || null,
-        board_data:  ejP.players.length > 0 ? {
+        board_data:  (ejP.players.length > 0 || ejP.lines.length > 0 || ejP.shapes.length > 0 || ejP.equipment.length > 0 || ejP.texts.length > 0) ? {
             players: ejP.players, lines: ejP.lines,
             shapes: ejP.shapes, texts: ejP.texts,
             equipment: ejP.equipment,connections: ejP.connections,
@@ -2247,11 +2254,11 @@ let thumbnailSvg = window.ejThumbnailPendiente || null;
 function ejLimpiarFicha() {
     ejEditandoId = null;
     ['ej-nombre','ej-objetivos','ej-descripcion','ej-variantes','ej-notas','ej-material',
-     'ej-duracion','ej-jugadores','ej-ancho','ej-largo'].forEach(id => {
+     'ej-duracion','ej-jugadores','ej-ancho','ej-largo','ej-porteros'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
     });
-    ['ej-categoria','ej-edad','ej-dificultad','ej-fase'].forEach(id => {
+    ['ej-categoria','ej-edad','ej-dificultad','ej-fase','ej-tema'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.selectedIndex = 0;
     });
@@ -2333,7 +2340,7 @@ async function ejBancoLoad() {
             .from('custom_exercises')
             .select('id,name,category,age_group,difficulty,duration_min,players_count,game_phase,field_width,field_length,eii,objectives,description,variants,coach_notes,materials,thumbnail_svg,animation_url,tema,num_goalkeepers')
             
-            .eq('coach_id', window.ejCoachId)
+            .eq('coach_id', String(window.ejCoachId))
             .order('created_at', { ascending: false })
             .limit(50);
         if (error) throw error;
@@ -2414,10 +2421,8 @@ function ejBancoRender(list) {
         }
 
         var thumbHTML;
-        if (e.thumbnail_url) {
-            thumbHTML = '<img src="' + e.thumbnail_url + '" style="width:100%;height:100%;object-fit:cover;display:block" loading="lazy"/>';
-        } else if (e.thumbnail_svg) {
-            thumbHTML = '<img data-svg-idx="' + idx + '" style="width:100%;height:100%;object-fit:cover;display:block;background:#0f4c2a" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"/>';
+        if (e.thumbnail_svg) {
+            thumbHTML = '<img data-svg-idx="' + idx + '" style="width:100%;height:100%;object-fit:cover;display:block;background:#0f4c2a" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" loading="lazy"/>';
         } else {
             thumbHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#475569;font-size:11px">sin dibujo</div>';
         }
@@ -2439,9 +2444,9 @@ function ejBancoRender(list) {
             + '</div>';
     }
 
-    grid.innerHTML = html;
+grid.innerHTML = html;
 
-    // Convertir SVGs a Blob URLs (fiable con cualquier tamaño)
+    // Convertir SVGs a Blob URLs
     setTimeout(function() {
         var imgs = grid.querySelectorAll('img[data-svg-idx]');
         for (var i = 0; i < imgs.length; i++) {
@@ -2452,9 +2457,7 @@ function ejBancoRender(list) {
                 try {
                     var blob = new Blob([ex.thumbnail_svg], {type: 'image/svg+xml'});
                     img.src = URL.createObjectURL(blob);
-                } catch(err) {
-                    console.warn('Error creando blob para thumbnail:', err);
-                }
+                } catch(err) {}
             }
         }
     }, 100);
@@ -2500,6 +2503,16 @@ async function ejBancoCargar(id) {
         const { data, error } = await supabaseClient
             .from('custom_exercises').select('*').eq('id', id).single();
         if (error) throw error;
+
+        // 1. Parar animación si estaba reproduciéndose
+        ejFrameStop();
+
+        // 1b. Limpiar media del ejercicio anterior
+        window.ejThumbnailPendiente = null;
+        window._ejPdfThumbData = null;
+        ejP._lastVideoUrl = null;
+
+        // 2. Cargar board_data en la pizarra
         if (data.board_data) {
             ejSaveHistory();
             ejP.players   = data.board_data.players || [];
@@ -2510,50 +2523,103 @@ async function ejBancoCargar(id) {
             ejP.connections = data.board_data.connections || [];
             ejP.fieldType = data.board_data.fieldType || 'full';
             ejP.selectedId = null;
-            ejEditandoId = data.id;
             ejP._lastVideoUrl = data.animation_url || null;
-            // Restaurar animación si existe
+
+            // 3. Restaurar animación o resetearla
             if (data.board_data.animFrames && data.board_data.animFrames.length > 0) {
                 ejP.frames = data.board_data.animFrames;
                 ejP.currentFrame = 0;
                 ejP.animMode = data.board_data.animMode || false;
                 ejFrameRestore(ejP.frames[0]);
-                const bar = document.getElementById('ej-timeline-bar');
-                if (bar) bar.style.display = ejP.animMode ? 'block' : 'none';
-                ejRenderTimeline();
-                ejRenderToolbar();
+            } else {
+                ejP.animMode = false;
+                ejP.frames = [];
+                ejP.currentFrame = 0;
             }
+
+            // 4. Ocultar overlay y mostrar toolbar
+            var overlay = document.getElementById('ej-modo-overlay');
+            if (overlay) overlay.style.display = 'none';
+            var tb = document.getElementById('ej-toolbar');
+            if (tb) tb.style.display = '';
+
+            ejRenderSVG();
+        } else {
+            // Sin dibujo: resetear pizarra
+            ejP.players = []; ejP.lines = []; ejP.shapes = []; ejP.texts = []; ejP.equipment = []; ejP.connections = [];
+            ejP.selectedId = null;
+            ejP.animMode = false;
+            ejP.frames = [];
+            ejP.currentFrame = 0;
             ejRenderSVG();
         }
-        // Rellenar ficha
-        const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
-        set('ej-nombre', data.name);
-        set('ej-categoria', data.category);
-        set('ej-edad', data.age_group);
-        set('ej-duracion', data.duration_min);
-        set('ej-jugadores', data.players_count);
-        set('ej-dificultad', data.difficulty);
-        set('ej-fase', data.game_phase);
-        set('ej-objetivos', data.objectives);
-        set('ej-descripcion', data.description);
-        set('ej-variantes', data.variants);
-        set('ej-notas', data.coach_notes);
-        set('ej-material', data.materials);
-        set('ej-tema', data.tema);
-        set('ej-porteros', data.num_goalkeepers);
-        set('ej-ancho', data.field_width);
-        set('ej-largo', data.field_length);
-        ejCalcEII();
-        ejP._lastVideoUrl = data.animation_url || null;
-        setTimeout(() => ejActualizarFichaMedia(), 500);
 
-     
+        // 5. Siempre actualizar timeline según el estado real
+        var tlBar = document.getElementById('ej-timeline-bar');
+        if (tlBar) tlBar.style.display = ejP.animMode ? 'block' : 'none';
+        ejRenderTimeline();
+
+        // 5. Asignar ID de edición
+        ejEditandoId = data.id;
+
+        // 6. Limpiar TODOS los campos de la ficha antes de rellenar
+        ['ej-nombre','ej-objetivos','ej-descripcion','ej-variantes','ej-notas','ej-material',
+         'ej-duracion','ej-jugadores','ej-ancho','ej-largo','ej-porteros'].forEach(function(fid) {
+            var el = document.getElementById(fid); if (el) el.value = '';
+        });
+        ['ej-categoria','ej-edad','ej-dificultad','ej-fase','ej-tema'].forEach(function(fid) {
+            var el = document.getElementById(fid); if (el) el.selectedIndex = 0;
+        });
+
+        // 7. Rellenar ficha con los datos del ejercicio
+        var setVal = function(fid, val) { var el = document.getElementById(fid); if (el && val != null && val !== '') el.value = val; };
+        setVal('ej-nombre', data.name);
+        setVal('ej-categoria', data.category);
+        setVal('ej-edad', data.age_group);
+        setVal('ej-duracion', data.duration_min);
+        setVal('ej-jugadores', data.players_count);
+        setVal('ej-dificultad', data.difficulty);
+        setVal('ej-fase', data.game_phase);
+        setVal('ej-objetivos', data.objectives);
+        setVal('ej-descripcion', data.description);
+        setVal('ej-variantes', data.variants);
+        setVal('ej-notas', data.coach_notes);
+        setVal('ej-material', data.materials);
+        setVal('ej-tema', data.tema);
+        setVal('ej-porteros', data.num_goalkeepers);
+        setVal('ej-ancho', data.field_width);
+        setVal('ej-largo', data.field_length);
+        ejCalcEII();
+
+        // 8. Thumbnail y vídeo
+        ejP._lastVideoUrl = data.animation_url || null;
+        // Capturar miniatura en vivo desde la pizarra (colores fiables)
+        var svgEl = document.getElementById('ej-svg');
+        if (svgEl && ejP.players.length > 0) {
+            var prevSel = ejP.selectedId;
+            var prevExp = ejP._exporting;
+            ejP.selectedId = null;
+            ejP._exporting = true;
+            ejRenderSVG();
+            window.ejThumbnailPendiente = new XMLSerializer().serializeToString(svgEl);
+            ejP.selectedId = prevSel;
+            ejP._exporting = prevExp || false;
+            ejRenderSVG();
+        } else if (data.thumbnail_svg) {
+            window.ejThumbnailPendiente = data.thumbnail_svg;
+        }
+
+        // 9. Mostrar ficha y actualizar media
         ejShowTab('ficha', document.querySelector('[onclick*="\'ficha\'"]'));
-        setTimeout(() => { ejActualizarFichaMedia(); ejPrepararThumbParaPDF(); }, 300);
-        // Mostrar barra con nombre del ejercicio cargado
-        const bar = document.getElementById('ej-pizarra-topbar');
-        const lbl = document.getElementById('ej-pizarra-nombre-label');
-        if (bar && lbl) { lbl.textContent = data.name; bar.style.display = 'flex'; }
+        setTimeout(function() { ejActualizarFichaMedia(); ejPrepararThumbParaPDF(); }, 300);
+
+        // 10. Mostrar barra con nombre del ejercicio cargado
+        var topbar = document.getElementById('ej-pizarra-topbar');
+        var lbl = document.getElementById('ej-pizarra-nombre-label');
+        if (topbar && lbl) { lbl.textContent = data.name; topbar.style.display = 'flex'; }
+
+        // 11. Actualizar toolbar
+        ejRenderToolbar();
     } catch(err) {
         ejToast('Error al cargar: ' + err.message, 'error');
     }
@@ -3293,11 +3359,19 @@ async function ejExportarAnimacionMP4() {
             rd.readAsDataURL(blob);
         });
         console.log('Enviando al servidor, tamaño:', base64.length);
-        const res = await fetch('https://toplidercoach.com/wp-content/uploads/ejercicios/upload-video.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer toplider_thumb_2026' },
-            body: JSON.stringify({ video: base64, id: String(ejEditandoId) })
-        });
+        var gpuUrl = 'https://gpu.toplidercoach.com/upload-video';
+        var cpuUrl = 'https://toplidercoach.com/wp-content/uploads/ejercicios/upload-video.php';
+        var uploadBody = JSON.stringify({ video: base64, id: String(ejEditandoId) });
+        var uploadHeaders = { 'Content-Type': 'application/json', 'Authorization': 'Bearer toplider_thumb_2026' };
+        var res;
+        try {
+            res = await fetch(gpuUrl, { method: 'POST', headers: uploadHeaders, body: uploadBody });
+            if (!res.ok) throw new Error('GPU HTTP ' + res.status);
+            console.log('Video procesado por GPU');
+        } catch(gpuErr) {
+            console.warn('GPU falló, usando CPU:', gpuErr.message);
+            res = await fetch(cpuUrl, { method: 'POST', headers: uploadHeaders, body: uploadBody });
+        }
         const data = await res.json();
         if (data.ok) {
             await supabaseClient.from('custom_exercises').update({ animation_url: data.url }).eq('id', ejEditandoId);
@@ -3382,7 +3456,7 @@ function ejShowTab(tab, btn) {
     document.querySelectorAll('.ej-nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('ej-tab-' + tab).style.display = 'block';
     if (btn) btn.classList.add('active');
-    if (tab === 'banco') ejBancoLoad();
+    if (tab === 'banco' && ejBancoCache.length === 0) ejBancoLoad();
 }
 
 // =============================================

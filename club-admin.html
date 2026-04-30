@@ -15,12 +15,11 @@
         .header{position:sticky;top:0;z-index:100;background:rgba(11,17,32,.85);backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid var(--border);padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between}
         .header-left{display:flex;align-items:center;gap:14px}
         .header-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff;box-shadow:0 4px 16px var(--accent-glow)}
-        .header h1{font-size:17px;font-weight:600;letter-spacing:-.3px}
-        .header h1 span{color:var(--text-muted);font-weight:400;margin-left:6px}
+        .header h1{font-size:17px;font-weight:600;letter-spacing:-.3px}.header h1 span{color:var(--text-muted);font-weight:400;margin-left:6px}
         .header-right{display:flex;align-items:center;gap:12px}
         .header-club{display:flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border);padding:6px 14px 6px 10px;border-radius:10px;font-size:13px;font-weight:500}
         .header-club .dot{width:8px;height:8px;border-radius:50%;background:var(--accent2);box-shadow:0 0 8px var(--accent2-glow)}
-        .header-user{background:linear-gradient(135deg,var(--accent),#5b6ef5);color:#fff;padding:5px 14px;border-radius:8px;font-size:12px;font-weight:600;letter-spacing:.3px}
+        .header-user{background:linear-gradient(135deg,var(--accent),#5b6ef5);color:#fff;padding:5px 14px;border-radius:8px;font-size:12px;font-weight:600}
         .container{max-width:1140px;margin:0 auto;padding:28px 32px;position:relative;z-index:1}
         .stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;animation:fadeUp .5s ease both}
         .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;position:relative;overflow:hidden;transition:all .3s}
@@ -31,52 +30,74 @@
         .stat-value{font-size:32px;font-weight:800;letter-spacing:-1px}
         .stat-card:nth-child(1) .stat-value{color:var(--accent)}.stat-card:nth-child(2) .stat-value{color:var(--accent2)}.stat-card:nth-child(3) .stat-value{color:var(--warning)}
         .tabs{display:flex;gap:4px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:24px;animation:fadeUp .5s ease .1s both}
-        .tab{flex:1;padding:12px 20px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;border-radius:var(--radius-sm);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;letter-spacing:.2px;transition:all .25s;position:relative}
+        .tab{flex:1;padding:12px 20px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;border-radius:var(--radius-sm);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;letter-spacing:.2px;transition:all .25s}
         .tab:hover{color:var(--text-secondary)}.tab.active{background:linear-gradient(135deg,rgba(56,130,246,.15),rgba(91,110,245,.1));color:var(--accent);box-shadow:inset 0 0 0 1px rgba(56,130,246,.2)}
-        .tab .tab-count{display:inline-block;background:rgba(56,130,246,.15);color:var(--accent);padding:1px 7px;border-radius:6px;font-size:11px;margin-left:6px;font-family:'JetBrains Mono',monospace}
+        .tab .tc{display:inline-block;background:rgba(56,130,246,.15);color:var(--accent);padding:1px 7px;border-radius:6px;font-size:11px;margin-left:6px;font-family:'JetBrains Mono',monospace}
         .card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;animation:fadeUp .5s ease .15s both}
-        .card-head{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+        .card-head{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
         .card-head h3{font-size:15px;font-weight:700;letter-spacing:-.2px}.card-body{padding:20px 24px}
         .btn{padding:9px 18px;border:none;border-radius:var(--radius-sm);cursor:pointer;font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;transition:all .2s;letter-spacing:.2px;display:inline-flex;align-items:center;gap:6px}
         .btn-primary{background:linear-gradient(135deg,var(--accent),#5b6ef5);color:#fff;box-shadow:0 4px 14px var(--accent-glow)}.btn-primary:hover{box-shadow:0 6px 20px rgba(56,130,246,.4);transform:translateY(-1px)}
-        .btn-success{background:linear-gradient(135deg,#059669,var(--accent2));color:#fff;box-shadow:0 4px 14px var(--accent2-glow)}.btn-success:hover{box-shadow:0 6px 20px rgba(6,214,160,.35);transform:translateY(-1px)}
+        .btn-success{background:linear-gradient(135deg,#059669,var(--accent2));color:#fff;box-shadow:0 4px 14px var(--accent2-glow)}.btn-success:hover{transform:translateY(-1px)}
         .btn-danger{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2)}.btn-danger:hover{background:rgba(239,68,68,.2)}
         .btn-secondary{background:var(--bg-elevated);color:var(--text-secondary);border:1px solid var(--border)}.btn-secondary:hover{border-color:var(--border-hover);color:var(--text-primary)}
         .btn-sm{padding:5px 12px;font-size:11px}
         .btn-ghost{background:transparent;color:var(--text-muted);border:1px dashed var(--border)}.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+        .btn-back{background:none;border:none;color:var(--text-muted);cursor:pointer;font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;padding:8px 0;transition:color .2s}.btn-back:hover{color:var(--accent)}
         .tbl{width:100%;border-collapse:collapse}.tbl th{text-align:left;font-size:10px;color:var(--text-muted);padding:10px 14px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:1.2px;font-weight:600}
         .tbl td{padding:14px;border-bottom:1px solid rgba(56,130,246,.05);font-size:13px;vertical-align:middle}.tbl tr:last-child td{border-bottom:none}.tbl tr{transition:all .15s}.tbl tr:hover td{background:rgba(56,130,246,.03)}
         .badge{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:5px;letter-spacing:.3px}
-        .badge-blue{background:rgba(56,130,246,.12);color:#60a5fa}.badge-green{background:rgba(6,214,160,.12);color:var(--accent2)}.badge-amber{background:rgba(245,158,11,.12);color:#fbbf24}.badge-purple{background:rgba(139,92,246,.12);color:#a78bfa}.badge-gray{background:rgba(100,116,139,.15);color:#94a3b8}
-        .cat-badge{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;letter-spacing:.3px}
-        .cat-prebenjamin{background:rgba(34,197,94,.12);color:#4ade80}.cat-benjamin{background:rgba(6,214,160,.12);color:var(--accent2)}.cat-alevin{background:rgba(56,130,246,.12);color:#60a5fa}.cat-infantil{background:rgba(139,92,246,.12);color:#a78bfa}.cat-cadete{background:rgba(245,158,11,.12);color:#fbbf24}.cat-juvenil{background:rgba(239,68,68,.12);color:#f87171}.cat-senior{background:rgba(100,116,139,.15);color:#94a3b8}
-        .color-pair{display:inline-flex;gap:3px;align-items:center}.color-swatch{width:20px;height:20px;border-radius:6px;border:2px solid rgba(255,255,255,.08);transition:transform .2s}.color-swatch:hover{transform:scale(1.2)}
-        .status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500}.status-dot{width:7px;height:7px;border-radius:50%}.status-active .status-dot{background:var(--accent2);box-shadow:0 0 8px var(--accent2-glow)}.status-inactive .status-dot{background:var(--text-muted)}
+        .badge-blue{background:rgba(56,130,246,.12);color:#60a5fa}.badge-green{background:rgba(6,214,160,.12);color:var(--accent2)}.badge-amber{background:rgba(245,158,11,.12);color:#fbbf24}.badge-purple{background:rgba(139,92,246,.12);color:#a78bfa}.badge-gray{background:rgba(100,116,139,.15);color:#94a3b8}.badge-red{background:rgba(239,68,68,.12);color:#f87171}
+        .cat-badge{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600}.cat-prebenjamin{background:rgba(34,197,94,.12);color:#4ade80}.cat-benjamin{background:rgba(6,214,160,.12);color:var(--accent2)}.cat-alevin{background:rgba(56,130,246,.12);color:#60a5fa}.cat-infantil{background:rgba(139,92,246,.12);color:#a78bfa}.cat-cadete{background:rgba(245,158,11,.12);color:#fbbf24}.cat-juvenil{background:rgba(239,68,68,.12);color:#f87171}.cat-senior{background:rgba(100,116,139,.15);color:#94a3b8}
+        .color-pair{display:inline-flex;gap:3px}.color-swatch{width:20px;height:20px;border-radius:6px;border:2px solid rgba(255,255,255,.08);transition:transform .2s}.color-swatch:hover{transform:scale(1.2)}
+        .status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500}.status-dot{width:7px;height:7px;border-radius:50%}.status-active .status-dot,.status-activo .status-dot{background:var(--accent2);box-shadow:0 0 8px var(--accent2-glow)}.status-inactive .status-dot,.status-lesionado .status-dot{background:var(--warning)}.status-baja .status-dot{background:var(--danger)}
         .perms-grid{display:grid;grid-template-columns:1fr 60px 60px;gap:0;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
         .perms-grid .ph{background:var(--bg-elevated);padding:10px 14px;font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:1px}
         .perms-grid .pm{padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:1px solid rgba(56,130,246,.05);display:flex;align-items:center;font-weight:500}
         .perms-grid .pc{padding:10px;border-bottom:1px solid rgba(56,130,246,.05);display:flex;align-items:center;justify-content:center}
         .perms-grid input[type="checkbox"]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}
         .modal-bg{display:none;position:fixed;inset:0;background:rgba(6,8,13,.8);backdrop-filter:blur(8px);z-index:1000;align-items:center;justify-content:center}.modal-bg.open{display:flex}
-        .modal{background:var(--bg-base);border:1px solid var(--border-hover);border-radius:18px;width:92%;max-width:580px;max-height:85vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,.6),0 0 60px var(--accent-glow);animation:modalIn .3s ease}
+        .modal{background:var(--bg-base);border:1px solid var(--border-hover);border-radius:18px;width:92%;max-width:640px;max-height:88vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,.6),0 0 60px var(--accent-glow);animation:modalIn .3s ease}
         .modal-head{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}.modal-head h3{font-size:16px;font-weight:700}
         .modal-close{background:var(--bg-elevated);border:1px solid var(--border);color:var(--text-muted);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s}.modal-close:hover{border-color:var(--danger);color:var(--danger)}
         .modal-body{padding:24px}.modal-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
-        .form-group{margin-bottom:16px}.form-group label{display:block;font-size:11px;color:var(--text-muted);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.8px}
-        .form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 14px;background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:'Outfit',sans-serif;font-size:13px;outline:none;transition:all .2s}
-        .form-group input:focus,.form-group select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
-        .form-group input[type="color"]{height:40px;cursor:pointer;padding:4px;border-radius:var(--radius-sm)}
-        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+        .form-group{margin-bottom:14px}.form-group label{display:block;font-size:11px;color:var(--text-muted);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.8px}
+        .form-group input,.form-group select,.form-group textarea{width:100%;padding:9px 12px;background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:'Outfit',sans-serif;font-size:13px;outline:none;transition:all .2s}
+        .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+        .form-group textarea{resize:vertical;min-height:60px}
+        .form-group input[type="color"]{height:38px;cursor:pointer;padding:4px}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+        .form-section{margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px}
         .empty{text-align:center;padding:48px 24px;color:var(--text-muted)}.empty .icon{font-size:40px;margin-bottom:12px;opacity:.5}.empty p{font-size:13px;font-weight:500}
         .toast{position:fixed;bottom:28px;right:28px;background:linear-gradient(135deg,#059669,var(--accent2));color:#fff;padding:12px 22px;border-radius:12px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;box-shadow:0 8px 24px var(--accent2-glow)}.toast.show{opacity:1;transform:translateY(0)}
         .section{display:none}.section.active{display:block;animation:fadeUp .35s ease}
         .row-actions{display:flex;gap:6px;justify-content:flex-end;opacity:.6;transition:opacity .2s}tr:hover .row-actions{opacity:1}
-        .admin-icon{display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(245,158,11,.05));color:#fbbf24;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:700;letter-spacing:.5px}
+        .admin-icon{display:inline-flex;align-items:center;background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(245,158,11,.05));color:#fbbf24;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:700;letter-spacing:.5px}
         .team-name{font-weight:600;letter-spacing:-.2px}
+        .team-name-link{font-weight:600;letter-spacing:-.2px;color:var(--accent);cursor:pointer;transition:color .2s}.team-name-link:hover{color:#60a5fa;text-decoration:underline}
+        /* Team detail header */
+        .team-header{display:flex;align-items:center;gap:16px;margin-bottom:24px;padding:20px 24px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);animation:fadeUp .3s ease}
+        .team-crest{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;flex-shrink:0}
+        .team-header-info{flex:1}
+        .team-header-info h2{font-size:20px;font-weight:700;letter-spacing:-.3px;margin-bottom:4px}
+        .team-header-meta{display:flex;gap:12px;flex-wrap:wrap}
+        .team-meta-item{font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:5px}
+        .team-meta-item strong{color:var(--text-primary)}
+        /* Player card in grid */
+        .players-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+        .player-card{background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;padding:16px;transition:all .25s;cursor:pointer;position:relative}
+        .player-card:hover{border-color:var(--border-hover);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+        .player-card-top{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+        .player-number{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;flex-shrink:0}
+        .player-card-name{font-weight:600;font-size:14px;letter-spacing:-.2px}
+        .player-card-pos{font-size:11px;color:var(--text-muted);font-weight:500}
+        .player-card-details{display:flex;gap:8px;flex-wrap:wrap}
+        .player-card-detail{font-size:11px;color:var(--text-secondary);background:var(--bg-deep);padding:2px 8px;border-radius:5px}
+        .player-card-status{position:absolute;top:12px;right:12px}
         @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
         @keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
-        ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--accent)}
-        @media(max-width:768px){.container{padding:16px}.stats-bar{grid-template-columns:1fr}.form-row{grid-template-columns:1fr}.header{padding:0 16px}}
+        ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+        @media(max-width:768px){.container{padding:16px}.stats-bar{grid-template-columns:1fr}.form-row,.form-row-3{grid-template-columns:1fr}.header{padding:0 16px}.players-grid{grid-template-columns:1fr}}
     </style>
 </head>
 <body>
@@ -84,50 +105,308 @@
 <div class="container">
     <div id="no-login" class="card" style="display:none"><div class="card-body" style="text-align:center;padding:60px"><div style="font-size:48px;margin-bottom:16px;opacity:.3">&#128274;</div><p style="color:#f87171;font-size:15px;margin-bottom:8px;font-weight:600">Sin sesion activa</p><p style="color:var(--text-muted);font-size:13px">Abre primero el HUB (<code style="background:var(--bg-elevated);padding:2px 6px;border-radius:4px">index.html</code>) e inicia sesion.</p></div></div>
     <div id="main-content" style="display:none">
+        <!-- Stats -->
         <div class="stats-bar"><div class="stat-card"><div class="stat-label">Equipos</div><div class="stat-value" id="stat-equipos">0</div></div><div class="stat-card"><div class="stat-label">Cargos</div><div class="stat-value" id="stat-cargos">0</div></div><div class="stat-card"><div class="stat-label">Miembros</div><div class="stat-value" id="stat-miembros">0</div></div></div>
-        <div class="tabs"><button class="tab active" onclick="showSection('equipos',this)">Equipos <span class="tab-count" id="tc-eq">0</span></button><button class="tab" onclick="showSection('cargos',this)">Cargos y Permisos <span class="tab-count" id="tc-cg">0</span></button><button class="tab" onclick="showSection('miembros',this)">Miembros <span class="tab-count" id="tc-mb">0</span></button></div>
-        <div id="sec-equipos" class="section active"><div class="card"><div class="card-head"><h3>Equipos del club</h3><button class="btn btn-primary" onclick="abrirModalEquipo()">+ Nuevo equipo</button></div><div class="card-body"><div id="lista-equipos"><div class="empty"><div class="icon">&#9917;</div><p>Cargando...</p></div></div></div></div></div>
-        <div id="sec-cargos" class="section"><div class="card"><div class="card-head"><h3>Cargos del club</h3><div style="display:flex;gap:8px"><button class="btn btn-ghost" onclick="crearCargosDefecto()">Plantilla basica</button><button class="btn btn-primary" onclick="abrirModalCargo()">+ Nuevo cargo</button></div></div><div class="card-body"><div id="lista-cargos"><div class="empty"><div class="icon">&#128188;</div><p>Cargando...</p></div></div></div></div></div>
-        <div id="sec-miembros" class="section"><div class="card"><div class="card-head"><h3>Miembros del club</h3><button class="btn btn-primary" onclick="abrirModalMiembro()">+ Añadir miembro</button></div><div class="card-body"><div id="lista-miembros"><div class="empty"><div class="icon">&#128101;</div><p>Cargando...</p></div></div></div></div></div>
+        <!-- Tabs -->
+        <div class="tabs" id="main-tabs"><button class="tab active" onclick="showSection('equipos',this)">Equipos <span class="tc" id="tc-eq">0</span></button><button class="tab" onclick="showSection('cargos',this)">Cargos <span class="tc" id="tc-cg">0</span></button><button class="tab" onclick="showSection('miembros',this)">Miembros <span class="tc" id="tc-mb">0</span></button></div>
+
+        <!-- ===== EQUIPOS ===== -->
+        <div id="sec-equipos" class="section active">
+            <div class="card"><div class="card-head"><h3>Equipos del club</h3><button class="btn btn-primary" onclick="abrirModalEquipo()">+ Nuevo equipo</button></div><div class="card-body"><div id="lista-equipos"></div></div></div>
+        </div>
+
+        <!-- ===== DETALLE EQUIPO ===== -->
+        <div id="sec-team-detail" class="section">
+            <button class="btn-back" onclick="volverAEquipos()">&#8592; Volver a equipos</button>
+            <div id="team-detail-header"></div>
+            <div class="card" style="margin-bottom:16px">
+                <div class="card-head">
+                    <h3>Plantilla <span class="tc" id="tc-players">0</span></h3>
+                    <div style="display:flex;gap:8px">
+                        <button class="btn btn-ghost" onclick="editarInfoEquipo()">Editar equipo</button>
+                        <button class="btn btn-primary" onclick="abrirModalJugador()">+ Añadir jugador</button>
+                    </div>
+                </div>
+                <div class="card-body"><div id="lista-jugadores"></div></div>
+            </div>
+        </div>
+
+        <!-- ===== CARGOS ===== -->
+        <div id="sec-cargos" class="section">
+            <div class="card"><div class="card-head"><h3>Cargos del club</h3><div style="display:flex;gap:8px"><button class="btn btn-ghost" onclick="crearCargosDefecto()">Plantilla basica</button><button class="btn btn-primary" onclick="abrirModalCargo()">+ Nuevo cargo</button></div></div><div class="card-body"><div id="lista-cargos"></div></div></div>
+        </div>
+
+        <!-- ===== MIEMBROS ===== -->
+        <div id="sec-miembros" class="section">
+            <div class="card"><div class="card-head"><h3>Miembros del club</h3><button class="btn btn-primary" onclick="abrirModalMiembro()">+ Añadir miembro</button></div><div class="card-body"><div id="lista-miembros"></div></div></div>
+        </div>
     </div>
 </div>
+
 <!-- MODAL EQUIPO -->
-<div class="modal-bg" id="modal-equipo"><div class="modal"><div class="modal-head"><h3 id="modal-equipo-title">Nuevo equipo</h3><button class="modal-close" onclick="cerrarModal('modal-equipo')">&times;</button></div><div class="modal-body"><input type="hidden" id="eq-id"><div class="form-row"><div class="form-group"><label>Nombre *</label><input type="text" id="eq-nombre" placeholder="Ej: Juvenil A"></div><div class="form-group"><label>Categoria</label><select id="eq-categoria"><option value="">Sin categoria</option><option value="prebenjamin">Prebenjamin</option><option value="benjamin">Benjamin</option><option value="alevin">Alevin</option><option value="infantil">Infantil</option><option value="cadete">Cadete</option><option value="juvenil">Juvenil</option><option value="senior">Senior</option></select></div></div><div class="form-row"><div class="form-group"><label>Color principal</label><input type="color" id="eq-color1" value="#3b82f6"></div><div class="form-group"><label>Color secundario</label><input type="color" id="eq-color2" value="#1e40af"></div></div></div><div class="modal-foot"><button class="btn btn-secondary" onclick="cerrarModal('modal-equipo')">Cancelar</button><button class="btn btn-success" onclick="guardarEquipo()">Guardar</button></div></div></div>
+<div class="modal-bg" id="modal-equipo"><div class="modal"><div class="modal-head"><h3 id="modal-equipo-title">Nuevo equipo</h3><button class="modal-close" onclick="cerrarModal('modal-equipo')">&times;</button></div><div class="modal-body">
+    <input type="hidden" id="eq-id">
+    <div class="form-row"><div class="form-group"><label>Nombre *</label><input type="text" id="eq-nombre" placeholder="Ej: Juvenil A"></div><div class="form-group"><label>Categoria</label><select id="eq-categoria"><option value="">Sin categoria</option><option value="prebenjamin">Prebenjamin</option><option value="benjamin">Benjamin</option><option value="alevin">Alevin</option><option value="infantil">Infantil</option><option value="cadete">Cadete</option><option value="juvenil">Juvenil</option><option value="senior">Senior</option></select></div></div>
+    <div class="form-row"><div class="form-group"><label>Color principal</label><input type="color" id="eq-color1" value="#3b82f6"></div><div class="form-group"><label>Color secundario</label><input type="color" id="eq-color2" value="#1e40af"></div></div>
+    <div class="form-section">Entrenador y Staff</div>
+    <div class="form-row"><div class="form-group"><label>Entrenador</label><input type="text" id="eq-coach" placeholder="Nombre del entrenador"></div><div class="form-group"><label>Delegado</label><input type="text" id="eq-delegate" placeholder="Nombre del delegado"></div></div>
+    <div class="form-row"><div class="form-group"><label>Telefono entrenador</label><input type="tel" id="eq-coach-phone" placeholder="600 000 000"></div><div class="form-group"><label>Email entrenador</label><input type="email" id="eq-coach-email" placeholder="email@club.com"></div></div>
+    <div class="form-section">Entrenamientos</div>
+    <div class="form-row"><div class="form-group"><label>Horario</label><input type="text" id="eq-schedule" placeholder="Mar y Jue 18:00-19:30"></div><div class="form-group"><label>Instalacion</label><input type="text" id="eq-location" placeholder="Campo Municipal 2"></div></div>
+    <div class="form-group"><label>Notas</label><textarea id="eq-notes" placeholder="Notas sobre el equipo"></textarea></div>
+</div><div class="modal-foot"><button class="btn btn-secondary" onclick="cerrarModal('modal-equipo')">Cancelar</button><button class="btn btn-success" onclick="guardarEquipo()">Guardar</button></div></div></div>
+
+<!-- MODAL JUGADOR -->
+<div class="modal-bg" id="modal-jugador"><div class="modal" style="max-width:700px"><div class="modal-head"><h3 id="modal-jugador-title">Nuevo jugador</h3><button class="modal-close" onclick="cerrarModal('modal-jugador')">&times;</button></div><div class="modal-body">
+    <input type="hidden" id="jg-id">
+    <div class="form-section" style="margin-top:0">Datos basicos</div>
+    <div class="form-row-3"><div class="form-group"><label>Nombre completo *</label><input type="text" id="jg-nombre" placeholder="Nombre y apellidos"></div><div class="form-group"><label>Dorsal</label><input type="number" id="jg-dorsal" placeholder="9" min="1" max="99"></div><div class="form-group"><label>Estado</label><select id="jg-status"><option value="activo">Activo</option><option value="lesionado">Lesionado</option><option value="baja">Baja</option><option value="prueba">En prueba</option><option value="cedido">Cedido</option></select></div></div>
+    <div class="form-row-3"><div class="form-group"><label>Posicion</label><select id="jg-posicion"><option value="">—</option><option value="portero">Portero</option><option value="defensa">Defensa</option><option value="centrocampista">Centrocampista</option><option value="delantero">Delantero</option></select></div><div class="form-group"><label>Posicion detallada</label><input type="text" id="jg-pos-detail" placeholder="Lateral derecho"></div><div class="form-group"><label>Pie dominante</label><select id="jg-pie"><option value="">—</option><option value="derecho">Derecho</option><option value="izquierdo">Izquierdo</option><option value="ambidiestro">Ambidiestro</option></select></div></div>
+
+    <div class="form-section">Datos personales</div>
+    <div class="form-row-3"><div class="form-group"><label>Fecha nacimiento</label><input type="date" id="jg-nacimiento"></div><div class="form-group"><label>Nacionalidad</label><input type="text" id="jg-nacionalidad" placeholder="Espanola"></div><div class="form-group"><label>DNI/NIE</label><input type="text" id="jg-dni" placeholder="12345678A"></div></div>
+    <div class="form-row-3"><div class="form-group"><label>Altura (cm)</label><input type="number" id="jg-altura" placeholder="175"></div><div class="form-group"><label>Peso (kg)</label><input type="number" id="jg-peso" placeholder="70" step="0.1"></div><div class="form-group"><label>N. ficha federativa</label><input type="text" id="jg-ficha" placeholder="RFEF-000000"></div></div>
+
+    <div class="form-section">Contacto</div>
+    <div class="form-row-3"><div class="form-group"><label>Telefono</label><input type="tel" id="jg-phone" placeholder="600 000 000"></div><div class="form-group"><label>Email</label><input type="email" id="jg-email" placeholder="jugador@email.com"></div><div class="form-group"><label>Ciudad</label><input type="text" id="jg-city" placeholder="Madrid"></div></div>
+    <div class="form-group"><label>Direccion</label><input type="text" id="jg-address" placeholder="Calle, numero, piso"></div>
+
+    <div class="form-section">Padre / Madre / Tutor</div>
+    <div class="form-row"><div class="form-group"><label>Nombre</label><input type="text" id="jg-parent" placeholder="Nombre del tutor"></div><div class="form-group"><label>Parentesco</label><select id="jg-parent-rel"><option value="">—</option><option value="padre">Padre</option><option value="madre">Madre</option><option value="tutor">Tutor legal</option></select></div></div>
+    <div class="form-row"><div class="form-group"><label>Telefono tutor</label><input type="tel" id="jg-parent-phone" placeholder="600 000 000"></div><div class="form-group"><label>Email tutor</label><input type="email" id="jg-parent-email" placeholder="tutor@email.com"></div></div>
+
+    <div class="form-section">Datos medicos</div>
+    <div class="form-row-3"><div class="form-group"><label>Grupo sanguineo</label><input type="text" id="jg-blood" placeholder="A+"></div><div class="form-group"><label>Seguro medico</label><input type="text" id="jg-insurance" placeholder="Adeslas, Sanitas..."></div><div class="form-group"><label>Alergias</label><input type="text" id="jg-allergies" placeholder="Ninguna"></div></div>
+    <div class="form-group"><label>Notas medicas</label><textarea id="jg-medical" placeholder="Observaciones medicas relevantes"></textarea></div>
+
+    <div class="form-section">Datos deportivos</div>
+    <div class="form-row"><div class="form-group"><label>Clubes anteriores</label><input type="text" id="jg-prev-clubs" placeholder="Club A, Club B"></div><div class="form-group"><label>Fecha alta en el club</label><input type="date" id="jg-reg-date"></div></div>
+    <div class="form-group"><label>Notas</label><textarea id="jg-notes" placeholder="Observaciones generales"></textarea></div>
+</div><div class="modal-foot"><button class="btn btn-secondary" onclick="cerrarModal('modal-jugador')">Cancelar</button><button class="btn btn-success" onclick="guardarJugador()">Guardar jugador</button></div></div></div>
+
 <!-- MODAL CARGO -->
 <div class="modal-bg" id="modal-cargo"><div class="modal"><div class="modal-head"><h3 id="modal-cargo-title">Nuevo cargo</h3><button class="modal-close" onclick="cerrarModal('modal-cargo')">&times;</button></div><div class="modal-body"><input type="hidden" id="cg-id"><div class="form-row"><div class="form-group"><label>Nombre *</label><input type="text" id="cg-nombre" placeholder="Ej: Director Deportivo"></div><div class="form-group"><label>Alcance equipos</label><select id="cg-scope"><option value="all">Ve todos los equipos</option><option value="assigned">Solo asignados</option></select></div></div><div class="form-group"><label>Descripcion</label><input type="text" id="cg-desc" placeholder="Descripcion breve"></div><div class="form-group"><label style="margin-bottom:10px">Permisos por modulo</label><div class="perms-grid" id="perms-grid"><div class="ph">Modulo</div><div class="ph" style="text-align:center">Ver</div><div class="ph" style="text-align:center">Editar</div></div></div></div><div class="modal-foot"><button class="btn btn-secondary" onclick="cerrarModal('modal-cargo')">Cancelar</button><button class="btn btn-success" onclick="guardarCargo()">Guardar</button></div></div></div>
+
 <!-- MODAL MIEMBRO -->
-<div class="modal-bg" id="modal-miembro"><div class="modal"><div class="modal-head"><h3 id="modal-miembro-title">Añadir miembro</h3><button class="modal-close" onclick="cerrarModal('modal-miembro')">&times;</button></div><div class="modal-body"><input type="hidden" id="mb-id"><div class="form-row"><div class="form-group"><label>Nombre *</label><input type="text" id="mb-nombre" placeholder="Nombre y apellidos"></div><div class="form-group"><label>Email</label><input type="email" id="mb-email" placeholder="email@ejemplo.com"></div></div><div class="form-row"><div class="form-group"><label>Cargo *</label><select id="mb-cargo"></select></div><div class="form-group"><label>WordPress User ID</label><input type="number" id="mb-wpid" placeholder="ID en WP"></div></div><div class="form-group" id="mb-equipos-wrap"><label>Equipos asignados</label><div id="mb-equipos-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div></div></div><div class="modal-foot"><button class="btn btn-secondary" onclick="cerrarModal('modal-miembro')">Cancelar</button><button class="btn btn-success" onclick="guardarMiembro()">Guardar</button></div></div></div>
+<div class="modal-bg" id="modal-miembro"><div class="modal"><div class="modal-head"><h3 id="modal-miembro-title">Añadir miembro</h3><button class="modal-close" onclick="cerrarModal('modal-miembro')">&times;</button></div><div class="modal-body"><input type="hidden" id="mb-id"><div class="form-row"><div class="form-group"><label>Nombre *</label><input type="text" id="mb-nombre" placeholder="Nombre y apellidos"></div><div class="form-group"><label>Email</label><input type="email" id="mb-email" placeholder="email@ejemplo.com"></div></div><div class="form-row"><div class="form-group"><label>Cargo *</label><select id="mb-cargo"></select></div><div class="form-group"><label>WordPress User ID</label><input type="number" id="mb-wpid" placeholder="ID en WP"></div></div><div class="form-group"><label>Equipos asignados</label><div id="mb-equipos-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div></div></div><div class="modal-foot"><button class="btn btn-secondary" onclick="cerrarModal('modal-miembro')">Cancelar</button><button class="btn btn-success" onclick="guardarMiembro()">Guardar</button></div></div></div>
+
 <div class="toast" id="toast"></div>
+
 <script>
 const supabaseClient=window.supabase.createClient('https://cqteodxyvavyroxeshoz.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxdGVvZHh5dmF2eXJveGVzaG96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyNzc2OTksImV4cCI6MjA4MDg1MzY5OX0.8sJC6twae2pnrf8NDVlOV2KnSOhBC1RrqWC0IiuE614');
-let clubId=null,clubData=null,usuario=null,equipos=[],cargos=[],miembros=[];
+let clubId=null,clubData=null,usuario=null,equipos=[],cargos=[],miembros=[],jugadores=[];
+let equipoActual=null; // equipo seleccionado en detalle
+
 const MODULOS=[{key:'dashboard',label:'Dashboard'},{key:'planificador',label:'Planificador'},{key:'pizarra',label:'Pizarra Tactica'},{key:'matchstats',label:'MatchStats'},{key:'asistencia',label:'Asistencia'},{key:'periodizacion',label:'Periodizacion'},{key:'plan_partido',label:'Plan de Partido'},{key:'mi_club',label:'Mi Club'},{key:'staff_ia',label:'Asistentes IA'},{key:'direccion_deportiva',label:'Direccion Deportiva'},{key:'scouting',label:'Scouting'},{key:'economia',label:'Control Economico'},{key:'personal',label:'Personal del Club'}];
-async function init(){const raw=localStorage.getItem('hub_user');if(!raw){document.getElementById('no-login').style.display='block';return}usuario=JSON.parse(raw);document.getElementById('h-user').textContent=usuario.display_name||usuario.user_login||'Usuario';const{data:club}=await supabaseClient.from('clubs').select('*').eq('wp_user_id',usuario.id).single();if(!club){document.getElementById('no-login').style.display='block';return}clubId=club.id;clubData=club;document.getElementById('h-club').textContent=club.name||'Mi Club';document.getElementById('main-content').style.display='block';await cargarEquipos();await cargarCargos();await cargarMiembros();actualizarStats()}
-function actualizarStats(){document.getElementById('stat-equipos').textContent=equipos.length;document.getElementById('stat-cargos').textContent=cargos.length;document.getElementById('stat-miembros').textContent=miembros.length;document.getElementById('tc-eq').textContent=equipos.length;document.getElementById('tc-cg').textContent=cargos.length;document.getElementById('tc-mb').textContent=miembros.length}
-function showSection(n,b){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('sec-'+n).classList.add('active');if(b)b.classList.add('active')}
+
+const POS_COLORS={portero:'var(--warning)',defensa:'var(--accent)',centrocampista:'var(--accent2)',delantero:'var(--danger)'};
+const STATUS_LABELS={activo:'Activo',lesionado:'Lesionado',baja:'Baja',prueba:'En prueba',cedido:'Cedido'};
+const STATUS_BADGE={activo:'badge-green',lesionado:'badge-amber',baja:'badge-red',prueba:'badge-purple',cedido:'badge-gray'};
+
+// ===== INIT =====
+async function init(){
+    const raw=localStorage.getItem('hub_user');if(!raw){document.getElementById('no-login').style.display='block';return}
+    usuario=JSON.parse(raw);document.getElementById('h-user').textContent=usuario.display_name||usuario.user_login||'Usuario';
+    const{data:club}=await supabaseClient.from('clubs').select('*').eq('wp_user_id',usuario.id).single();
+    if(!club){document.getElementById('no-login').style.display='block';return}
+    clubId=club.id;clubData=club;document.getElementById('h-club').textContent=club.name||'Mi Club';
+    document.getElementById('main-content').style.display='block';
+    await cargarEquipos();await cargarCargos();await cargarMiembros();actualizarStats();
+}
+function actualizarStats(){
+    document.getElementById('stat-equipos').textContent=equipos.length;
+    document.getElementById('stat-cargos').textContent=cargos.length;
+    document.getElementById('stat-miembros').textContent=miembros.length;
+    document.getElementById('tc-eq').textContent=equipos.length;
+    document.getElementById('tc-cg').textContent=cargos.length;
+    document.getElementById('tc-mb').textContent=miembros.length;
+}
+
+// ===== NAV =====
+function showSection(name,btn){
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.getElementById('sec-'+name).classList.add('active');
+    if(btn)btn.classList.add('active');
+    document.getElementById('main-tabs').style.display='flex';
+}
 function cerrarModal(id){document.getElementById(id).classList.remove('open')}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
-async function cargarEquipos(){const{data,error}=await supabaseClient.from('club_teams').select('*').eq('club_id',clubId).order('category').order('name');if(error)return;equipos=data||[];renderEquipos();actualizarStats()}
-function renderEquipos(){const el=document.getElementById('lista-equipos');if(!equipos.length){el.innerHTML='<div class="empty"><div class="icon">&#9917;</div><p>No hay equipos. Crea el primero.</p></div>';return}el.innerHTML=`<table class="tbl"><thead><tr><th>Equipo</th><th>Categoria</th><th>Colores</th><th>Estado</th><th></th></tr></thead><tbody>${equipos.map(e=>`<tr><td><span class="team-name">${e.name}</span></td><td>${e.category?`<span class="cat-badge cat-${e.category}">${e.category}</span>`:'<span class="badge badge-gray">—</span>'}</td><td><div class="color-pair"><span class="color-swatch" style="background:${e.color_primary}"></span><span class="color-swatch" style="background:${e.color_secondary}"></span></div></td><td><span class="status ${e.active?'status-active':'status-inactive'}"><span class="status-dot"></span>${e.active?'Activo':'Inactivo'}</span></td><td><div class="row-actions"><button class="btn btn-secondary btn-sm" onclick="editarEquipo('${e.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="eliminarEquipo('${e.id}','${e.name}')">Eliminar</button></div></td></tr>`).join('')}</tbody></table>`}
-function abrirModalEquipo(d){document.getElementById('eq-id').value=d?d.id:'';document.getElementById('eq-nombre').value=d?d.name:'';document.getElementById('eq-categoria').value=d?(d.category||''):'';document.getElementById('eq-color1').value=d?d.color_primary:'#3b82f6';document.getElementById('eq-color2').value=d?d.color_secondary:'#1e40af';document.getElementById('modal-equipo-title').textContent=d?'Editar equipo':'Nuevo equipo';document.getElementById('modal-equipo').classList.add('open')}
-function editarEquipo(id){const e=equipos.find(x=>x.id===id);if(e)abrirModalEquipo(e)}
-async function guardarEquipo(){const id=document.getElementById('eq-id').value;const obj={club_id:clubId,name:document.getElementById('eq-nombre').value.trim(),category:document.getElementById('eq-categoria').value||null,color_primary:document.getElementById('eq-color1').value,color_secondary:document.getElementById('eq-color2').value};if(!obj.name){toast('El nombre es obligatorio');return}let error;if(id)({error}=await supabaseClient.from('club_teams').update(obj).eq('id',id));else({error}=await supabaseClient.from('club_teams').insert(obj));if(error){toast('Error: '+error.message);return}cerrarModal('modal-equipo');toast(id?'Equipo actualizado':'Equipo creado');await cargarEquipos()}
-async function eliminarEquipo(id,name){if(!confirm('Eliminar "'+name+'"?'))return;const{error}=await supabaseClient.from('club_teams').delete().eq('id',id);if(error){toast('Error: '+error.message);return}toast('Equipo eliminado');await cargarEquipos()}
-async function cargarCargos(){const{data,error}=await supabaseClient.from('club_roles').select('*').eq('club_id',clubId).order('sort_order');if(error)return;cargos=data||[];renderCargos();actualizarStats()}
+
+function calcEdad(birth){if(!birth)return'';const h=new Date();const b=new Date(birth+'T12:00:00');let a=h.getFullYear()-b.getFullYear();if(h.getMonth()<b.getMonth()||(h.getMonth()===b.getMonth()&&h.getDate()<b.getDate()))a--;return a+' anos'}
+
+// ===== EQUIPOS =====
+async function cargarEquipos(){
+    const{data}=await supabaseClient.from('club_teams').select('*').eq('club_id',clubId).order('category').order('name');
+    equipos=data||[];renderEquipos();actualizarStats();
+}
+function renderEquipos(){
+    const el=document.getElementById('lista-equipos');
+    if(!equipos.length){el.innerHTML='<div class="empty"><div class="icon">&#9917;</div><p>No hay equipos. Crea el primero.</p></div>';return}
+    el.innerHTML=`<table class="tbl"><thead><tr><th>Equipo</th><th>Categoria</th><th>Entrenador</th><th>Colores</th><th>Estado</th><th></th></tr></thead><tbody>${equipos.map(e=>`<tr>
+        <td><span class="team-name-link" onclick="verEquipo('${e.id}')">${e.name}</span></td>
+        <td>${e.category?`<span class="cat-badge cat-${e.category}">${e.category}</span>`:'<span class="badge badge-gray">—</span>'}</td>
+        <td style="font-size:12px;color:var(--text-secondary)">${e.coach_name||'<span style="color:var(--text-muted)">Sin asignar</span>'}</td>
+        <td><div class="color-pair"><span class="color-swatch" style="background:${e.color_primary}"></span><span class="color-swatch" style="background:${e.color_secondary}"></span></div></td>
+        <td><span class="status ${e.active?'status-active':'status-inactive'}"><span class="status-dot"></span>${e.active?'Activo':'Inactivo'}</span></td>
+        <td><div class="row-actions"><button class="btn btn-secondary btn-sm" onclick="verEquipo('${e.id}')">Ver</button><button class="btn btn-danger btn-sm" onclick="eliminarEquipo('${e.id}','${e.name}')">Eliminar</button></div></td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+function abrirModalEquipo(d){
+    document.getElementById('eq-id').value=d?d.id:'';
+    document.getElementById('eq-nombre').value=d?d.name:'';
+    document.getElementById('eq-categoria').value=d?(d.category||''):'';
+    document.getElementById('eq-color1').value=d?d.color_primary:'#3b82f6';
+    document.getElementById('eq-color2').value=d?d.color_secondary:'#1e40af';
+    document.getElementById('eq-coach').value=d?(d.coach_name||''):'';
+    document.getElementById('eq-delegate').value=d?(d.delegate_name||''):'';
+    document.getElementById('eq-coach-phone').value=d?(d.coach_phone||''):'';
+    document.getElementById('eq-coach-email').value=d?(d.coach_email||''):'';
+    document.getElementById('eq-schedule').value=d?(d.training_schedule||''):'';
+    document.getElementById('eq-location').value=d?(d.training_location||''):'';
+    document.getElementById('eq-notes').value=d?(d.notes||''):'';
+    document.getElementById('modal-equipo-title').textContent=d?'Editar equipo':'Nuevo equipo';
+    document.getElementById('modal-equipo').classList.add('open');
+}
+function editarInfoEquipo(){if(equipoActual)abrirModalEquipo(equipoActual)}
+
+async function guardarEquipo(){
+    const id=document.getElementById('eq-id').value;
+    const obj={club_id:clubId,name:document.getElementById('eq-nombre').value.trim(),category:document.getElementById('eq-categoria').value||null,color_primary:document.getElementById('eq-color1').value,color_secondary:document.getElementById('eq-color2').value,coach_name:document.getElementById('eq-coach').value.trim()||null,delegate_name:document.getElementById('eq-delegate').value.trim()||null,coach_phone:document.getElementById('eq-coach-phone').value.trim()||null,coach_email:document.getElementById('eq-coach-email').value.trim()||null,training_schedule:document.getElementById('eq-schedule').value.trim()||null,training_location:document.getElementById('eq-location').value.trim()||null,notes:document.getElementById('eq-notes').value.trim()||null};
+    if(!obj.name){toast('El nombre es obligatorio');return}
+    let error;
+    if(id){({error}=await supabaseClient.from('club_teams').update(obj).eq('id',id))}
+    else{({error}=await supabaseClient.from('club_teams').insert(obj))}
+    if(error){toast('Error: '+error.message);return}
+    cerrarModal('modal-equipo');toast(id?'Equipo actualizado':'Equipo creado');
+    await cargarEquipos();
+    if(id&&equipoActual&&equipoActual.id===id){equipoActual={...equipoActual,...obj};renderTeamHeader()}
+}
+async function eliminarEquipo(id,name){if(!confirm('Eliminar "'+name+'" y todos sus jugadores?'))return;await supabaseClient.from('club_team_players').delete().eq('team_id',id);const{error}=await supabaseClient.from('club_teams').delete().eq('id',id);if(error){toast('Error: '+error.message);return}toast('Equipo eliminado');await cargarEquipos()}
+
+// ===== DETALLE EQUIPO =====
+async function verEquipo(id){
+    equipoActual=equipos.find(e=>e.id===id);if(!equipoActual)return;
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.getElementById('sec-team-detail').classList.add('active');
+    document.getElementById('main-tabs').style.display='none';
+    renderTeamHeader();
+    await cargarJugadores();
+}
+function volverAEquipos(){
+    equipoActual=null;
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.getElementById('sec-equipos').classList.add('active');
+    document.getElementById('main-tabs').style.display='flex';
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelector('.tab').classList.add('active');
+}
+function renderTeamHeader(){
+    const e=equipoActual;
+    document.getElementById('team-detail-header').innerHTML=`<div class="team-header">
+        <div class="team-crest" style="background:linear-gradient(135deg,${e.color_primary},${e.color_secondary})">${e.name.charAt(0)}</div>
+        <div class="team-header-info">
+            <h2>${e.name}</h2>
+            <div class="team-header-meta">
+                ${e.category?`<span class="team-meta-item"><span class="cat-badge cat-${e.category}">${e.category}</span></span>`:''}
+                ${e.coach_name?`<span class="team-meta-item">Entrenador: <strong>${e.coach_name}</strong></span>`:''}
+                ${e.delegate_name?`<span class="team-meta-item">Delegado: <strong>${e.delegate_name}</strong></span>`:''}
+                ${e.training_schedule?`<span class="team-meta-item">&#128339; ${e.training_schedule}</span>`:''}
+                ${e.training_location?`<span class="team-meta-item">&#127969; ${e.training_location}</span>`:''}
+            </div>
+        </div>
+    </div>`;
+}
+
+// ===== JUGADORES =====
+async function cargarJugadores(){
+    if(!equipoActual)return;
+    const{data}=await supabaseClient.from('club_team_players').select('*').eq('team_id',equipoActual.id).eq('active',true).order('shirt_number');
+    jugadores=data||[];renderJugadores();
+    document.getElementById('tc-players').textContent=jugadores.length;
+}
+function renderJugadores(){
+    const el=document.getElementById('lista-jugadores');
+    if(!jugadores.length){el.innerHTML='<div class="empty"><div class="icon">&#128085;</div><p>Sin jugadores. Añade el primero a la plantilla.</p></div>';return}
+    el.innerHTML=`<div class="players-grid">${jugadores.map(j=>{
+        const posColor=POS_COLORS[j.position]||'var(--text-muted)';
+        const edad=calcEdad(j.birth_date);
+        return`<div class="player-card" onclick="editarJugador('${j.id}')">
+            <div class="player-card-status"><span class="badge ${STATUS_BADGE[j.status]||'badge-gray'}">${STATUS_LABELS[j.status]||j.status}</span></div>
+            <div class="player-card-top">
+                <div class="player-number" style="background:${posColor};color:#fff">${j.shirt_number||'—'}</div>
+                <div><div class="player-card-name">${j.name}</div><div class="player-card-pos">${j.position_detail||j.position||'Sin posicion'}</div></div>
+            </div>
+            <div class="player-card-details">
+                ${edad?`<span class="player-card-detail">${edad}</span>`:''}
+                ${j.dominant_foot?`<span class="player-card-detail">Pie ${j.dominant_foot}</span>`:''}
+                ${j.height_cm?`<span class="player-card-detail">${j.height_cm}cm</span>`:''}
+                ${j.weight_kg?`<span class="player-card-detail">${j.weight_kg}kg</span>`:''}
+                ${j.nationality?`<span class="player-card-detail">${j.nationality}</span>`:''}
+            </div>
+        </div>`}).join('')}</div>`;
+}
+
+function abrirModalJugador(d){
+    document.getElementById('jg-id').value=d?d.id:'';
+    const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||''};
+    set('jg-nombre',d?.name);set('jg-dorsal',d?.shirt_number);set('jg-status',d?.status||'activo');
+    set('jg-posicion',d?.position);set('jg-pos-detail',d?.position_detail);set('jg-pie',d?.dominant_foot);
+    set('jg-nacimiento',d?.birth_date);set('jg-nacionalidad',d?.nationality);set('jg-dni',d?.dni_nie);
+    set('jg-altura',d?.height_cm);set('jg-peso',d?.weight_kg);set('jg-ficha',d?.license_number);
+    set('jg-phone',d?.phone);set('jg-email',d?.email);set('jg-city',d?.city);set('jg-address',d?.address);
+    set('jg-parent',d?.parent_name);set('jg-parent-rel',d?.parent_relationship);set('jg-parent-phone',d?.parent_phone);set('jg-parent-email',d?.parent_email);
+    set('jg-blood',d?.blood_type);set('jg-insurance',d?.medical_insurance);set('jg-allergies',d?.allergies);set('jg-medical',d?.medical_notes);
+    set('jg-prev-clubs',d?.previous_clubs);set('jg-reg-date',d?.registration_date);set('jg-notes',d?.notes);
+    document.getElementById('modal-jugador-title').textContent=d?'Editar jugador':'Nuevo jugador';
+    document.getElementById('modal-jugador').classList.add('open');
+}
+function editarJugador(id){const j=jugadores.find(x=>x.id===id);if(j)abrirModalJugador(j)}
+
+async function guardarJugador(){
+    const id=document.getElementById('jg-id').value;
+    const g=id=>document.getElementById(id)?.value?.trim()||null;
+    const obj={
+        club_id:clubId,team_id:equipoActual.id,
+        name:g('jg-nombre'),shirt_number:parseInt(g('jg-dorsal'))||null,status:g('jg-status')||'activo',
+        position:g('jg-posicion'),position_detail:g('jg-pos-detail'),dominant_foot:g('jg-pie'),
+        birth_date:g('jg-nacimiento'),nationality:g('jg-nacionalidad'),dni_nie:g('jg-dni'),
+        height_cm:parseInt(g('jg-altura'))||null,weight_kg:parseFloat(g('jg-peso'))||null,license_number:g('jg-ficha'),
+        phone:g('jg-phone'),email:g('jg-email'),city:g('jg-city'),address:g('jg-address'),
+        parent_name:g('jg-parent'),parent_relationship:g('jg-parent-rel'),parent_phone:g('jg-parent-phone'),parent_email:g('jg-parent-email'),
+        blood_type:g('jg-blood'),medical_insurance:g('jg-insurance'),allergies:g('jg-allergies'),medical_notes:g('jg-medical'),
+        previous_clubs:g('jg-prev-clubs'),registration_date:g('jg-reg-date'),notes:g('jg-notes'),
+        updated_at:new Date().toISOString()
+    };
+    if(!obj.name){toast('El nombre es obligatorio');return}
+    let error;
+    if(id){({error}=await supabaseClient.from('club_team_players').update(obj).eq('id',id))}
+    else{({error}=await supabaseClient.from('club_team_players').insert(obj))}
+    if(error){toast('Error: '+error.message);return}
+    cerrarModal('modal-jugador');toast(id?'Jugador actualizado':'Jugador añadido');
+    await cargarJugadores();
+}
+
+// ===== CARGOS =====
+async function cargarCargos(){const{data}=await supabaseClient.from('club_roles').select('*').eq('club_id',clubId).order('sort_order');cargos=data||[];renderCargos();actualizarStats()}
 function renderCargos(){const el=document.getElementById('lista-cargos');if(!cargos.length){el.innerHTML='<div class="empty"><div class="icon">&#128188;</div><p>No hay cargos. Usa "Plantilla basica".</p></div>';return}el.innerHTML=`<table class="tbl"><thead><tr><th>Cargo</th><th>Descripcion</th><th>Equipos</th><th>Modulos</th><th></th></tr></thead><tbody>${cargos.map(c=>{const p=c.permissions||{};const n=Object.keys(p).filter(k=>p[k]&&p[k].ver).length;return`<tr><td><span class="team-name">${c.name}</span> ${c.is_admin?'<span class="admin-icon">ADMIN</span>':''}</td><td style="color:var(--text-secondary);font-size:12px">${c.description||'—'}</td><td><span class="badge ${c.team_scope==='all'?'badge-blue':'badge-amber'}">${c.team_scope==='all'?'Todos':'Asignados'}</span></td><td><span class="badge badge-purple">${n} modulos</span></td><td><div class="row-actions"><button class="btn btn-secondary btn-sm" onclick="editarCargo('${c.id}')">Editar</button>${!c.is_admin?`<button class="btn btn-danger btn-sm" onclick="eliminarCargo('${c.id}','${c.name}')">Eliminar</button>`:''}</div></td></tr>`}).join('')}</tbody></table>`}
 function renderPermisosGrid(perms){const g=document.getElementById('perms-grid');g.innerHTML='<div class="ph">Modulo</div><div class="ph" style="text-align:center">Ver</div><div class="ph" style="text-align:center">Editar</div>';MODULOS.forEach(m=>{const p=(perms&&perms[m.key])||{};g.innerHTML+=`<div class="pm">${m.label}</div><div class="pc"><input type="checkbox" data-mod="${m.key}" data-perm="ver" ${p.ver?'checked':''}></div><div class="pc"><input type="checkbox" data-mod="${m.key}" data-perm="editar" ${p.editar?'checked':''}></div>`})}
 function leerPermisosGrid(){const p={};MODULOS.forEach(m=>{const v=document.querySelector(`[data-mod="${m.key}"][data-perm="ver"]`);const e=document.querySelector(`[data-mod="${m.key}"][data-perm="editar"]`);p[m.key]={ver:v?v.checked:false,editar:e?e.checked:false}});return p}
 function abrirModalCargo(d){document.getElementById('cg-id').value=d?d.id:'';document.getElementById('cg-nombre').value=d?d.name:'';document.getElementById('cg-desc').value=d?(d.description||''):'';document.getElementById('cg-scope').value=d?d.team_scope:'assigned';document.getElementById('modal-cargo-title').textContent=d?'Editar cargo':'Nuevo cargo';renderPermisosGrid(d?d.permissions:{});document.getElementById('modal-cargo').classList.add('open')}
 function editarCargo(id){const c=cargos.find(x=>x.id===id);if(c)abrirModalCargo(c)}
-async function guardarCargo(){const id=document.getElementById('cg-id').value;const obj={club_id:clubId,name:document.getElementById('cg-nombre').value.trim(),description:document.getElementById('cg-desc').value.trim()||null,team_scope:document.getElementById('cg-scope').value,permissions:leerPermisosGrid()};if(!obj.name){toast('El nombre es obligatorio');return}let error;if(id)({error}=await supabaseClient.from('club_roles').update(obj).eq('id',id));else({error}=await supabaseClient.from('club_roles').insert(obj));if(error){toast('Error: '+error.message);return}cerrarModal('modal-cargo');toast(id?'Cargo actualizado':'Cargo creado');await cargarCargos()}
+async function guardarCargo(){const id=document.getElementById('cg-id').value;const obj={club_id:clubId,name:document.getElementById('cg-nombre').value.trim(),description:document.getElementById('cg-desc').value.trim()||null,team_scope:document.getElementById('cg-scope').value,permissions:leerPermisosGrid()};if(!obj.name){toast('Nombre obligatorio');return}let error;if(id)({error}=await supabaseClient.from('club_roles').update(obj).eq('id',id));else({error}=await supabaseClient.from('club_roles').insert(obj));if(error){toast('Error: '+error.message);return}cerrarModal('modal-cargo');toast(id?'Cargo actualizado':'Cargo creado');await cargarCargos()}
 async function eliminarCargo(id,name){if(!confirm('Eliminar "'+name+'"?'))return;const{error}=await supabaseClient.from('club_roles').delete().eq('id',id);if(error){toast('Error: '+error.message);return}toast('Cargo eliminado');await cargarCargos()}
-async function crearCargosDefecto(){if(cargos.length>0&&!confirm('Ya hay cargos. Añadir plantilla?'))return;const ex=cargos.map(c=>c.name.toLowerCase());const tv={};MODULOS.forEach(m=>tv[m.key]={ver:true,editar:true});const sd={};MODULOS.forEach(m=>{const es=['dashboard','planificador','pizarra','matchstats','asistencia','periodizacion','mi_club','staff_ia','direccion_deportiva','scouting','plan_partido'].includes(m.key);sd[m.key]={ver:es,editar:es}});const se={};MODULOS.forEach(m=>{const es=['dashboard','planificador','pizarra','matchstats','asistencia','periodizacion','mi_club','staff_ia','plan_partido'].includes(m.key);se[m.key]={ver:es,editar:es}});const so={};MODULOS.forEach(m=>{so[m.key]={ver:m.key==='economia'||m.key==='dashboard',editar:m.key==='economia'}});const pl=[{name:'Administrador',description:'Control total del club',permissions:tv,team_scope:'all',is_admin:true,sort_order:0},{name:'Director Deportivo',description:'Supervisa lo deportivo',permissions:sd,team_scope:'all',is_admin:false,sort_order:1},{name:'Coordinador',description:'Coordina categorias',permissions:{...se,direccion_deportiva:{ver:true,editar:false}},team_scope:'assigned',is_admin:false,sort_order:2},{name:'Entrenador',description:'Gestiona su equipo',permissions:se,team_scope:'assigned',is_admin:false,sort_order:3},{name:'Gestor Economico',description:'Solo modulo financiero',permissions:so,team_scope:'all',is_admin:false,sort_order:4}];const nv=pl.filter(p=>!ex.includes(p.name.toLowerCase())).map(p=>({...p,club_id:clubId}));if(!nv.length){toast('Todos los cargos ya existen');return}const{error}=await supabaseClient.from('club_roles').insert(nv);if(error){toast('Error: '+error.message);return}toast(nv.length+' cargos creados');await cargarCargos()}
-async function cargarMiembros(){const{data,error}=await supabaseClient.from('club_members').select('*, club_roles(name, is_admin)').eq('club_id',clubId).order('created_at');if(error)return;miembros=data||[];renderMiembros();actualizarStats()}
-function renderMiembros(){const el=document.getElementById('lista-miembros');if(!miembros.length){el.innerHTML='<div class="empty"><div class="icon">&#128101;</div><p>No hay miembros. Añade al primero.</p></div>';return}el.innerHTML=`<table class="tbl"><thead><tr><th>Nombre</th><th>Cargo</th><th>Email</th><th>Equipos</th><th>Estado</th><th></th></tr></thead><tbody>${miembros.map(m=>{const ne=m.team_ids?m.team_ids.length:0;const rn=m.club_roles?m.club_roles.name:'—';const ia=m.club_roles&&m.club_roles.is_admin;return`<tr><td><span class="team-name">${m.display_name||'—'}</span> ${ia?'<span class="admin-icon">ADMIN</span>':''}</td><td><span class="badge badge-blue">${rn}</span></td><td style="color:var(--text-secondary);font-size:12px">${m.email||'—'}</td><td><span class="badge badge-green">${ne} equipos</span></td><td><span class="status ${m.active?'status-active':'status-inactive'}"><span class="status-dot"></span>${m.active?'Activo':'Inactivo'}</span></td><td><div class="row-actions"><button class="btn btn-secondary btn-sm" onclick="editarMiembro('${m.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="eliminarMiembro('${m.id}','${m.display_name}')">Eliminar</button></div></td></tr>`}).join('')}</tbody></table>`}
-function abrirModalMiembro(d){document.getElementById('mb-id').value=d?d.id:'';document.getElementById('mb-nombre').value=d?(d.display_name||''):'';document.getElementById('mb-email').value=d?(d.email||''):'';document.getElementById('mb-wpid').value=d?(d.wp_user_id||''):'';document.getElementById('modal-miembro-title').textContent=d?'Editar miembro':'Añadir miembro';const sel=document.getElementById('mb-cargo');sel.innerHTML='<option value="">Seleccionar cargo...</option>'+cargos.map(c=>`<option value="${c.id}" ${d&&d.role_id===c.id?'selected':''}>${c.name}</option>`).join('');const w=document.getElementById('mb-equipos-list');const a=d?(d.team_ids||[]):[];w.innerHTML=equipos.length?equipos.map(e=>`<label style="display:flex;align-items:center;gap:5px;background:var(--bg-deep);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;border:1px solid var(--border);transition:all .2s;font-weight:500"><input type="checkbox" class="mb-eq-chk" value="${e.id}" ${a.includes(e.id)?'checked':''} style="accent-color:var(--accent)">${e.name}</label>`).join(''):'<span style="color:var(--text-muted);font-size:12px">Crea equipos primero</span>';document.getElementById('modal-miembro').classList.add('open')}
+async function crearCargosDefecto(){if(cargos.length>0&&!confirm('Ya hay cargos. Añadir plantilla?'))return;const ex=cargos.map(c=>c.name.toLowerCase());const tv={};MODULOS.forEach(m=>tv[m.key]={ver:true,editar:true});const sd={};MODULOS.forEach(m=>{const es=['dashboard','planificador','pizarra','matchstats','asistencia','periodizacion','mi_club','staff_ia','direccion_deportiva','scouting','plan_partido'].includes(m.key);sd[m.key]={ver:es,editar:es}});const se={};MODULOS.forEach(m=>{const es=['dashboard','planificador','pizarra','matchstats','asistencia','periodizacion','mi_club','staff_ia','plan_partido'].includes(m.key);se[m.key]={ver:es,editar:es}});const so={};MODULOS.forEach(m=>{so[m.key]={ver:m.key==='economia'||m.key==='dashboard',editar:m.key==='economia'}});const pl=[{name:'Administrador',description:'Control total del club',permissions:tv,team_scope:'all',is_admin:true,sort_order:0},{name:'Director Deportivo',description:'Supervisa lo deportivo',permissions:sd,team_scope:'all',is_admin:false,sort_order:1},{name:'Coordinador',description:'Coordina categorias',permissions:{...se,direccion_deportiva:{ver:true,editar:false}},team_scope:'assigned',is_admin:false,sort_order:2},{name:'Entrenador',description:'Gestiona su equipo',permissions:se,team_scope:'assigned',is_admin:false,sort_order:3},{name:'Gestor Economico',description:'Solo modulo financiero',permissions:so,team_scope:'all',is_admin:false,sort_order:4}];const nv=pl.filter(p=>!ex.includes(p.name.toLowerCase())).map(p=>({...p,club_id:clubId}));if(!nv.length){toast('Ya existen');return}const{error}=await supabaseClient.from('club_roles').insert(nv);if(error){toast('Error: '+error.message);return}toast(nv.length+' cargos creados');await cargarCargos()}
+
+// ===== MIEMBROS =====
+async function cargarMiembros(){const{data}=await supabaseClient.from('club_members').select('*, club_roles(name, is_admin)').eq('club_id',clubId).order('created_at');miembros=data||[];renderMiembros();actualizarStats()}
+function renderMiembros(){const el=document.getElementById('lista-miembros');if(!miembros.length){el.innerHTML='<div class="empty"><div class="icon">&#128101;</div><p>No hay miembros.</p></div>';return}el.innerHTML=`<table class="tbl"><thead><tr><th>Nombre</th><th>Cargo</th><th>Email</th><th>Equipos</th><th>Estado</th><th></th></tr></thead><tbody>${miembros.map(m=>{const ne=m.team_ids?m.team_ids.length:0;const rn=m.club_roles?m.club_roles.name:'—';const ia=m.club_roles&&m.club_roles.is_admin;return`<tr><td><span class="team-name">${m.display_name||'—'}</span> ${ia?'<span class="admin-icon">ADMIN</span>':''}</td><td><span class="badge badge-blue">${rn}</span></td><td style="color:var(--text-secondary);font-size:12px">${m.email||'—'}</td><td><span class="badge badge-green">${ne} equipos</span></td><td><span class="status ${m.active?'status-active':'status-inactive'}"><span class="status-dot"></span>${m.active?'Activo':'Inactivo'}</span></td><td><div class="row-actions"><button class="btn btn-secondary btn-sm" onclick="editarMiembro('${m.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="eliminarMiembro('${m.id}','${m.display_name}')">Eliminar</button></div></td></tr>`}).join('')}</tbody></table>`}
+function abrirModalMiembro(d){document.getElementById('mb-id').value=d?d.id:'';document.getElementById('mb-nombre').value=d?(d.display_name||''):'';document.getElementById('mb-email').value=d?(d.email||''):'';document.getElementById('mb-wpid').value=d?(d.wp_user_id||''):'';document.getElementById('modal-miembro-title').textContent=d?'Editar miembro':'Añadir miembro';const sel=document.getElementById('mb-cargo');sel.innerHTML='<option value="">Seleccionar...</option>'+cargos.map(c=>`<option value="${c.id}" ${d&&d.role_id===c.id?'selected':''}>${c.name}</option>`).join('');const w=document.getElementById('mb-equipos-list');const a=d?(d.team_ids||[]):[];w.innerHTML=equipos.length?equipos.map(e=>`<label style="display:flex;align-items:center;gap:5px;background:var(--bg-deep);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;border:1px solid var(--border);font-weight:500"><input type="checkbox" class="mb-eq-chk" value="${e.id}" ${a.includes(e.id)?'checked':''} style="accent-color:var(--accent)">${e.name}</label>`).join(''):'<span style="color:var(--text-muted);font-size:12px">Crea equipos primero</span>';document.getElementById('modal-miembro').classList.add('open')}
 function editarMiembro(id){const m=miembros.find(x=>x.id===id);if(m)abrirModalMiembro(m)}
 async function guardarMiembro(){const id=document.getElementById('mb-id').value;const ti=[...document.querySelectorAll('.mb-eq-chk:checked')].map(c=>c.value);const obj={club_id:clubId,display_name:document.getElementById('mb-nombre').value.trim(),email:document.getElementById('mb-email').value.trim()||null,wp_user_id:parseInt(document.getElementById('mb-wpid').value)||0,role_id:document.getElementById('mb-cargo').value,team_ids:ti};if(!obj.display_name){toast('Nombre obligatorio');return}if(!obj.role_id){toast('Selecciona cargo');return}if(!obj.wp_user_id){toast('WP User ID necesario');return}let error;if(id)({error}=await supabaseClient.from('club_members').update(obj).eq('id',id));else({error}=await supabaseClient.from('club_members').insert(obj));if(error){toast('Error: '+error.message);return}cerrarModal('modal-miembro');toast(id?'Miembro actualizado':'Miembro añadido');await cargarMiembros()}
 async function eliminarMiembro(id,name){if(!confirm('Eliminar "'+name+'"?'))return;const{error}=await supabaseClient.from('club_members').delete().eq('id',id);if(error){toast('Error: '+error.message);return}toast('Miembro eliminado');await cargarMiembros()}
+
 init();
 </script>
 </body>

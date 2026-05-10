@@ -182,6 +182,7 @@ async function init() {
     if (typeof initSecCargos === 'function') initSecCargos();
     if (typeof initSecMiembros === 'function') initSecMiembros();
     if (typeof initSecMedico === 'function') initSecMedico();
+    if (typeof initSecSubgrupos === 'function') initSecSubgrupos();
 }
 
 init();

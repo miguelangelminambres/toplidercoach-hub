@@ -140,7 +140,7 @@ async function inicializarClub() {
         // 0.7.A — PRIORIDAD CLUB MODE: ¿es miembro activo de algún club?
         const { data: memberRow } = await supabaseClient
             .from('club_members')
-            .select('club_id, role_id, team_ids, club_roles(name, is_admin, permissions, team_scope)')
+            .select('id, accepted_at, club_id, role_id, team_ids, club_roles(name, is_admin, permissions, team_scope)')
             .eq('wp_user_id', usuario.id)
             .eq('active', true)
             .limit(1)
@@ -155,6 +155,15 @@ async function inicializarClub() {
             if (clubMembership) {
                 club = clubMembership;
                 window.__cm_membership = memberRow; // para cm-core.js
+
+                // 0.8.A — Hook accepted_at: primera vez que entra el miembro
+                if (memberRow.accepted_at === null) {
+                    await supabaseClient
+                        .from('club_members')
+                        .update({ accepted_at: new Date().toISOString() })
+                        .eq('id', memberRow.id);
+                    console.log('[Club Mode] Primer login del miembro registrado (accepted_at)');
+                }
             }
         }
 

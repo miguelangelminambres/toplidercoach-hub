@@ -265,7 +265,8 @@ function cmAplicarPermisos() {
         'analisis':      'analisis_postpartido',
         'plan_partido':  'matchstats',            // Plan partido es parte del flujo MatchStats
         'staff':         'cuerpo_tecnico_ia',
-        'dashboard':     null                      // Dashboard general: lo ven todos
+        'dashboard':     null,                     // Dashboard general: lo ven todos
+        'medico':        'modulo_medico'           // Panel medico -> Despacho medico
     };
 
     // Ocultar tabs de modulos sin permiso de ver

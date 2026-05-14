@@ -171,6 +171,9 @@ async function generarPDFConvocatoria() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
+    // Refrescar plantilla por si hay cambios recientes (nombres, fotos, dorsales)
+    try { plantillaPartido = await cargarPlantillaParaPDF(); } catch(e) { console.warn('No se pudo refrescar plantilla', e); }
+    
     const rival = document.getElementById('partido-rival').value || 'Rival';
     const fecha = document.getElementById('partido-fecha').value;
     const hora = document.getElementById('partido-hora').value || '';
@@ -192,7 +195,7 @@ async function generarPDFConvocatoria() {
     // Obtener jugadores convocados
     const jugadoresConvocados = [];
     for (const spId of convocadosPartido) {
-        const jugador = plantillaPartido.find(j => j.id === spId);
+        const jugador = plantillaPartido.find(j => String(j.id) === String(spId));
         if (jugador) {
             jugadoresConvocados.push({
                 id: spId,
@@ -399,6 +402,9 @@ async function generarPDFAlineacion() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
+    // Refrescar plantilla por si hay cambios recientes (nombres, fotos, dorsales)
+    try { plantillaPartido = await cargarPlantillaParaPDF(); } catch(e) { console.warn('No se pudo refrescar plantilla', e); }
+    
     const rival = document.getElementById('partido-rival').value || 'Rival';
     const fecha = document.getElementById('partido-fecha').value;
     const hora = document.getElementById('partido-hora').value || '';
@@ -417,7 +423,7 @@ async function generarPDFAlineacion() {
     const suplentes = [];
     
     for (const spId of convocadosPartido) {
-        const jugador = plantillaPartido.find(j => j.id === spId);
+        const jugador = plantillaPartido.find(j => String(j.id) === String(spId));
         if (jugador) {
             const jugadorData = {
                 id: spId,

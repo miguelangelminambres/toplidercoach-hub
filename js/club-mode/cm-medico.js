@@ -690,6 +690,14 @@ async function cmMedVerLesion(injuryId) {
         '<div id="cmmed-form-sesion-container"></div>' + sesHtml +
         '<div style="margin-top:20px;padding-top:16px;border-top:1px solid #334155">' +
             '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">' +
+                '<h4 style="margin:0;color:#e2e8f0">Cuestionario OSTRC <span style="font-size:11px;color:#94a3b8;font-weight:400">(severity score 0-100)</span></h4>' +
+                '<button class="cmmed-btn cmmed-btn-primary cmmed-btn-sm" onclick="cmMedMostrarFormOSTRC(\'' + inj.id + '\')">+ Nueva evaluacion</button>' +
+            '</div>' +
+            '<div id="cmmed-ostrc-form-container"></div>' +
+            '<div id="cmmed-ostrc-historial"></div>' +
+        '</div>' +
+        '<div style="margin-top:20px;padding-top:16px;border-top:1px solid #334155">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">' +
                 '<h4 style="margin:0;color:#e2e8f0">Archivos adjuntos</h4>' +
                 '<label class="cmmed-btn cmmed-btn-secondary cmmed-btn-sm" style="cursor:pointer">' +
                     '<input type="file" id="cmmed-file-input" style="display:none" accept="image/*,.pdf,.doc,.docx" onchange="cmMedSubirArchivo(\'' + inj.id + '\')" multiple>' +
@@ -700,6 +708,7 @@ async function cmMedVerLesion(injuryId) {
         '</div>';
 
     cmMedCargarAdjuntos(inj.id);
+    cmMedCargarOSTRC(inj.id);
 }
 
 async function cmMedCambiarEstadoLesion(injuryId, nuevoEstado) {
@@ -840,6 +849,169 @@ async function cmMedRegistrarAudit(action, tableName, recordId, details) {
             player_id: (tableName !== 'club_player_availability' && recordId) ? recordId : null,
             action: action, table_name: tableName, record_id: String(recordId || ''), details: details || null });
     } catch (e) { console.warn('Audit log error:', e); }
+}
+ // ========== CUESTIONARIO OSTRC ==========
+function cmMedMostrarFormOSTRC(injuryId) {
+    var container = document.getElementById('cmmed-ostrc-form-container');
+    var hoy = new Date().toISOString().split('T')[0];
+
+    container.innerHTML =
+        '<div style="background:#0f172a;border:1px solid #3b82f6;border-radius:10px;padding:18px;margin-bottom:14px">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><h4 style="margin:0;color:#60a5fa;font-size:15px">Evaluacion OSTRC</h4><button class="cmmed-btn cmmed-btn-secondary cmmed-btn-sm" onclick="document.getElementById(\'cmmed-ostrc-form-container\').innerHTML=\'\'">Cancelar</button></div>' +
+            '<div class="cmmed-form-group"><label>Fecha de evaluacion</label><input type="date" id="cmmed-ostrc-date" value="' + hoy + '"></div>' +
+
+            '<div style="margin-bottom:16px"><p style="color:#e2e8f0;font-size:13px;font-weight:600;margin:0 0 8px">1. ¿Ha afectado la lesion a su participacion en entrenamientos/partidos?</p>' +
+                '<label style="display:block;padding:6px 0;color:#cbd5e1;font-size:13px;cursor:pointer"><input type="radio" name="ostrc_q1" value="0" checked style="margin-right:8px">Participacion completa sin problemas</label>' +
+                '<label style="display:block;padding:6px 0;color:#cbd5e1;font-size:13px;cursor:pointer"><input type="radio" name="ostrc_q1" value="8" style="margin-right:8px">Participacion completa pero con molestias</label>' +
+                '<label style="display:block;padding:6px 0;color:#cbd5e1;font-size:13px;cursor:pointer"><input type="radio" name="ostrc_q1" value="17" style="margin-right:8px">Participacion reducida</label>' +
+                '<label style="display:block;padding:6px 0;color:#cbd5e1;font-size:13px;cursor:pointer"><input type="radio" name="ostrc_q1" value="25" style="margin-right:8px">No puede participar</label>' +
+            '</div>' +
+
+            '<div style="margin-bottom:16px"><p style="color:#e2e8f0;font-size:13px;font-weight:600;margin:0 0 8px">2. ¿En que medida ha reducido su volumen de entrenamiento?</p>' +
+                '<label style="display:block;padding:6px 0;color:#cbd5e1;font-size:13px;cursor:pointer"><input type="radio" name="ostrc_q2" value="0" checked style="margin-right:8px">Sin reduccion</label>' +
+                '<label style="display:block;padding:6px 0;color:#cbd5e1;font-size:13px;cursor:pointer"><input type="radio" name="ostrc_q2" value="6" style="margin-right:8px">Reduccion menor</label>' +
+                '<label style="display:block;padding:6px 0;color:#cbd5e1;font-size:13px;cursor:pointer"><input type="radio" name="ostrc_q2" value="13" style="margin-right:8px">Reduccion moderada</label>' +
+                '<label style="display:block;padding:6px 0;color:#cbd5e1;font-size:13px;cursor:pointer"><input type="radio" name="ostrc_q2" value="19" style="margin-right:8px">Reduccion importante</label>' +
+                '<label style="display:block;padding:6px 0;color:#cbd5e1;font-size:13px;cursor:pointer"><input type="radio" name="ostrc_q2" value="25" style="margin-right:8px">No puede entrenar</label>' +
+            '</div>' +
+
+            '<div style="margin-bottom:16px"><p style="color:#e2e8f0;font-size:13px;font-weight:600;margin:0 0 8px">3. ¿En que medida ha afectado la lesion a su rendimiento?</p>' +
+                '<label style="display:block;padding:6px 0;color:#cbd5e1;font-size:13px;cursor:pointer"><input type="radio" name="ostrc_q3" value="0" checked style="margin-right:8px">Sin efecto</label>' +
+                '<label style="display:block;padding:6px 0;color:#cbd5e1;font-size:13px;cursor:pointer"><input type="radio" name="ostrc_q3" value="6" style="margin-right:8px">Efecto menor</label>' +
+                '<label style="display:block;padding:6px 0;color:#cbd5e1;font-size:13px;cursor:pointer"><input type="radio" name="ostrc_q3" value="13" style="margin-right:8px">Efecto moderado</label>' +
+                '<label style="display:block;padding:6px 0;color:#cbd5e1;font-size:13px;cursor:pointer"><input type="radio" name="ostrc_q3" value="19" style="margin-right:8px">Efecto importante</label>' +
+                '<label style="display:block;padding:6px 0;color:#cbd5e1;font-size:13px;cursor:pointer"><input type="radio" name="ostrc_q3" value="25" style="margin-right:8px">No puede competir</label>' +
+            '</div>' +
+
+            '<div style="margin-bottom:16px"><p style="color:#e2e8f0;font-size:13px;font-weight:600;margin:0 0 8px">4. ¿En que medida ha experimentado dolor?</p>' +
+                '<label style="display:block;padding:6px 0;color:#cbd5e1;font-size:13px;cursor:pointer"><input type="radio" name="ostrc_q4" value="0" checked style="margin-right:8px">Sin dolor</label>' +
+                '<label style="display:block;padding:6px 0;color:#cbd5e1;font-size:13px;cursor:pointer"><input type="radio" name="ostrc_q4" value="6" style="margin-right:8px">Dolor leve</label>' +
+                '<label style="display:block;padding:6px 0;color:#cbd5e1;font-size:13px;cursor:pointer"><input type="radio" name="ostrc_q4" value="13" style="margin-right:8px">Dolor moderado</label>' +
+                '<label style="display:block;padding:6px 0;color:#cbd5e1;font-size:13px;cursor:pointer"><input type="radio" name="ostrc_q4" value="19" style="margin-right:8px">Dolor intenso</label>' +
+                '<label style="display:block;padding:6px 0;color:#cbd5e1;font-size:13px;cursor:pointer"><input type="radio" name="ostrc_q4" value="25" style="margin-right:8px">Dolor extremo</label>' +
+            '</div>' +
+
+            '<div class="cmmed-form-group"><label>Notas</label><textarea id="cmmed-ostrc-notes" placeholder="Observaciones adicionales..."></textarea></div>' +
+            '<div style="display:flex;gap:10px;justify-content:flex-end"><button class="cmmed-btn cmmed-btn-primary" onclick="cmMedGuardarOSTRC(\'' + injuryId + '\')">Guardar evaluacion</button></div>' +
+        '</div>';
+}
+
+async function cmMedGuardarOSTRC(injuryId) {
+    var fecha = document.getElementById('cmmed-ostrc-date').value;
+    if (!fecha) { showToast('La fecha es obligatoria', 'error'); return; }
+
+    var q1 = parseInt(document.querySelector('input[name="ostrc_q1"]:checked').value);
+    var q2 = parseInt(document.querySelector('input[name="ostrc_q2"]:checked').value);
+    var q3 = parseInt(document.querySelector('input[name="ostrc_q3"]:checked').value);
+    var q4 = parseInt(document.querySelector('input[name="ostrc_q4"]:checked').value);
+    var total = q1 + q2 + q3 + q4;
+
+    var res = await supabaseClient.from('cm_med_ostrc').insert({
+        club_id: clubId,
+        injury_id: injuryId,
+        player_id: cmMedJugadorActual,
+        eval_date: fecha,
+        q1_participation: q1,
+        q2_training: q2,
+        q3_performance: q3,
+        q4_pain: q4,
+        total_score: total,
+        notes: document.getElementById('cmmed-ostrc-notes').value.trim() || null,
+        conducted_by: usuario ? usuario.id : null
+    }).select().single();
+
+    if (res.error) { showToast('Error: ' + res.error.message, 'error'); return; }
+
+    showToast('OSTRC guardado · Score: ' + total + '/100');
+    cmMedRegistrarAudit('INSERT', 'cm_med_ostrc', res.data.id, 'OSTRC score: ' + total);
+    document.getElementById('cmmed-ostrc-form-container').innerHTML = '';
+    cmMedCargarOSTRC(injuryId);
+}
+
+async function cmMedCargarOSTRC(injuryId) {
+    var container = document.getElementById('cmmed-ostrc-historial');
+    if (!container) return;
+
+    var res = await supabaseClient.from('cm_med_ostrc').select('*')
+        .eq('injury_id', injuryId).order('eval_date', { ascending: true });
+    var evals = res.data || [];
+
+    if (evals.length === 0) {
+        container.innerHTML = '<p style="color:#64748b;font-size:13px;text-align:center;padding:14px">Sin evaluaciones OSTRC</p>';
+        return;
+    }
+
+    // Mini chart de evolucion
+    var chartHtml = '';
+    if (evals.length >= 2) {
+        chartHtml = '<div style="background:#1e293b;border-radius:8px;padding:14px;margin-bottom:10px"><canvas id="cmmed-ostrc-chart" height="120"></canvas></div>';
+    }
+
+    // Lista de evaluaciones
+    var listHtml = '';
+    evals.slice().reverse().forEach(function(e) {
+        var fecha = new Date(e.eval_date + 'T12:00:00').toLocaleDateString('es-ES');
+        var scoreColor = e.total_score <= 25 ? '#22c55e' : e.total_score <= 50 ? '#f59e0b' : e.total_score <= 75 ? '#f97316' : '#ef4444';
+        var barWidth = e.total_score;
+
+        listHtml +=
+            '<div style="display:flex;align-items:center;gap:12px;padding:10px;background:#1e293b;border-radius:8px;margin-bottom:6px">' +
+                '<div style="min-width:70px;text-align:center"><div style="font-size:22px;font-weight:700;color:' + scoreColor + '">' + e.total_score + '</div><div style="font-size:10px;color:#94a3b8">/100</div></div>' +
+                '<div style="flex:1">' +
+                    '<div style="color:#e2e8f0;font-size:13px;margin-bottom:4px">' + fecha + '</div>' +
+                    '<div style="background:#0f172a;border-radius:4px;height:8px;overflow:hidden"><div style="width:' + barWidth + '%;height:100%;background:' + scoreColor + ';border-radius:4px;transition:width .3s"></div></div>' +
+                    '<div style="display:flex;gap:8px;margin-top:4px;font-size:11px;color:#94a3b8">' +
+                        '<span>Particip: ' + e.q1_participation + '</span>' +
+                        '<span>Volumen: ' + e.q2_training + '</span>' +
+                        '<span>Rendim: ' + e.q3_performance + '</span>' +
+                        '<span>Dolor: ' + e.q4_pain + '</span>' +
+                    '</div>' +
+                    (e.notes ? '<div style="color:#94a3b8;font-size:11px;margin-top:2px">' + e.notes + '</div>' : '') +
+                '</div>' +
+            '</div>';
+    });
+
+    container.innerHTML = chartHtml + listHtml;
+
+    // Dibujar chart si hay 2+ evaluaciones
+    if (evals.length >= 2) {
+        setTimeout(function() {
+            var canvas = document.getElementById('cmmed-ostrc-chart');
+            if (!canvas) return;
+            var labels = evals.map(function(e) {
+                var d = new Date(e.eval_date + 'T12:00:00');
+                return d.getDate() + '/' + (d.getMonth() + 1);
+            });
+            var scores = evals.map(function(e) { return e.total_score; });
+
+            new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'OSTRC Score',
+                        data: scores,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59,130,246,0.1)',
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 5,
+                        pointBackgroundColor: scores.map(function(s) {
+                            return s <= 25 ? '#22c55e' : s <= 50 ? '#f59e0b' : s <= 75 ? '#f97316' : '#ef4444';
+                        })
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { color: '#94a3b8', stepSize: 25 }, grid: { color: '#334155' } },
+                        x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }
+                    }
+                }
+            });
+        }, 100);
+    }
 }
 // ========== ARCHIVOS ADJUNTOS ==========
 async function cmMedCargarAdjuntos(injuryId) {

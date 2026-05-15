@@ -1209,8 +1209,12 @@ async function cargarMisEjerciciosBiblioteca() {
             
             if (ej.thumbnail_svg) {
                 try {
-                    var blob = new Blob([ej.thumbnail_svg], {type: 'image/svg+xml'});
-                    thumbSrc = URL.createObjectURL(blob);
+                    if (ej.thumbnail_svg.startsWith('data:')) {
+                        thumbSrc = ej.thumbnail_svg;
+                    } else {
+                        var blob = new Blob([ej.thumbnail_svg], {type: 'image/svg+xml'});
+                        thumbSrc = URL.createObjectURL(blob);
+                    }
                 } catch(e) {
                     thumbSrc = '';
                 }
@@ -1273,9 +1277,14 @@ function seleccionarMiEjercicio(id) {
             var thumbHTML = '';
             if (ej.thumbnail_svg) {
                 try {
-                    var blob = new Blob([ej.thumbnail_svg], {type: 'image/svg+xml'});
-                    var blobUrl = URL.createObjectURL(blob);
-                    thumbHTML = '<img src="' + blobUrl + '" alt="' + ej.name + '" style="width:100%;border-radius:8px;margin-bottom:10px">';
+                    var imgSrc;
+                    if (ej.thumbnail_svg.startsWith('data:')) {
+                        imgSrc = ej.thumbnail_svg;
+                    } else {
+                        var blob = new Blob([ej.thumbnail_svg], {type: 'image/svg+xml'});
+                        imgSrc = URL.createObjectURL(blob);
+                    }
+                    thumbHTML = '<img src="' + imgSrc + '" alt="' + ej.name + '" style="width:100%;border-radius:8px;margin-bottom:10px">';
                 } catch(e) {}
             }
             

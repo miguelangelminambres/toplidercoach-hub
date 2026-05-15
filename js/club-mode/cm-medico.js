@@ -263,7 +263,8 @@ async function cmMedCargarJugadores() {
         });
 
         cmMedRenderJugadores();
-
+// Comprobar certificados medicos proximos a caducar
+        cmMedComprobarCertificados();
     } catch (e) {
         console.error('cmMedCargarJugadores:', e);
         grid.innerHTML = '<div class="cmmed-empty"><div class="icon">⚠️</div><p>Error al cargar jugadores</p></div>';
@@ -488,6 +489,62 @@ async function cmMedCargarLesiones(playerId) {
 }
 
 function cmMedMecanismoLabel(m) { var l = { contact: 'Contacto', non_contact: 'Sin contacto', overuse: 'Sobrecarga', illness: 'Enfermedad' }; return l[m] || m; }
+// ========== ALERTAS CERTIFICADO MEDICO ==========
+async function cmMedComprobarCertificados() {
+    var res = await supabaseClient.from('cm_med_player_record')
+        .select('player_id, medical_certificate_expiry')
+        .eq('club_id', clubId).eq('archived', false)
+        .not('medical_certificate_expiry', 'is', null);
+
+    var records = res.data || [];
+    var hoy = new Date();
+    var en30dias = new Date();
+    en30dias.setDate(en30dias.getDate() + 30);
+
+    var alertas = [];
+    records.forEach(function(r) {
+        if (!r.medical_certificate_expiry) return;
+        var expiry = new Date(r.medical_certificate_expiry + 'T12:00:00');
+        var player = cmMedJugadoresData.find(function(j) { return j.playerId === r.player_id; });
+        var nombre = player ? player.name : 'Jugador';
+
+        if (expiry < hoy) {
+            alertas.push({ name: nombre, type: 'expired', date: expiry, playerId: r.player_id });
+        } else if (expiry <= en30dias) {
+            var diasRestantes = Math.ceil((expiry - hoy) / 86400000);
+            alertas.push({ name: nombre, type: 'expiring', days: diasRestantes, date: expiry, playerId: r.player_id });
+        }
+    });
+
+    // Renderizar alertas si hay
+    var existingAlert = document.getElementById('cmmed-cert-alerts');
+    if (existingAlert) existingAlert.remove();
+
+    if (alertas.length === 0) return;
+
+    var panel = document.querySelector('.cmmed-panel');
+    if (!panel) return;
+
+    var html = '<div id="cmmed-cert-alerts" style="background:#451a03;border:1px solid #92400e;border-radius:10px;padding:12px 16px;margin-bottom:16px">' +
+        '<div style="color:#fbbf24;font-weight:600;font-size:13px;margin-bottom:6px">Certificados medicos</div>';
+
+    alertas.forEach(function(a) {
+        var fecha = a.date.toLocaleDateString('es-ES');
+        if (a.type === 'expired') {
+            html += '<div style="color:#fca5a5;font-size:12px;padding:2px 0;cursor:pointer" onclick="cmMedAbrirFicha(\'' + a.playerId + '\',\'' + a.name.replace(/'/g, "\\'") + '\',\'\')">CADUCADO: ' + a.name + ' (vencio ' + fecha + ')</div>';
+        } else {
+            html += '<div style="color:#fcd34d;font-size:12px;padding:2px 0;cursor:pointer" onclick="cmMedAbrirFicha(\'' + a.playerId + '\',\'' + a.name.replace(/'/g, "\\'") + '\',\'\')">CADUCA PRONTO: ' + a.name + ' (en ' + a.days + ' dias, ' + fecha + ')</div>';
+        }
+    });
+
+    html += '</div>';
+
+    // Insertar despues del header
+    var header = panel.querySelector('.cmmed-header');
+    if (header) {
+        header.insertAdjacentHTML('afterend', html);
+    }
+}
 // ========== BODY MAP INTERACTIVO ==========
 var cmMedBodyChart = null;
 var cmMedBodyChartView = 'FRONT';
@@ -589,6 +646,41 @@ function cmMedInitBodyMap(containerId) {
             }
         }
     });
+    // Mostrar lesiones activas en el body map
+    var playerInjuries = cmMedJugadoresData.find(function(j) { return j.playerId === cmMedJugadorActual; });
+    if (playerInjuries && playerInjuries.injuries && playerInjuries.injuries.length > 0) {
+        var injuredState = {};
+        playerInjuries.injuries.forEach(function(inj) {
+            if (inj.body_zone) {
+                // Buscar el muscle ID correspondiente a esta zona
+                cmMedBodyZones.forEach(function(z) {
+                    if (z.zone_id === inj.body_zone) {
+                        // Intentar mapeo inverso zona -> muscle
+                        var zoneName = z.zone_name_es.toLowerCase();
+                        var muscleGuess = null;
+                        if (zoneName.includes('isquiotibial') || zoneName.includes('muslo posterior')) muscleGuess = zoneName.includes('derech') ? 'hamstring-right' : 'hamstring-left';
+                        if (zoneName.includes('muslo anterior') || zoneName.includes('cuadricep')) muscleGuess = zoneName.includes('derech') ? 'quadriceps-right' : 'quadriceps-left';
+                        if (zoneName.includes('gemelo') || zoneName.includes('pantorrilla')) muscleGuess = zoneName.includes('derech') ? 'calves-right' : 'calves-left';
+                        if (zoneName.includes('tobillo') || zoneName.includes('pie')) muscleGuess = zoneName.includes('derech') ? 'tibialis-anterior-right' : 'tibialis-anterior-left';
+                        if (zoneName.includes('rodilla')) muscleGuess = zoneName.includes('derech') ? 'knees-right' : 'knees-left';
+                        if (zoneName.includes('hombro') && zoneName.includes('derech')) muscleGuess = 'front-deltoids-right';
+                        if (zoneName.includes('hombro') && zoneName.includes('izquierd')) muscleGuess = 'front-deltoids-left';
+                        if (zoneName.includes('abdomen')) muscleGuess = 'abs-upper-left';
+                        if (zoneName.includes('lumbar')) muscleGuess = 'lower-back-left';
+                        if (zoneName.includes('gluteo')) muscleGuess = zoneName.includes('derech') ? 'gluteal-right' : 'gluteal-left';
+                        if (zoneName.includes('ingle') || zoneName.includes('cadera')) muscleGuess = zoneName.includes('derech') ? 'hip-flexor-right' : 'hip-flexor-left';
+
+                        if (muscleGuess) {
+                            injuredState[muscleGuess] = { intensity: 8 };
+                        }
+                    }
+                });
+            }
+        });
+        if (Object.keys(injuredState).length > 0) {
+            cmMedBodyChart.update({ bodyState: injuredState });
+        }
+    }
 }
 
 function cmMedToggleBodyView() {
@@ -641,7 +733,23 @@ async function cmMedGuardarLesion() {
         context: document.getElementById('cmmed-inj-context').value || null, severity: document.getElementById('cmmed-inj-severity').value || null,
         estimated_days: parseInt(document.getElementById('cmmed-inj-days').value) || null, description: document.getElementById('cmmed-inj-desc').value.trim() || null,
         status: 'active', registered_by: usuario ? usuario.id : null };
-
+// Detectar recurrencia: misma zona + mismo OSIICS + alta < 2 meses
+    if (zona && lesion.osiics_code) {
+        var dosAtras = new Date();
+        dosAtras.setMonth(dosAtras.getMonth() - 2);
+        var recCheck = await supabaseClient.from('cm_med_injuries')
+            .select('id, discharge_date')
+            .eq('club_id', clubId).eq('player_id', playerId)
+            .eq('body_zone', zona).eq('osiics_code', lesion.osiics_code)
+            .eq('status', 'discharged').eq('archived', false)
+            .gte('discharge_date', dosAtras.toISOString().split('T')[0])
+            .order('discharge_date', { ascending: false }).limit(1);
+        if (recCheck.data && recCheck.data.length > 0) {
+            lesion.is_recurrence = true;
+            lesion.original_injury_id = recCheck.data[0].id;
+            showToast('ATENCION: Recurrencia detectada (misma zona y diagnostico en < 2 meses)', 'error');
+        }
+    }
     var res = await supabaseClient.from('cm_med_injuries').insert(lesion).select().single();
     if (res.error) { showToast('Error al registrar: ' + res.error.message, 'error'); return; }
     showToast('Lesion registrada');

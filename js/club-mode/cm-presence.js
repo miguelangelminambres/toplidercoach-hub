@@ -236,12 +236,13 @@ function cmPresRenderUser(u) {
 
     var esYo = usuario && u.wp_user_id === usuario.id;
     var nombreDisplay = u.display_name + (esYo ? ' (tu)' : '');
+    var clickChat = esYo ? '' : ' onclick="cmPresCerrarPanel();cmChatIniciar(' + u.wp_user_id + ',\'' + u.display_name.replace(/'/g, "\\'") + '\',\'' + (u.role_name || '').replace(/'/g, "\\'") + '\')" style="cursor:pointer" title="Enviar mensaje"';
 
-    return '<div class="cm-pres-user">' +
+    return '<div class="cm-pres-user"' + clickChat + '>' +
         '<div class="cm-pres-avatar">' + initials + '</div>' +
         '<div class="cm-pres-info">' +
             '<div class="cm-pres-name">' + nombreDisplay + '</div>' +
-            '<div class="cm-pres-role">' + (u.role_name || '') + '</div>' +
+            '<div class="cm-pres-role">' + (u.role_name || '') + (esYo ? '' : ' · Clic para chatear') + '</div>' +
         '</div>' +
         '<div class="cm-pres-status ' + u._status + '"></div>' +
     '</div>';

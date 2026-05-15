@@ -694,6 +694,7 @@ async function cmMedVerLesion(injuryId) {
                 '<button class="cmmed-btn cmmed-btn-sm '+(inj.status==='rtp'?'cmmed-btn-primary':'cmmed-btn-secondary')+'" onclick="cmMedCambiarEstadoLesion(\''+inj.id+'\',\'rtp\')">Return-to-Play</button>' +
                 '<button class="cmmed-btn cmmed-btn-sm '+(inj.status==='discharged'?'cmmed-btn-success':'cmmed-btn-secondary')+'" onclick="cmMedDarAlta(\''+inj.id+'\')">Alta medica</button>' +
             '</div></div></div>' +
+            '<div style="margin-bottom:16px" id="cmmed-rtp-container"></div>' +
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><h4 style="margin:0;color:#e2e8f0">Sesiones de tratamiento</h4><button class="cmmed-btn cmmed-btn-primary cmmed-btn-sm" onclick="cmMedMostrarFormSesion(\''+inj.id+'\')">+ Nueva sesion SOAP</button></div>' +
         '<div id="cmmed-form-sesion-container"></div>' + sesHtml +
         '<div style="margin-top:20px;padding-top:16px;border-top:1px solid #334155">' +
@@ -717,6 +718,7 @@ async function cmMedVerLesion(injuryId) {
 
     cmMedCargarAdjuntos(inj.id);
     cmMedCargarOSTRC(inj.id);
+    cmMedCargarRTP(inj.id);
 }
 
 async function cmMedCambiarEstadoLesion(injuryId, nuevoEstado) {
@@ -1121,6 +1123,232 @@ async function cmMedPDFHistorial(playerId, playerName) {
     doc.save('Historial_' + playerName.replace(/\s/g, '_') + '.pdf');
     showToast('Historial PDF generado');
     cmMedRegistrarAudit('EXPORT', 'cm_med_player_record', playerId, 'Exporto PDF historial medico');
+}
+// ========== PROTOCOLO RETURN-TO-PLAY (RTP) ==========
+var CM_RTP_PHASES = [
+    { phase: 1, name: 'Reposo', desc: 'Proteccion, control del dolor, tratamiento medico', color: '#ef4444', semaforo: 'red' },
+    { phase: 2, name: 'Actividad ligera', desc: 'Caminar, bicicleta estatica, piscina. Sin impacto', color: '#f97316', semaforo: 'red' },
+    { phase: 3, name: 'Ejercicio especifico', desc: 'Carrera, agilidad, balon individual. Sin contacto', color: '#f59e0b', semaforo: 'amber' },
+    { phase: 4, name: 'Entrenamiento sin contacto', desc: 'Ejercicios tacticos, disparos, circuitos. Sin duelos', color: '#84cc16', semaforo: 'amber' },
+    { phase: 5, name: 'Entrenamiento completo', desc: 'Entrenamiento con equipo, contacto, duelos, partidos de practica', color: '#22c55e', semaforo: 'amber' },
+    { phase: 6, name: 'Vuelta a competicion', desc: 'Apto para partido oficial. Alta deportiva completa', color: '#3b82f6', semaforo: 'green' }
+];
+
+async function cmMedCargarRTP(injuryId) {
+    var container = document.getElementById('cmmed-rtp-container');
+    if (!container) return;
+
+    var res = await supabaseClient.from('cm_med_rtp').select('*')
+        .eq('injury_id', injuryId).order('phase', { ascending: true });
+    var phases = res.data || [];
+
+    // Determinar fase actual
+    var currentPhase = 0;
+    var phaseMap = {};
+    phases.forEach(function(p) {
+        phaseMap[p.phase] = p;
+        if (!p.completed_at) currentPhase = Math.max(currentPhase, p.phase);
+        else currentPhase = Math.max(currentPhase, p.phase);
+    });
+    // Si todas completadas, fase actual = ultima completada + 1 (o 6 si ya termino)
+    var lastCompleted = 0;
+    phases.forEach(function(p) { if (p.completed_at) lastCompleted = Math.max(lastCompleted, p.phase); });
+    if (phases.length > 0 && phases.every(function(p) { return p.completed_at; })) {
+        currentPhase = Math.min(lastCompleted + 1, 6);
+    }
+    if (phases.length === 0) currentPhase = 0;
+
+    // Render
+    var html =
+        '<div style="background:#1e293b;border-radius:10px;padding:16px;border:1px solid #334155">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">' +
+                '<h4 style="margin:0;color:#e2e8f0;font-size:14px">Protocolo Return-to-Play</h4>' +
+                '<span style="color:#94a3b8;font-size:12px">Fase ' + (currentPhase || '-') + ' de 6</span>' +
+            '</div>';
+
+    // Barra de progreso visual
+    html += '<div style="display:flex;gap:4px;margin-bottom:16px">';
+    CM_RTP_PHASES.forEach(function(rtp) {
+        var phaseData = phaseMap[rtp.phase];
+        var isCompleted = phaseData && phaseData.completed_at;
+        var isCurrent = rtp.phase === currentPhase && !isCompleted;
+        var isPending = !phaseData || (!isCompleted && !isCurrent);
+
+        var bgColor = isCompleted ? rtp.color : isCurrent ? rtp.color : '#334155';
+        var opacity = isCompleted ? '1' : isCurrent ? '0.7' : '0.3';
+        var border = isCurrent ? '2px solid ' + rtp.color : '2px solid transparent';
+
+        html += '<div style="flex:1;text-align:center;cursor:pointer" onclick="cmMedMostrarFaseRTP(' + rtp.phase + ',\'' + injuryId + '\')" title="' + rtp.name + '">' +
+            '<div style="height:8px;border-radius:4px;background:' + bgColor + ';opacity:' + opacity + ';border:' + border + ';margin-bottom:4px"></div>' +
+            '<div style="font-size:10px;color:' + (isCurrent ? rtp.color : '#64748b') + ';font-weight:' + (isCurrent ? '700' : '400') + '">' + rtp.phase + '</div>' +
+        '</div>';
+    });
+    html += '</div>';
+
+    // Detalle de fase actual
+    if (currentPhase >= 1 && currentPhase <= 6) {
+        var currentRTP = CM_RTP_PHASES[currentPhase - 1];
+        var currentData = phaseMap[currentPhase];
+
+        html += '<div style="background:#0f172a;border-radius:8px;padding:12px;margin-bottom:12px;border-left:4px solid ' + currentRTP.color + '">' +
+            '<div style="color:' + currentRTP.color + ';font-weight:700;font-size:14px;margin-bottom:4px">Fase ' + currentPhase + ': ' + currentRTP.name + '</div>' +
+            '<div style="color:#94a3b8;font-size:12px;margin-bottom:8px">' + currentRTP.desc + '</div>';
+
+        if (currentData) {
+            var inicio = new Date(currentData.started_at + 'T12:00:00').toLocaleDateString('es-ES');
+            html += '<div style="color:#64748b;font-size:11px">Iniciada: ' + inicio + '</div>';
+            if (currentData.notes) html += '<div style="color:#94a3b8;font-size:12px;margin-top:4px">' + currentData.notes + '</div>';
+        }
+
+        html += '</div>';
+    }
+
+    // Botones de accion
+    if (currentPhase === 0) {
+        html += '<button class="cmmed-btn cmmed-btn-primary cmmed-btn-sm" onclick="cmMedIniciarRTP(\'' + injuryId + '\')">Iniciar protocolo RTP</button>';
+    } else if (currentPhase <= 6) {
+        html += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
+        if (currentPhase > 1) {
+            html += '<button class="cmmed-btn cmmed-btn-danger cmmed-btn-sm" onclick="cmMedRetrocederRTP(\'' + injuryId + '\',' + currentPhase + ')">Retroceder fase</button>';
+        }
+        if (currentPhase <= 6) {
+            var btnLabel = currentPhase === 6 ? 'Completar protocolo' : 'Avanzar a fase ' + (currentPhase + 1);
+            html += '<button class="cmmed-btn cmmed-btn-success cmmed-btn-sm" onclick="cmMedAvanzarRTP(\'' + injuryId + '\',' + currentPhase + ')">' + btnLabel + '</button>';
+        }
+        html += '</div>';
+    }
+
+    // Historial de fases completadas
+    var completadas = phases.filter(function(p) { return p.completed_at; });
+    if (completadas.length > 0) {
+        html += '<div style="margin-top:14px;padding-top:12px;border-top:1px solid #334155">' +
+            '<div style="color:#94a3b8;font-size:11px;font-weight:600;text-transform:uppercase;margin-bottom:8px">Historial de fases</div>';
+        completadas.forEach(function(p) {
+            var phaseInfo = CM_RTP_PHASES[p.phase - 1];
+            var inicio = new Date(p.started_at + 'T12:00:00').toLocaleDateString('es-ES');
+            var fin = new Date(p.completed_at + 'T12:00:00').toLocaleDateString('es-ES');
+            var dias = Math.round((new Date(p.completed_at) - new Date(p.started_at)) / 86400000);
+            html += '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px">' +
+                '<div style="width:8px;height:8px;border-radius:50%;background:' + phaseInfo.color + ';flex-shrink:0"></div>' +
+                '<span style="color:#e2e8f0;font-weight:500">Fase ' + p.phase + '</span>' +
+                '<span style="color:#64748b">' + inicio + ' → ' + fin + ' (' + dias + 'd)</span>' +
+                (p.notes ? '<span style="color:#94a3b8"> · ' + p.notes + '</span>' : '') +
+            '</div>';
+        });
+        html += '</div>';
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+async function cmMedIniciarRTP(injuryId) {
+    var hoy = new Date().toISOString().split('T')[0];
+    var res = await supabaseClient.from('cm_med_rtp').insert({
+        club_id: clubId, injury_id: injuryId, player_id: cmMedJugadorActual,
+        phase: 1, started_at: hoy, conducted_by: usuario ? usuario.id : null
+    });
+    if (res.error) { showToast('Error: ' + res.error.message, 'error'); return; }
+    showToast('Protocolo RTP iniciado - Fase 1: Reposo');
+    cmMedRegistrarAudit('INSERT', 'cm_med_rtp', injuryId, 'Inicio protocolo RTP');
+
+    // Actualizar estado de lesion a recovering
+    await supabaseClient.from('cm_med_injuries').update({ status: 'recovering' }).eq('id', injuryId);
+    await cmMedCambiarDisponibilidad(cmMedJugadorActual, 'red', null);
+
+    var playerData = cmMedJugadoresData.find(function(j) { return j.playerId === cmMedJugadorActual; });
+    if (playerData) cmMedNotificar('availability', playerData.name + ': Inicio RTP Fase 1', 'Reposo - Protocolo Return-to-Play iniciado', playerData.name, 'injury', injuryId);
+
+    cmMedCargarRTP(injuryId);
+}
+
+async function cmMedAvanzarRTP(injuryId, currentPhase) {
+    var notas = prompt('Notas de la transicion (opcional):') || '';
+    var hoy = new Date().toISOString().split('T')[0];
+
+    // Completar fase actual
+    await supabaseClient.from('cm_med_rtp')
+        .update({ completed_at: hoy, notes: notas || null })
+        .eq('injury_id', injuryId).eq('phase', currentPhase).is('completed_at', null);
+
+    var nextPhase = currentPhase + 1;
+
+    if (nextPhase <= 6) {
+        // Crear siguiente fase
+        await supabaseClient.from('cm_med_rtp').insert({
+            club_id: clubId, injury_id: injuryId, player_id: cmMedJugadorActual,
+            phase: nextPhase, started_at: hoy, conducted_by: usuario ? usuario.id : null
+        });
+
+        var phaseInfo = CM_RTP_PHASES[nextPhase - 1];
+        showToast('Avanzado a Fase ' + nextPhase + ': ' + phaseInfo.name);
+
+        // Actualizar semaforo segun fase
+        await cmMedCambiarDisponibilidad(cmMedJugadorActual, phaseInfo.semaforo, null);
+
+        // Actualizar estado lesion
+        var injStatus = nextPhase >= 5 ? 'rtp' : 'recovering';
+        await supabaseClient.from('cm_med_injuries').update({ status: injStatus }).eq('id', injuryId);
+
+        // Notificar
+        var playerData = cmMedJugadoresData.find(function(j) { return j.playerId === cmMedJugadorActual; });
+        if (playerData) cmMedNotificar('availability', playerData.name + ': RTP Fase ' + nextPhase, phaseInfo.name + ' - ' + phaseInfo.desc, playerData.name, 'injury', injuryId);
+    } else {
+        // Protocolo completado = alta
+        showToast('Protocolo RTP completado - Jugador disponible');
+        await supabaseClient.from('cm_med_injuries').update({
+            status: 'discharged',
+            discharge_date: hoy,
+            actual_days_lost: Math.round((new Date() - new Date(hoy)) / 86400000)
+        }).eq('id', injuryId);
+        await cmMedCambiarDisponibilidad(cmMedJugadorActual, 'green', null);
+
+        var playerData = cmMedJugadoresData.find(function(j) { return j.playerId === cmMedJugadorActual; });
+        if (playerData) cmMedNotificar('discharge', playerData.name + ': RTP Completado', 'Protocolo Return-to-Play finalizado. Jugador disponible para competicion.', playerData.name, 'injury', injuryId);
+    }
+
+    cmMedRegistrarAudit('UPDATE', 'cm_med_rtp', injuryId, 'RTP avanzado a fase ' + nextPhase);
+    cmMedCargarRTP(injuryId);
+}
+
+async function cmMedRetrocederRTP(injuryId, currentPhase) {
+    var motivo = prompt('Motivo del retroceso:');
+    if (!motivo) { showToast('Debes indicar el motivo', 'error'); return; }
+
+    var hoy = new Date().toISOString().split('T')[0];
+
+    // Eliminar fase actual (no completada)
+    await supabaseClient.from('cm_med_rtp')
+        .delete().eq('injury_id', injuryId).eq('phase', currentPhase).is('completed_at', null);
+
+    // Reabrir fase anterior
+    var prevPhase = currentPhase - 1;
+    await supabaseClient.from('cm_med_rtp')
+        .update({ completed_at: null, notes: 'Retroceso: ' + motivo })
+        .eq('injury_id', injuryId).eq('phase', prevPhase);
+
+    var phaseInfo = CM_RTP_PHASES[prevPhase - 1];
+    showToast('Retrocedido a Fase ' + prevPhase + ': ' + phaseInfo.name);
+    await cmMedCambiarDisponibilidad(cmMedJugadorActual, phaseInfo.semaforo, null);
+
+    var playerData = cmMedJugadoresData.find(function(j) { return j.playerId === cmMedJugadorActual; });
+    if (playerData) cmMedNotificar('availability', playerData.name + ': Retroceso RTP a Fase ' + prevPhase, motivo, playerData.name, 'injury', injuryId);
+
+    cmMedRegistrarAudit('UPDATE', 'cm_med_rtp', injuryId, 'RTP retrocedido a fase ' + prevPhase + ': ' + motivo);
+    cmMedCargarRTP(injuryId);
+}
+
+function cmMedMostrarFaseRTP(phase, injuryId) {
+    var phaseInfo = CM_RTP_PHASES[phase - 1];
+    var criterios = '';
+    if (phase === 1) criterios = 'Sin dolor en reposo, inflamacion controlada';
+    if (phase === 2) criterios = 'Sin dolor al caminar, ROM funcional basico';
+    if (phase === 3) criterios = 'Sin dolor en carrera recta, fuerza >70% lado sano';
+    if (phase === 4) criterios = 'Sin dolor en cambios de direccion, fuerza >80%, test funcional OK';
+    if (phase === 5) criterios = 'Entrenamiento completo sin molestias 3 sesiones consecutivas';
+    if (phase === 6) criterios = 'Aprobacion medica final, test de rendimiento >90%, sin miedo/ansiedad';
+
+    showToast('Fase ' + phase + ': ' + phaseInfo.name + ' | Criterios: ' + criterios);
 }
  // ========== CUESTIONARIO OSTRC ==========
 function cmMedMostrarFormOSTRC(injuryId) {
